@@ -1,0 +1,86 @@
+/* ==============================================================
+   NEXUS WMS - Style dùng chung cho module Kho
+   Màu lấy theo bảng màu của admin/assets/css/admin.css
+   ============================================================== */
+
+/* Giữ khung chính co lại được, để bảng tự cuộn thay vì đẩy cả trang tràn ngang */
+.wmn { min-width: 0; }
+
+/* Bảng cuộn ngang trong khung */
+.wt-scroll { overflow-x: auto; }
+.wsp > *, .wtb form { min-width: 0; }
+
+/* Topbar trang Nhập hàng */
+.wbc { min-width: 0; flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; }
+.wusr { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.wusr-t { white-space: nowrap; }
+.wtb-act { display: flex; gap: 6px; margin-left: 3px; flex-shrink: 0; }
+.wloc { flex-shrink: 0; }
+
+/* Nút dạng link: vùng bấm đủ lớn */
+.wlnk {
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--blue);
+  background: none;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.wlnk:hover { background: rgba(58,86,228,.1); }
+
+/* Nút mở menu + nền mờ (chỉ hiện ở màn hẹp) */
+.w-menu-btn {
+  display: none;
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  align-items: center; justify-content: center;
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 16px;
+  cursor: pointer;
+}
+.w-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 199; }
+
+@media (max-width: 1440px) {
+  .wtb .wtb-lbl { display: none; }
+}
+
+@media (max-width: 1100px) {
+  .wloc, .wtb .wntf { display: none; }
+}
+
+@media (max-width: 768px) {
+  .w-menu-btn { display: flex; }
+  .wsb {
+    position: fixed !important;
+    left: 0; top: 0;
+    height: 100vh !important;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+  }
+  .wsb.open { transform: none; }
+  .wsb.open + .w-backdrop { display: block; }
+  .wbc, .wusr-t, .wtb-act .wb-out { display: none; }
+  .wtb form { display: none !important; }
+  .wtb .wusr { margin-left: auto; }
+  .wph { flex-direction: column; }
+  .wkg { grid-template-columns: minmax(0,1fr) !important; }
+  .wct { padding: 12px !important; }
+  #wmsToast { left: 16px; right: 16px !important; }
+}
+
+/* Ô nhập nằm trong khung: vùng bấm tối thiểu 24px */
+.wsti input, .wfi input { min-height: 24px; }
+
+/* Icon SVG (hàm icon() trong config.php) */
+.ico { display: block; flex-shrink: 0; }
+.wsti, .wsti input { min-width: 0; }
+
+/* Logo ở đầu sidebar */
+.wlogo-a { display: flex; flex-direction: column; gap: 4px; text-decoration: none; }

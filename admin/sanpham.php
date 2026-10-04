@@ -4,6 +4,7 @@
 // ================================================================
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/storage.php';
 requireRole(['Admin']);
 
 $pageTitle = 'Quản lý Sản phẩm';
@@ -104,12 +105,12 @@ include __DIR__ . '/includes/header.php';
       <!-- Header -->
       <div class="page-header">
         <div class="page-header-left">
-          <h1>💻 Quản lý Sản phẩm</h1>
+          <h1>Quản lý Sản phẩm</h1>
           <p>Tổng cộng <strong style="color:var(--blue-light)"><?= formatNum($total) ?></strong> sản phẩm<?= $search ? ' khớp "'.e($search).'"' : '' ?></p>
         </div>
         <div class="page-header-right">
           <a href="sanpham_them.php" class="btn btn-primary">＋ Thêm sản phẩm</a>
-          <button class="btn btn-outline" onclick="exportTableCSV('spTable','sanpham')">📥 Xuất CSV</button>
+          <button class="btn btn-outline" onclick="exportTableCSV('spTable','sanpham')">Xuất CSV</button>
         </div>
       </div>
 
@@ -123,7 +124,7 @@ include __DIR__ . '/includes/header.php';
       <div class="filter-bar">
         <form method="GET" action="" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:280px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm tên hoặc mã sản phẩm..." />
           </div>
           <select name="maloai" class="form-control" style="width:180px">
@@ -148,7 +149,7 @@ include __DIR__ . '/includes/header.php';
             <option value="HetHang" <?= $trangthai==='HetHang' ? 'selected' : '' ?>>Hết Hàng</option>
             <option value="NgungBan" <?= $trangthai==='NgungBan' ? 'selected' : '' ?>>Ngừng Bán</option>
           </select>
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="sanpham.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -176,9 +177,13 @@ include __DIR__ . '/includes/header.php';
                 <td style="color:var(--text-muted);font-size:12px"><?= $offset + $i + 1 ?></td>
                 <td>
                   <div style="display:flex;align-items:center;gap:10px">
-                    <div style="width:42px;height:42px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
-                      <?= strpos($sp['TENLOAI'],'Laptop')!==false ? '💻' : (strpos($sp['TENLOAI'],'PC')!==false ? '🖥️' : (strpos($sp['TENLOAI'],'Màn')!==false ? '🖥' : '🖱️')) ?>
-                    </div>
+                    <label class="sp-thumb" title="Bấm để tải ảnh lên">
+                      <?php if (!empty($sp['ANH_CHINH'])): ?>
+                        <img src="<?= e(storageUrl($sp['ANH_CHINH'])) ?>" alt="" loading="lazy" onerror="this.remove()">
+                      <?php endif; ?>
+                      <?= icon('laptop', 18) ?>
+                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-masp="<?= e($sp['MASP']) ?>" onchange="uploadAnhSP(this)">
+                    </label>
                     <div>
                       <div style="font-weight:600;font-size:13px;color:var(--text-primary)"><?= e($sp['TENSP']) ?></div>
                       <div style="font-size:11px;color:var(--text-muted)">
@@ -190,7 +195,7 @@ include __DIR__ . '/includes/header.php';
                   </div>
                 </td>
                 <td style="font-size:13px">
-                  <span style="background:rgba(79,110,247,0.1);color:var(--blue-light);padding:2px 8px;border-radius:6px;font-size:12px">
+                  <span style="background:rgba(58,86,228,0.1);color:var(--blue-light);padding:2px 8px;border-radius:6px;font-size:12px">
                     <?= e($sp['TENLOAI'] ?? '—') ?>
                   </span>
                 </td>
@@ -209,15 +214,15 @@ include __DIR__ . '/includes/header.php';
                 <td style="font-size:12px;color:var(--text-secondary)"><?= date('d/m/Y', strtotime($sp['NGAYTHEM'])) ?></td>
                 <td>
                   <div style="display:flex;gap:6px;align-items:center">
-                    <a href="sanpham_sua.php?masp=<?= e($sp['MASP']) ?>" class="btn-icon" title="Sửa">✏️</a>
+                    <a href="sanpham_sua.php?masp=<?= e($sp['MASP']) ?>" class="btn-icon" title="Sửa"><?= icon('pencil', 15) ?></a>
                     <a href="sanpham.php?action=toggle&masp=<?= e($sp['MASP']) ?>"
-                       class="btn-icon" title="<?= $sp['TRANGTHAI']==='DangBan' ? 'Ngừng bán' : 'Bật bán' ?>"
+                       class="btn-icon" title="<?= $sp['TRANGTHAI']==='DangBan' ? 'Ngừng bán' : 'Bật bán' ?>" aria-label="<?= $sp['TRANGTHAI']==='DangBan' ? 'Ngừng bán' : 'Bật bán' ?>" aria-label="<?= $sp['TRANGTHAI']==='DangBan' ? 'Ngừng bán' : 'Bật bán' ?>"
                        onclick="return confirm('Thay đổi trạng thái sản phẩm?')">
-                       <?= $sp['TRANGTHAI']==='DangBan' ? '🔴' : '🟢' ?>
+                       <?= $sp['TRANGTHAI']==='DangBan' ? icon('pause', 15) : icon('play', 15) ?>
                     </a>
                     <a href="sanpham.php?action=delete&masp=<?= e($sp['MASP']) ?>"
-                       class="btn-icon" title="Xóa" style="border-color:rgba(239,68,68,0.3)"
-                       onclick="return confirm('Xóa sản phẩm <?= e(addslashes($sp['TENSP'])) ?>?')">🗑️</a>
+                       class="btn-icon" title="Xóa" style="border-color:rgba(200,30,30,0.3)"
+                       onclick="return confirm('Xóa sản phẩm <?= e(addslashes($sp['TENSP'])) ?>?')"><?= icon('trash', 15) ?></a>
                   </div>
                 </td>
               </tr>
@@ -225,7 +230,7 @@ include __DIR__ . '/includes/header.php';
               <?php if(empty($sanpham)): ?>
               <tr><td colspan="9">
                 <div class="empty-state">
-                  <div class="empty-icon">💻</div>
+                  <div class="empty-icon"><?= icon('laptop') ?></div>
                   <p>Không tìm thấy sản phẩm nào</p>
                 </div>
               </td></tr>
@@ -257,3 +262,28 @@ include __DIR__ . '/includes/header.php';
   </div>
 </div>
 <?php include __DIR__ . '/includes/footer.php'; ?>
+<script>
+// Tải ảnh sản phẩm lên MinIO, xong thì thay ảnh trong ô ngay tại chỗ
+function uploadAnhSP(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const box = input.closest('.sp-thumb');
+  const fd = new FormData();
+  fd.append('masp', input.dataset.masp);
+  fd.append('anh', file);
+  box.classList.add('is-loading');
+  fetch('<?= ADMIN_URL ?>/api/upload_anh.php', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => {
+      if (!d.success) { showToast(d.error || 'Tải ảnh thất bại', 'error'); return; }
+      if (d.la_chinh) {
+        let img = box.querySelector('img');
+        if (!img) { img = document.createElement('img'); img.alt = ''; box.prepend(img); }
+        img.src = d.url;
+      }
+      showToast('Đã tải ảnh lên', 'success');
+    })
+    .catch(() => showToast('Không kết nối được máy chủ', 'error'))
+    .finally(() => { box.classList.remove('is-loading'); input.value = ''; });
+}
+</script>

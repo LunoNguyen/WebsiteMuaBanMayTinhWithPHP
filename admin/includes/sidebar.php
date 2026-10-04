@@ -6,11 +6,10 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
 <aside class="sidebar" id="sidebar">
   <!-- Logo -->
   <div class="sidebar-logo">
-    <div class="logo-icon">N</div>
-    <div class="logo-text">
-      <strong>NEXUS</strong>
+    <a href="<?= ADMIN_URL ?>/index.php" class="logo-text" title="Về trang tổng quan">
+      <?= themeLogo(40) ?>
       <span>ADMIN PORTAL</span>
-    </div>
+    </a>
     <span class="sidebar-badge">v2.0</span>
   </div>
 
@@ -28,27 +27,27 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
   <nav class="sidebar-nav">
     <div class="nav-section-label">Tổng Quan</div>
     <a href="<?= ADMIN_URL ?>/index.php" class="nav-item <?= ($currentPage === 'index') ? 'active' : '' ?>">
-      <span class="nav-icon">📊</span> Tổng quan
+      <span class="nav-icon"><?= icon('dashboard') ?></span> Tổng quan
     </a>
 
     <div class="nav-section-label">Quản Lý</div>
     <a href="<?= ADMIN_URL ?>/nhanvien.php" class="nav-item <?= ($currentPage === 'nhanvien') ? 'active' : '' ?>">
-      <span class="nav-icon">👥</span> Quản lý Nhân viên
+      <span class="nav-icon"><?= icon('users') ?></span> Quản lý Nhân viên
     </a>
     <a href="<?= ADMIN_URL ?>/taikhoan.php" class="nav-item <?= ($currentPage === 'taikhoan') ? 'active' : '' ?>">
-      <span class="nav-icon">🔑</span> Quản lý Tài khoản
+      <span class="nav-icon"><?= icon('key') ?></span> Quản lý Tài khoản
     </a>
     <a href="<?= ADMIN_URL ?>/sanpham.php" class="nav-item <?= ($currentPage === 'sanpham') ? 'active' : '' ?>">
-      <span class="nav-icon">💻</span> Quản lý Sản phẩm
+      <span class="nav-icon"><?= icon('laptop') ?></span> Quản lý Sản phẩm
     </a>
     <a href="<?= ADMIN_URL ?>/nhaphang.php" class="nav-item <?= ($currentPage === 'nhaphang') ? 'active' : '' ?>">
-      <span class="nav-icon">📦</span> Quản lý Nhập hàng
+      <span class="nav-icon"><?= icon('package') ?></span> Quản lý Nhập hàng
     </a>
     <a href="<?= ADMIN_URL ?>/khuyenmai.php" class="nav-item <?= ($currentPage === 'khuyenmai') ? 'active' : '' ?>">
-      <span class="nav-icon">🎁</span> Voucher &amp; Khuyến mãi
+      <span class="nav-icon"><?= icon('tag') ?></span> Voucher &amp; Khuyến mãi
     </a>
     <a href="<?= ADMIN_URL ?>/donhang.php" class="nav-item <?= ($currentPage === 'donhang') ? 'active' : '' ?>">
-      <span class="nav-icon">🛒</span> Quản lý Đơn hàng
+      <span class="nav-icon"><?= icon('cart') ?></span> Quản lý Đơn hàng
       <?php
         // Đếm đơn hàng chờ xác nhận
         try {
@@ -60,22 +59,23 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
       ?>
     </a>
     <a href="<?= ADMIN_URL ?>/khachhang.php" class="nav-item <?= ($currentPage === 'khachhang') ? 'active' : '' ?>">
-      <span class="nav-icon">👤</span> Quản lý Khách hàng
+      <span class="nav-icon"><?= icon('user') ?></span> Quản lý Khách hàng
     </a>
 
     <div class="nav-section-label">Hệ Thống</div>
     <a href="<?= ADMIN_URL ?>/chatbot.php" class="nav-item <?= ($currentPage === 'chatbot') ? 'active' : '' ?>">
-      <span class="nav-icon">🤖</span> Lịch sử Chatbot
+      <span class="nav-icon"><?= icon('bot') ?></span> Lịch sử Chatbot
     </a>
     <a href="<?= ADMIN_URL ?>/baocao.php" class="nav-item <?= ($currentPage === 'baocao') ? 'active' : '' ?>">
-      <span class="nav-icon">📈</span> Báo cáo & Thống kê
+      <span class="nav-icon"><?= icon('chart') ?></span> Báo cáo & Thống kê
     </a>
   </nav>
 
   <!-- Footer -->
   <div class="sidebar-footer">
     <a href="<?= BASE_URL ?>/auth/logout.php" class="nav-item" style="color:var(--red)">
-      <span class="nav-icon">🚪</span> Đăng xuất
+      <span class="nav-icon"><?= icon('logout') ?></span> Đăng xuất
     </a>
   </div>
 </aside>
+<div class="sidebar-backdrop" onclick="toggleSidebar()"></div>

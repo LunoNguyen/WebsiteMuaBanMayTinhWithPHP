@@ -52,7 +52,7 @@ $nhanvien = dbFetch("SELECT nv.*, cv.TENCV,
 $chucvuList = dbFetch("SELECT * FROM CHUCVU ORDER BY MACV");
 
 // Avatar colors
-$avatarColors = ['#4f6ef7','#22c55e','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#ef4444'];
+$avatarColors = ['#3a56e4','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#c81e1e'];
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -64,24 +64,24 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>👥 Quản lý Nhân viên</h1>
+          <h1>Quản lý Nhân viên</h1>
           <p>Tổng <strong style="color:var(--blue-light)"><?= formatNum($total) ?></strong> nhân viên</p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-outline" onclick="exportTableCSV('nvTable','nhanvien')">📥 Xuất CSV</button>
+          <button class="btn btn-outline" onclick="exportTableCSV('nvTable','nhanvien')">Xuất CSV</button>
           <a href="nhanvien_them.php" class="btn btn-primary">＋ Thêm nhân viên</a>
         </div>
       </div>
 
       <?php if($msg): ?>
-      <div class="alert alert-success" data-dismiss>✅ <?= e($msg) ?></div>
+      <div class="alert alert-success" data-dismiss><?= icon('check') ?> <?= e($msg) ?></div>
       <?php endif; ?>
 
       <!-- Filter -->
       <div class="filter-bar">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:260px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm tên, mã, email nhân viên..." />
           </div>
           <select name="macv" class="form-control" style="width:200px">
@@ -92,7 +92,7 @@ include __DIR__ . '/includes/header.php';
             </option>
             <?php endforeach; ?>
           </select>
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="nhanvien.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -109,7 +109,7 @@ include __DIR__ . '/includes/header.php';
           <div class="card-body" style="padding:20px">
             <div style="display:flex;align-items:flex-start;gap:12px">
               <!-- Avatar -->
-              <div style="width:52px;height:52px;border-radius:50%;background:<?= $color ?>;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white;flex-shrink:0;box-shadow:0 4px 12px <?= $color ?>44">
+              <div style="width:52px;height:52px;border-radius:50%;background:<?= $color ?>;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white;flex-shrink:0;">
                 <?= e($initials) ?>
               </div>
               <div style="flex:1;min-width:0">
@@ -117,7 +117,7 @@ include __DIR__ . '/includes/header.php';
                 <div style="font-size:12px;color:var(--text-muted);margin-top:2px">
                   <code style="background:var(--bg-main);padding:1px 5px;border-radius:3px;font-size:11px"><?= e($nv['MANV']) ?></code>
                 </div>
-                <span style="background:rgba(79,110,247,0.1);color:var(--blue-light);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-top:4px;display:inline-block">
+                <span style="background:rgba(58,86,228,0.1);color:var(--blue-light);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-top:4px;display:inline-block">
                   <?= e($nv['TENCV'] ?? '—') ?>
                 </span>
               </div>
@@ -134,17 +134,17 @@ include __DIR__ . '/includes/header.php';
             <div style="margin-top:16px;display:flex;flex-direction:column;gap:6px">
               <?php if($nv['SDT_NV']): ?>
               <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
-                <span>📞</span> <span><?= e($nv['SDT_NV']) ?></span>
+                <span><?= icon('phone') ?></span> <span><?= e($nv['SDT_NV']) ?></span>
               </div>
               <?php endif; ?>
               <?php if($nv['EMAIL_NV']): ?>
               <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
-                <span>📧</span> <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= e($nv['EMAIL_NV']) ?></span>
+                <span><?= icon('mail') ?></span> <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= e($nv['EMAIL_NV']) ?></span>
               </div>
               <?php endif; ?>
               <?php if($nv['NGAYVAOLAM']): ?>
               <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
-                <span>📅</span> <span>Vào làm: <?= date('d/m/Y', strtotime($nv['NGAYVAOLAM'])) ?></span>
+                <span><?= icon('calendar') ?></span> <span>Vào làm: <?= date('d/m/Y', strtotime($nv['NGAYVAOLAM'])) ?></span>
               </div>
               <?php endif; ?>
             </div>
@@ -154,8 +154,8 @@ include __DIR__ . '/includes/header.php';
                 <?= $nv['so_hd'] ?? 0 ?> đơn hàng đã xử lý
               </span>
               <div style="display:flex;gap:6px">
-                <a href="nhanvien_sua.php?manv=<?= e($nv['MANV']) ?>" class="btn-icon" title="Sửa">✏️</a>
-                <a href="taikhoan.php?manv=<?= e($nv['MANV']) ?>" class="btn-icon" title="Tài khoản">🔑</a>
+                <a href="nhanvien_sua.php?manv=<?= e($nv['MANV']) ?>" class="btn-icon" title="Sửa"><?= icon('pencil', 15) ?></a>
+                <a href="taikhoan.php?manv=<?= e($nv['MANV']) ?>" class="btn-icon" title="Tài khoản"><?= icon('key', 15) ?></a>
               </div>
             </div>
           </div>
@@ -163,7 +163,7 @@ include __DIR__ . '/includes/header.php';
         <?php endforeach; ?>
         <?php if(empty($nhanvien)): ?>
         <div style="grid-column:1/-1">
-          <div class="empty-state"><div class="empty-icon">👥</div><p>Không tìm thấy nhân viên nào</p></div>
+          <div class="empty-state"><div class="empty-icon"><?= icon('users') ?></div><p>Không tìm thấy nhân viên nào</p></div>
         </div>
         <?php endif; ?>
       </div>

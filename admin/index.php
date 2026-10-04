@@ -133,7 +133,7 @@ $chartDon = array_column($dtThang, 'so_don');
 $tongDoanhThu = array_sum(array_column($coSua, 'tong_tien')) ?: 1;
 
 // Màu cho từng loại trong donut chart
-$donutColors = ['#4f6ef7','#22c55e','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#ef4444'];
+$donutColors = ['#3a56e4','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#c81e1e'];
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -155,14 +155,14 @@ include __DIR__ . '/includes/header.php';
         </div>
         <div class="page-header-right">
           <div class="date-chip">
-            <span>📅</span>
+            <span><?= icon('calendar') ?></span>
             Tháng <?= date('m/Y') ?>
           </div>
           <a href="baocao.php" class="btn btn-outline">
-            <span>📊</span> Báo cáo đầy đủ
+            <span><?= icon('chart') ?></span> Báo cáo đầy đủ
           </a>
           <button class="btn btn-primary" onclick="exportTableCSV('activityTable','hoatdong_<?= date('Ymd') ?>')">
-            <span>📥</span> Xuất báo cáo PDF
+            <span><?= icon('download') ?></span> Xuất báo cáo PDF
           </button>
         </div>
       </div>
@@ -172,12 +172,12 @@ include __DIR__ . '/includes/header.php';
            ====================================================== -->
       <div class="stats-grid">
         <!-- Doanh thu -->
-        <div class="stat-card" style="--accent-color:#4f6ef7">
+        <div class="stat-card" style="--accent-color:#3a56e4">
           <div class="stat-card-top">
             <span class="stat-card-label">Tổng doanh thu (HĐ)</span>
-            <div class="stat-card-icon" style="color:#4f6ef7">💰</div>
+            <div class="stat-card-icon" style="color:var(--blue)"><?= icon('wallet') ?></div>
           </div>
-          <div class="stat-card-value" style="font-size:20px;color:#4f6ef7">
+          <div class="stat-card-value" style="font-size:20px;color:var(--blue)">
             <?= formatVND($kpiDT['tong_dt'] ?? 0) ?>
           </div>
           <div class="stat-card-sub">
@@ -187,48 +187,48 @@ include __DIR__ . '/includes/header.php';
         </div>
 
         <!-- Sản phẩm đang bán -->
-        <div class="stat-card" style="--accent-color:#22c55e">
+        <div class="stat-card" style="--accent-color:#15803d">
           <div class="stat-card-top">
             <span class="stat-card-label">Sản phẩm đang bán</span>
-            <div class="stat-card-icon" style="color:#22c55e">💻</div>
+            <div class="stat-card-icon" style="color:var(--green)"><?= icon('laptop') ?></div>
           </div>
-          <div class="stat-card-value" style="color:#22c55e">
+          <div class="stat-card-value" style="color:var(--green)">
             <span data-count="<?= $kpiSP['cnt'] ?? 0 ?>" data-suffix=" SP">0 SP</span>
           </div>
           <div class="stat-card-sub">
             10 danh mục sản phẩm &bull;
-            <strong style="color:#4f6ef7"><?= $donCho['cnt'] ?? 0 ?></strong> đơn chờ duyệt
+            <strong style="color:var(--blue)"><?= $donCho['cnt'] ?? 0 ?></strong> đơn chờ duyệt
           </div>
         </div>
 
         <!-- Khách hàng -->
-        <div class="stat-card" style="--accent-color:#8b5cf6">
+        <div class="stat-card" style="--accent-color:#6d28d9">
           <div class="stat-card-top">
             <span class="stat-card-label">Khách hàng</span>
-            <div class="stat-card-icon" style="color:#8b5cf6">👤</div>
+            <div class="stat-card-icon" style="color:var(--purple)"><?= icon('user') ?></div>
           </div>
-          <div class="stat-card-value" style="color:#8b5cf6">
+          <div class="stat-card-value" style="color:var(--purple)">
             <span data-count="<?= $kpiKH['cnt'] ?? 0 ?>">0</span>
           </div>
           <div class="stat-card-sub">
             <span class="stat-card-trend trend-up">▲ +3 KH</span>
             tháng này &bull;
-            <strong style="color:#22c55e"><?= $kpiTK['cnt'] ?? 0 ?></strong> tài khoản
+            <strong style="color:var(--green)"><?= $kpiTK['cnt'] ?? 0 ?></strong> tài khoản
           </div>
         </div>
 
         <!-- Nhân viên -->
-        <div class="stat-card" style="--accent-color:#f59e0b">
+        <div class="stat-card" style="--accent-color:#b45309">
           <div class="stat-card-top">
             <span class="stat-card-label">Nhân viên hoạt động</span>
-            <div class="stat-card-icon" style="color:#f59e0b">👨‍💼</div>
+            <div class="stat-card-icon" style="color:var(--orange)">‍💼</div>
           </div>
-          <div class="stat-card-value" style="color:#f59e0b">
+          <div class="stat-card-value" style="color:var(--orange)">
             <span data-count="<?= $kpiNV['cnt'] ?? 0 ?>">0</span>
           </div>
           <div class="stat-card-sub">
             <span data-count="<?= $donGiao['cnt'] ?? 0 ?>">0</span> đơn đang giao &bull;
-            <strong style="color:#22c55e">100%</strong> hoạt động
+            <strong style="color:var(--green)">100%</strong> hoạt động
           </div>
         </div>
       </div>
@@ -241,12 +241,12 @@ include __DIR__ . '/includes/header.php';
         <div class="card">
           <div class="card-header">
             <div>
-              <h3>📈 Doanh thu &amp; Tăng trưởng 6 Tháng</h3>
+              <h3>Doanh thu &amp; Tăng trưởng 6 Tháng</h3>
               <p style="font-size:12px;color:var(--text-muted);margin-top:3px">Giai đoạn từ tháng <?= count($dtThang) ? $chartLabels[0] : '—' ?> đến <?= count($dtThang) ? end($chartLabels) : '—' ?></p>
             </div>
             <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted)">
-              <span style="color:#4f6ef7">■</span> Doanh thu
-              <span style="color:#22c55e">■</span> Số đơn/người
+              <span style="color:var(--blue)">■</span> Doanh thu
+              <span style="color:var(--green)">■</span> Số đơn/người
             </div>
           </div>
           <div class="card-body">
@@ -259,7 +259,7 @@ include __DIR__ . '/includes/header.php';
         <!-- Cơ cấu doanh số - Donut -->
         <div class="card">
           <div class="card-header">
-            <h3>🍩 Cơ cấu Doanh số</h3>
+            <h3>Cơ cấu Doanh số</h3>
             <a href="baocao.php" style="font-size:12px;color:var(--blue-light)">Xem chi tiết ›</a>
           </div>
           <div class="card-body">
@@ -293,12 +293,12 @@ include __DIR__ . '/includes/header.php';
         <div class="card">
           <div class="card-header">
             <div>
-              <h3>⚠️ Cảnh báo Tồn kho &amp; Đề xuất Nhập</h3>
+              <h3>Cảnh báo Tồn kho &amp; Đề xuất Nhập</h3>
               <p style="font-size:12px;color:var(--text-muted);margin-top:2px">Thấp hơn mức tối thiểu 20 cái</p>
             </div>
             <div style="display:flex;gap:8px;align-items:center">
-              <span style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
-                🚨 <?= count($tonKhoThap) ?> mặt hàng
+              <span style="background:rgba(200,30,30,0.1);color:var(--red);border:1px solid rgba(200,30,30,0.3);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                <?= count($tonKhoThap) ?> mặt hàng
               </span>
               <a href="sanpham.php?filter=low_stock" class="btn btn-sm btn-outline">Xem tất cả kho</a>
             </div>
@@ -328,7 +328,7 @@ include __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
             <?php if(empty($tonKhoThap)): ?>
             <div class="empty-state" style="padding:24px">
-              <div class="empty-icon">✅</div>
+              <div class="empty-icon"><?= icon('check') ?></div>
               <p>Tất cả sản phẩm còn đủ hàng</p>
             </div>
             <?php endif; ?>
@@ -336,7 +336,7 @@ include __DIR__ . '/includes/header.php';
             <?php if(!empty($tonKhoThap)): ?>
             <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
               <span style="font-size:13px;color:var(--text-secondary)">
-                🔔 Tổng giá trị nhập dự kiến:
+                Tổng giá trị nhập dự kiến:
                 <strong style="color:var(--text-primary)">
                   <?= formatVND(array_sum(array_map(fn($s) => $s['DONGIA_SP'] * max(1, 20 - $s['SOLUONGTON']), $tonKhoThap))) ?>
                 </strong>
@@ -350,7 +350,7 @@ include __DIR__ . '/includes/header.php';
         <!-- Khuyến mãi đang chạy -->
         <div class="card">
           <div class="card-header">
-            <h3>🎁 Khuyến Mãi Đang Chạy</h3>
+            <h3>Khuyến Mãi Đang Chạy</h3>
             <a href="khuyenmai.php" style="font-size:12px;color:var(--blue-light)">Thêm mới ＋</a>
           </div>
           <div class="card-body" style="padding:16px">
@@ -360,7 +360,7 @@ include __DIR__ . '/includes/header.php';
             ?>
             <div class="km-card">
               <div class="km-card-top">
-                <div class="km-icon" style="background:<?= $kmIsActive ? 'rgba(34,197,94,0.15)' : 'rgba(245,158,11,0.15)' ?>">
+                <div class="km-icon" style="background:<?= $kmIsActive ? 'rgba(21,128,61,0.15)' : 'rgba(180,83,9,0.15)' ?>">
                   <?= $km['LOAI_KM'] === 'PhanTram' ? '🏷️' : '💵' ?>
                 </div>
                 <div class="km-info">
@@ -369,13 +369,13 @@ include __DIR__ . '/includes/header.php';
                     <code style="background:var(--bg-main);padding:1px 6px;border-radius:4px;font-size:11px"><?= e($km['MA_CODE']) ?></code>
                     &nbsp;
                     <?php if($kmIsActive): ?>
-                      <span style="color:#22c55e;font-size:11px">● Hoạt động</span>
+                      <span style="color:var(--green);font-size:11px">● Hoạt động</span>
                     <?php else: ?>
-                      <span style="color:#f59e0b;font-size:11px">● Tạm dừng</span>
+                      <span style="color:var(--orange);font-size:11px">● Tạm dừng</span>
                     <?php endif; ?>
                   </div>
                 </div>
-                <div class="km-value" style="color:<?= $kmIsActive ? '#22c55e' : '#f59e0b' ?>">
+                <div class="km-value" style="color:<?= $kmIsActive ? 'var(--green)' : 'var(--orange)' ?>">
                   <?php if($km['LOAI_KM'] === 'PhanTram'): ?>
                     Giảm <?= $km['GIATRI_KM'] ?>%
                     <?php if($km['SOTIENTOIDA_KM']): ?>
@@ -394,7 +394,7 @@ include __DIR__ . '/includes/header.php';
                 <span>
                   Đã dùng: <?= $km['DA_SUDUNG'] ?>/<?= $km['SOLUONG_MA'] ?>
                   <span style="display:inline-block;width:40px;height:4px;background:var(--border);border-radius:2px;margin-left:4px;vertical-align:middle">
-                    <span style="display:block;width:<?= $pct ?>%;height:100%;background:#4f6ef7;border-radius:2px"></span>
+                    <span style="display:block;width:<?= $pct ?>%;height:100%;background:var(--blue-solid);border-radius:2px"></span>
                   </span>
                 </span>
                 <?php else: ?>
@@ -405,7 +405,7 @@ include __DIR__ . '/includes/header.php';
             <?php endforeach; ?>
             <?php if(empty($kmHoatDong)): ?>
             <div class="empty-state" style="padding:24px">
-              <div class="empty-icon">🎁</div>
+              <div class="empty-icon"><?= icon('tag') ?></div>
               <p>Chưa có khuyến mãi nào đang chạy</p>
             </div>
             <?php endif; ?>
@@ -419,13 +419,13 @@ include __DIR__ . '/includes/header.php';
       <div class="card">
         <div class="card-header">
           <div>
-            <h3>📋 Nhật ký Hoạt động &amp; Đối Soát Kiểm Toán</h3>
+            <h3>Nhật ký Hoạt động &amp; Đối Soát Kiểm Toán</h3>
             <p style="font-size:12px;color:var(--text-muted);margin-top:2px">Các hoạt động bán hàng và cập nhật hệ thống gần đây nhất</p>
           </div>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <a href="donhang.php" class="btn btn-sm btn-outline">Tất cả đơn hàng</a>
             <button class="btn btn-sm btn-outline" onclick="exportTableCSV('activityTable','nhatky')">
-              📥 Xuất CSV
+              Xuất CSV
             </button>
             <div style="display:flex;gap:4px">
               <button class="btn btn-sm btn-outline" onclick="filterActivity('all')" id="fAll" style="border-color:var(--blue);color:var(--blue-light)">Tất cả</button>
@@ -457,7 +457,7 @@ include __DIR__ . '/includes/header.php';
                 </td>
                 <td>
                   <div style="font-size:13px;color:var(--text-primary)">
-                    🛒 <strong><?= e($act['TENKH'] ?? 'Khách vãng lai') ?></strong> — Đặt hàng online
+                    <strong><?= e($act['TENKH'] ?? 'Khách vãng lai') ?></strong> — Đặt hàng online
                   </div>
                   <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
                     NV xử lý: <?= e($act['TENNV'] ?? '—') ?>
@@ -472,9 +472,9 @@ include __DIR__ . '/includes/header.php';
                 <td><?= statusBadge($act['TRANGTHAI'], 'hoadon') ?></td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="donhang.php?mahd=<?= e($act['MAHD']) ?>" class="btn-icon" title="Xem chi tiết">👁️</a>
+                    <a href="donhang.php?mahd=<?= e($act['MAHD']) ?>" class="btn-icon" title="Xem chi tiết"><?= icon('eye', 15) ?></a>
                     <?php if($act['TRANGTHAI'] === 'ChoXacNhan'): ?>
-                    <a href="donhang.php?action=xacnhan&mahd=<?= e($act['MAHD']) ?>" class="btn-icon" title="Xác nhận" style="border-color:var(--green)">✅</a>
+                    <a href="donhang.php?action=xacnhan&mahd=<?= e($act['MAHD']) ?>" class="btn-icon" title="Xác nhận" style="border-color:var(--green);color:var(--green)"><?= icon('check', 15) ?></a>
                     <?php endif; ?>
                   </div>
                 </td>
@@ -488,7 +488,7 @@ include __DIR__ . '/includes/header.php';
                 </td>
                 <td>
                   <div style="font-size:13px;color:var(--text-primary)">
-                    🏷️ Cập nhật giá sản phẩm: <strong><?= e(mb_substr($act['TENSP'], 0, 35)) ?>...</strong>
+                    Cập nhật giá sản phẩm: <strong><?= e(mb_substr($act['TENSP'], 0, 35)) ?>...</strong>
                   </div>
                   <div style="font-size:11px;color:var(--text-muted);margin-top:2px"><?= e($act['GHI_CHU']) ?></div>
                 </td>
@@ -508,7 +508,7 @@ include __DIR__ . '/includes/header.php';
                   </span>
                 </td>
                 <td>
-                  <a href="sanpham.php?masp=<?= e($act['MASP']) ?>" class="btn-icon" title="Xem sản phẩm">👁️</a>
+                  <a href="sanpham.php?masp=<?= e($act['MASP']) ?>" class="btn-icon" title="Xem sản phẩm"><?= icon('eye', 15) ?></a>
                 </td>
               </tr>
               <?php endforeach; ?>
@@ -573,8 +573,8 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
           label: 'Doanh thu (₫)',
           data: dtData,
           backgroundColor: dtData.map((v, i) => i === dtData.length - 1
-            ? 'rgba(79,110,247,0.9)'
-            : 'rgba(79,110,247,0.35)'),
+            ? 'rgba(58,86,228,0.9)'
+            : 'rgba(58,86,228,0.35)'),
           borderRadius: 6,
           borderSkipped: false,
           yAxisID: 'y',
@@ -583,11 +583,11 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
           type: 'line',
           label: 'Số đơn',
           data: donData,
-          borderColor: '#22c55e',
-          backgroundColor: 'rgba(34,197,94,0.1)',
+          borderColor: '#15803d',
+          backgroundColor: 'rgba(21,128,61,0.1)',
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#22c55e',
+          pointBackgroundColor: '#15803d',
           pointRadius: 4,
           pointHoverRadius: 7,
           yAxisID: 'y1',
@@ -602,10 +602,10 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
         legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(26,29,46,0.95)',
-          borderColor: '#2a2f4a',
+          borderColor: '#ececef',
           borderWidth: 1,
-          titleColor: '#e8eaf6',
-          bodyColor: '#8892b0',
+          titleColor: '#2c2c2c',
+          bodyColor: '#707070',
           callbacks: {
             label: ctx => ctx.dataset.label === 'Doanh thu (₫)'
               ? ' ' + new Intl.NumberFormat('vi-VN',{style:'currency',currency:'VND'}).format(ctx.raw)
@@ -614,19 +614,19 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(42,47,74,0.5)' }, ticks: { color: '#8892b0' } },
+        x: { grid: { color: '#ececef' }, ticks: { color: 'var(--text-muted)' } },
         y: {
           position: 'left',
-          grid: { color: 'rgba(42,47,74,0.5)' },
+          grid: { color: '#ececef' },
           ticks: {
-            color: '#8892b0',
+            color: 'var(--text-muted)',
             callback: v => new Intl.NumberFormat('vi-VN',{notation:'compact'}).format(v) + '₫'
           }
         },
         y1: {
           position: 'right',
           grid: { drawOnChartArea: false },
-          ticks: { color: '#22c55e', callback: v => v + ' đơn' }
+          ticks: { color: 'var(--green)', callback: v => v + ' đơn' }
         }
       }
     }
@@ -652,7 +652,7 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
       datasets: [{
         data,
         backgroundColor: colors,
-        borderColor: '#1a1d2e',
+        borderColor: '#ffffff',
         borderWidth: 3,
         hoverOffset: 6,
       }]
@@ -665,7 +665,7 @@ $jsAdminUrl    = json_encode(ADMIN_URL);
         legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(26,29,46,0.95)',
-          borderColor: '#2a2f4a',
+          borderColor: '#ececef',
           borderWidth: 1,
           callbacks: {
             label: function(ctx) { return ' ' + ctx.label + ': ' + ctx.raw + '%'; }

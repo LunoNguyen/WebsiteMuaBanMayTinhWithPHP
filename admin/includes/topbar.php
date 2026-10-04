@@ -5,6 +5,8 @@ $pageSubtitle = $pageSubtitle ?? '';
 ?>
 <!-- TOPBAR -->
 <header class="topbar">
+  <button type="button" class="topbar-btn topbar-menu-btn" onclick="toggleSidebar()" aria-label="Mở menu"><?= icon('menu', 18) ?></button>
+
   <!-- Breadcrumb -->
   <div class="topbar-breadcrumb">
     <span>Hệ thống Nexus</span>
@@ -21,7 +23,7 @@ $pageSubtitle = $pageSubtitle ?? '';
 
   <!-- Search Bar -->
   <div class="topbar-search">
-    <span class="search-icon">🔍</span>
+    <span class="search-icon"><?= icon('search', 15) ?></span>
     <input type="text" id="globalSearch" placeholder="Tìm kiếm sản phẩm, đơn hàng, khách hàng..." />
   </div>
 
@@ -33,20 +35,23 @@ $pageSubtitle = $pageSubtitle ?? '';
       <span>Hôm nay <strong id="todayDate"><?= date('d/m/Y') ?></strong></span>
     </div>
 
+    <!-- Sáng / tối -->
+    <?= themeToggle() ?>
+
     <!-- Notifications -->
     <div class="topbar-btn" onclick="toggleNotif()" title="Thông báo" id="notifBtn">
-      🔔
+      <?= icon('bell', 18) ?>
       <span class="topbar-notif-dot" id="notifDot"></span>
     </div>
 
     <!-- Settings -->
-    <a href="<?= ADMIN_URL ?>/settings.php" class="topbar-btn" title="Cài đặt">⚙️</a>
+    <a href="<?= ADMIN_URL ?>/settings.php" class="topbar-btn" title="Cài đặt"><?= icon('settings', 18) ?></a>
 
     <!-- Profile -->
     <div class="topbar-profile" onclick="window.location='<?= ADMIN_URL ?>/profile.php'">
       <div class="av">AD</div>
       <span><?= e($_SESSION['tennv'] ?? 'Administrator') ?></span>
-      <span style="color:var(--text-muted);font-size:10px">▼</span>
+      <span style="color:var(--text-muted);display:flex"><?= icon('chevron', 14) ?></span>
     </div>
   </div>
 </header>

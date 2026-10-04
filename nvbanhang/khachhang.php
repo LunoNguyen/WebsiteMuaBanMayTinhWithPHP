@@ -8,7 +8,6 @@ require_once __DIR__ . '/../config/auth.php';
 requireRole(['NhanVienBan','Admin']);
 
 $pageTitle = 'Quản lý Khách hàng';
-define('NVB_URL', BASE_URL . '/nvbanhang');
 
 $search  = trim($_GET['q'] ?? '');
 $page    = max(1, intval($_GET['page'] ?? 1));
@@ -40,19 +39,19 @@ $khachhang = dbFetch("
 $kpiTotal   = dbFetchOne("SELECT COUNT(*) AS c FROM KHACHHANG");
 $kpiMoi     = dbFetchOne("SELECT COUNT(*) AS c FROM TAIKHOAN WHERE LOAI_TAIKHOAN='KhachHang' AND MONTH(NGAYTAO)=MONTH(CURDATE()) AND YEAR(NGAYTAO)=YEAR(CURDATE())");
 $kpiVip     = dbFetchOne("SELECT COUNT(*) AS c FROM KHACHHANG kh WHERE (SELECT SUM(TONGTIEN_HD) FROM HOADON WHERE MAKH=kh.MAKH AND TRANGTHAI IN ('DaGiao','HoanThanh')) >= 50000000");
-$colors = ['#22c55e','#4f6ef7','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#ef4444'];
+$colors = ['#15803d','#3a56e4','#6d28d9','#b45309','#0e7490','#be185d','#c81e1e'];
 
 include __DIR__ . '/includes/header.php';
 ?>
 <style>
-:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--bd:#30363d;--tx:#e6edf3;--mt:#8b949e;--gr:#22c55e;--bl:#4f6ef7;}
+:root{--bg:var(--bg-main);--card:var(--bg-card);--card2:var(--bg-card-hover);--bd:var(--border);--tx:var(--text-primary);--mt:var(--text-muted);--gr:var(--green);--bl:var(--blue-solid);}
 *{box-sizing:border-box;}body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--tx);}
 .shell{display:flex;min-height:100vh;}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 .topbar{height:54px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 20px;position:sticky;top:0;z-index:50;flex-shrink:0;}
 .topbar h2{font-size:15px;font-weight:700;color:var(--tx);margin:0;}
 .tb-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
-.tb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+.tb-av{width:32px;height:32px;border-radius:50%;background:var(--green-solid);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
 .ct{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
 .ph h1{font-size:20px;font-weight:800;color:var(--tx);margin:0;}
 .ph p{font-size:12px;color:var(--mt);margin:4px 0 0;}
@@ -65,7 +64,7 @@ include __DIR__ . '/includes/header.php';
 .fbar input{flex:1;background:var(--card2);border:1px solid var(--bd);border-radius:7px;padding:7px 10px;color:var(--tx);font-size:12px;outline:none;}
 .fbar input::placeholder{color:var(--mt);}
 .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;text-decoration:none;transition:all .15s;}
-.btn-pri{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;}
+.btn-pri{background:var(--green-solid);color:#fff;}
 .btn-out{background:transparent;border:1px solid var(--bd)!important;color:var(--mt);}
 /* Grid cards */
 .cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
@@ -77,18 +76,18 @@ include __DIR__ . '/includes/header.php';
   font-weight:800;font-size:16px;color:#fff;flex-shrink:0;}
 .cc-name{font-size:14px;font-weight:700;color:var(--tx);}
 .cc-id{font-family:monospace;font-size:11px;color:var(--mt);}
-.cc-vip{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);margin-left:auto;}
+.cc-vip{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(180,83,9,.15);color:var(--orange);border:1px solid rgba(180,83,9,.3);margin-left:auto;}
 .cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:11px;}
 .ccl{color:var(--mt);margin-bottom:1px;}.ccv{font-weight:600;color:var(--tx);}
-.cc-bar{margin-top:10px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;}
-.cc-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#22c55e,#4f6ef7);}
+.cc-bar{margin-top:10px;height:3px;background:rgba(0,0,0,.04);border-radius:2px;overflow:hidden;}
+.cc-bar-fill{height:100%;border-radius:2px;background:var(--blue-solid);}
 .empty{padding:40px;text-align:center;color:var(--mt);}
 /* Pagination */
 .pg{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
 .pga{display:flex;gap:3px;}
 .pga a{width:27px;height:27px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mt);background:transparent;border:1px solid transparent;text-decoration:none;transition:all .15s;}
-.pga a:hover{background:rgba(255,255,255,.05);color:var(--tx);}
-.pga a.active{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:var(--gr);}
+.pga a:hover{background:rgba(0,0,0,.04);color:var(--tx);}
+.pga a.active{background:rgba(21,128,61,.2);border-color:rgba(21,128,61,.4);color:var(--gr);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
 </style>
 
@@ -98,9 +97,11 @@ include __DIR__ . '/includes/header.php';
 
     <!-- Topbar -->
     <div class="topbar">
-      <span style="font-size:18px">👤</span>
+      <button type="button" class="w-menu-btn" onclick="toggleNvbSidebar()" aria-label="Mở menu"><?= icon('menu', 18) ?></button>
+      <span style="display:flex;color:var(--mt)"><?= icon('user', 18) ?></span>
       <h2>Quản lý Khách hàng</h2>
       <div class="tb-right">
+        <?= themeToggle() ?>
         <div style="text-align:right">
           <div style="font-size:12px;font-weight:700;color:var(--tx)"><?= htmlspecialchars($_SESSION['tennv']??'NV Bán hàng') ?></div>
           <div style="font-size:10px;color:var(--mt)">NV Bán hàng</div>
@@ -112,22 +113,22 @@ include __DIR__ . '/includes/header.php';
     <div class="ct">
       <!-- Page header -->
       <div class="ph">
-        <h1>👤 Danh sách Khách hàng</h1>
+        <h1>Danh sách Khách hàng</h1>
         <p>Thông tin khách hàng &amp; lịch sử mua hàng</p>
       </div>
 
       <!-- KPI -->
       <div class="kgrid">
         <div class="kcard">
-          <div class="kico" style="background:rgba(79,110,247,.12)">👥</div>
+          <div class="kico" style="background:rgba(58,86,228,.12)"><?= icon('users') ?></div>
           <div>
             <div class="klbl">TỔNG KHÁCH HÀNG</div>
-            <div class="kval" style="color:var(--bl)"><?= $kpiTotal['c']??0 ?></div>
+            <div class="kval" style="color:var(--blue)"><?= $kpiTotal['c']??0 ?></div>
             <div style="font-size:10px;color:var(--mt);margin-top:2px">tài khoản đã đăng ký</div>
           </div>
         </div>
         <div class="kcard">
-          <div class="kico" style="background:rgba(34,197,94,.1)">🆕</div>
+          <div class="kico" style="background:rgba(21,128,61,.1)">🆕</div>
           <div>
             <div class="klbl">KHÁCH HÀNG MỚI THÁNG NÀY</div>
             <div class="kval" style="color:var(--gr)"><?= $kpiMoi['c']??0 ?></div>
@@ -135,10 +136,10 @@ include __DIR__ . '/includes/header.php';
           </div>
         </div>
         <div class="kcard">
-          <div class="kico" style="background:rgba(245,158,11,.12)">⭐</div>
+          <div class="kico" style="background:rgba(180,83,9,.12)"><?= icon('star') ?></div>
           <div>
             <div class="klbl">KHÁCH VIP (&gt;50 triệu)</div>
-            <div class="kval" style="color:#f59e0b"><?= $kpiVip['c']??0 ?></div>
+            <div class="kval" style="color:var(--orange)"><?= $kpiVip['c']??0 ?></div>
             <div style="font-size:10px;color:var(--mt);margin-top:2px">khách hàng VIP</div>
           </div>
         </div>
@@ -146,7 +147,7 @@ include __DIR__ . '/includes/header.php';
 
       <!-- Search -->
       <form method="GET" class="fbar">
-        <span style="color:var(--mt)">🔍</span>
+        <span style="color:var(--mt)"><?= icon('search') ?></span>
         <input type="text" name="q" value="<?= htmlspecialchars($search) ?>"
                placeholder="Tìm theo tên, mã KH, SĐT, email..."/>
         <button type="submit" class="btn btn-pri">Tìm kiếm</button>
@@ -156,7 +157,7 @@ include __DIR__ . '/includes/header.php';
       <!-- Customer Grid -->
       <?php if(empty($khachhang)): ?>
       <div class="empty">
-        <div style="font-size:40px;opacity:.3">👤</div>
+        <div style="font-size:40px;opacity:.3"><?= icon('user') ?></div>
         <p style="font-size:14px;margin:10px 0 0">Không tìm thấy khách hàng nào</p>
       </div>
       <?php else: ?>
@@ -177,7 +178,7 @@ include __DIR__ . '/includes/header.php';
               <div class="cc-id"><?= htmlspecialchars($kh['MAKH']) ?></div>
             </div>
             <?php if($isVip): ?>
-            <span class="cc-vip">⭐ VIP</span>
+            <span class="cc-vip">VIP</span>
             <?php endif; ?>
           </div>
 

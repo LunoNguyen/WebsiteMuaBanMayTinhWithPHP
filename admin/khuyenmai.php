@@ -79,7 +79,7 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>🎁 Voucher &amp; Khuyến mãi</h1>
+          <h1>Voucher &amp; Khuyến mãi</h1>
           <p>Quản lý mã giảm giá và chương trình khuyến mãi</p>
         </div>
         <div class="page-header-right">
@@ -106,14 +106,14 @@ include __DIR__ . '/includes/header.php';
           <strong style="font-size:15px;color:var(--text-primary);margin-left:4px"><?= $statKMMap[$key] ?? 0 ?></strong>
         </a>
         <?php endforeach; ?>
-        <?php if($trangthai): ?><a href="khuyenmai.php" class="btn btn-sm btn-outline">✕ Xóa lọc</a><?php endif; ?>
+        <?php if($trangthai): ?><a href="khuyenmai.php" class="btn btn-sm btn-outline">Xóa lọc</a><?php endif; ?>
       </div>
 
       <!-- Filter -->
       <div class="filter-bar">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:250px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm tên, mã voucher..." />
           </div>
           <select name="loaikm" class="form-control" style="width:180px">
@@ -122,7 +122,7 @@ include __DIR__ . '/includes/header.php';
             <option value="SoTienCoDinh" <?= $loaikm==='SoTienCoDinh'?'selected':'' ?>>Số tiền cố định</option>
           </select>
           <input type="hidden" name="trangthai" value="<?= e($trangthai) ?>" />
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="khuyenmai.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -133,26 +133,24 @@ include __DIR__ . '/includes/header.php';
           $isActive = $km['TRANGTHAI'] === 'HoatDong';
           $isExpired = $km['TRANGTHAI'] === 'HetHan';
           $pct = $km['SOLUONG_MA'] ? min(100, round($km['DA_SUDUNG'] / $km['SOLUONG_MA'] * 100)) : null;
-          $accentColor = $isActive ? '#22c55e' : ($isExpired ? '#4a5568' : '#f59e0b');
+          $accentColor = $isActive ? '#15803d' : ($isExpired ? '#707070' : '#b45309');
         ?>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:var(--transition);<?= $isExpired?'opacity:0.6':'' ?>"
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:var(--transition);<?= $isExpired?'background:var(--bg-main)':'' ?>"
              onmouseenter="this.style.borderColor='<?= $accentColor ?>44'"
              onmouseleave="this.style.borderColor='var(--border)'">
 
-          <!-- Top stripe -->
-          <div style="height:4px;background:linear-gradient(90deg,<?= $accentColor ?>,transparent)"></div>
 
           <div style="padding:16px">
             <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
               <!-- Icon -->
-              <div style="width:44px;height:44px;border-radius:10px;background:<?= $accentColor ?>22;border:1px solid <?= $accentColor ?>44;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+              <div style="width:44px;height:44px;border-radius:10px;background:color-mix(in srgb,<?= $accentColor ?> 12%,transparent);border:1px solid color-mix(in srgb,<?= $accentColor ?> 30%,transparent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
                 <?= $km['LOAI_KM'] === 'PhanTram' ? '🏷️' : '💵' ?>
               </div>
 
               <div style="flex:1;min-width:0">
                 <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px"><?= e($km['TENKM']) ?></div>
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                  <code style="background:var(--bg-main);border:1px solid var(--border);padding:2px 8px;border-radius:6px;font-size:12px;color:var(--blue-light);letter-spacing:1px">
+                  <code style="background:var(--bg-main);border:1px solid var(--border);padding:2px 8px;border-radius:6px;font-size:12px;color:var(--blue-light);">
                     <?= e($km['MA_CODE'] ?? '—') ?>
                   </code>
                   <?= statusBadge($km['TRANGTHAI'], 'khuyenmai') ?>
@@ -177,21 +175,21 @@ include __DIR__ . '/includes/header.php';
             <!-- Info grid -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:12px">
               <div>
-                <div>📅 Bắt đầu</div>
+                <div>Bắt đầu</div>
                 <div style="color:var(--text-secondary);font-weight:500"><?= $km['NGAYBD'] ? date('d/m/Y',strtotime($km['NGAYBD'])) : '—' ?></div>
               </div>
               <div>
-                <div>📅 Kết thúc</div>
+                <div>Kết thúc</div>
                 <div style="color:<?= (!$isExpired && $km['NGAYKT'] && strtotime($km['NGAYKT']) < strtotime('+3 days')) ? 'var(--red)' : 'var(--text-secondary)' ?>;font-weight:500">
                   <?= $km['NGAYKT'] ? date('d/m/Y',strtotime($km['NGAYKT'])) : '∞' ?>
                 </div>
               </div>
               <div>
-                <div>🛒 Đơn tối thiểu</div>
+                <div>Đơn tối thiểu</div>
                 <div style="color:var(--text-secondary);font-weight:500"><?= $km['SOTIENTOITHIEU_NHANKM'] > 0 ? formatVND($km['SOTIENTOITHIEU_NHANKM']) : 'Không' ?></div>
               </div>
               <div>
-                <div>🏷️ Sản phẩm áp dụng</div>
+                <div>Sản phẩm áp dụng</div>
                 <div style="color:var(--text-secondary);font-weight:500"><?= $km['so_sp_ap_dung'] > 0 ? $km['so_sp_ap_dung'].' SP' : 'Tất cả' ?></div>
               </div>
             </div>
@@ -208,7 +206,7 @@ include __DIR__ . '/includes/header.php';
               </div>
             </div>
             <?php else: ?>
-            <div style="font-size:12px;color:var(--green);margin-bottom:12px">♾️ Không giới hạn lượt dùng &bull; Đã dùng: <?= $km['DA_SUDUNG'] ?> lần</div>
+            <div style="font-size:12px;color:var(--green);margin-bottom:12px">Không giới hạn lượt dùng &bull; Đã dùng: <?= $km['DA_SUDUNG'] ?> lần</div>
             <?php endif; ?>
 
             <!-- Actions -->
@@ -218,9 +216,9 @@ include __DIR__ . '/includes/header.php';
                  onclick="return confirm('Thay đổi trạng thái khuyến mãi?')">
                 <?= $isActive ? '⏸️ Tạm dừng' : '▶️ Kích hoạt' ?>
               </a>
-              <a href="khuyenmai_sua.php?makm=<?= e($km['MAKM']) ?>" class="btn btn-sm btn-outline">✏️ Sửa</a>
+              <a href="khuyenmai_sua.php?makm=<?= e($km['MAKM']) ?>" class="btn btn-sm btn-outline">Sửa</a>
               <a href="khuyenmai.php?action=delete&makm=<?= e($km['MAKM']) ?>"
-                 class="btn btn-sm btn-outline" style="margin-left:auto;border-color:rgba(239,68,68,0.3);color:var(--red)"
+                 class="btn btn-sm btn-outline" style="margin-left:auto;border-color:rgba(200,30,30,0.3);color:var(--red)"
                  onclick="return confirm('Xóa khuyến mãi <?= e(addslashes($km['TENKM'])) ?>?')">🗑️</a>
             </div>
           </div>
@@ -229,7 +227,7 @@ include __DIR__ . '/includes/header.php';
 
         <?php if(empty($khuyenmai)): ?>
         <div style="grid-column:1/-1">
-          <div class="empty-state"><div class="empty-icon">🎁</div><p>Không tìm thấy khuyến mãi nào</p></div>
+          <div class="empty-state"><div class="empty-icon"><?= icon('tag') ?></div><p>Không tìm thấy khuyến mãi nào</p></div>
         </div>
         <?php endif; ?>
       </div>

@@ -43,16 +43,16 @@ foreach($statsRows as $r) $statsTT[$r['TRANGTHAI_THANHTOAN']] = $r['cnt'];
 $tongNhapThang = dbFetchOne("SELECT SUM(TONGCONG_PNH) AS tong FROM PHIEUNHAPHANG WHERE MONTH(NGAYTAO)=MONTH(CURDATE()) AND YEAR(NGAYTAO)=YEAR(CURDATE())");
 
 $statusMap = [
-  'ChoDuyet'   => ['#f59e0b','Chờ duyệt'],
-  'DaDuyet'    => ['#4f6ef7','Đã duyệt'],
-  'DaNhan'     => ['#8b5cf6','Đã nhận'],
-  'HoanThanh'  => ['#22c55e','Hoàn thành'],
-  'DaHuy'      => ['#ef4444','Đã hủy'],
+  'ChoDuyet'   => ['var(--orange)','Chờ duyệt'],
+  'DaDuyet'    => ['var(--blue)','Đã duyệt'],
+  'DaNhan'     => ['var(--purple)','Đã nhận'],
+  'HoanThanh'  => ['var(--green)','Hoàn thành'],
+  'DaHuy'      => ['var(--red)','Đã hủy'],
 ];
 $ttMap = [
-  'ChuaThanhToan' => ['#f59e0b','Chưa TT'],
-  'DaThanhToan'   => ['#22c55e','Đã TT'],
-  'HoanTien'      => ['#6b7280','Hoàn tiền'],
+  'ChuaThanhToan' => ['var(--orange)','Chưa TT'],
+  'DaThanhToan'   => ['var(--green)','Đã TT'],
+  'HoanTien'      => ['var(--text-secondary)','Hoàn tiền'],
 ];
 
 include __DIR__ . '/includes/header.php';
@@ -65,17 +65,17 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>📦 Quản lý Nhập hàng</h1>
+          <h1>Quản lý Nhập hàng</h1>
           <p>Tổng tháng này: <strong style="color:var(--blue-light)"><?= formatVND($tongNhapThang['tong'] ?? 0) ?></strong></p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-outline" onclick="exportTableCSV('pnhTable','phieunhap')">📥 Xuất CSV</button>
+          <button class="btn btn-outline" onclick="exportTableCSV('pnhTable','phieunhap')">Xuất CSV</button>
           <a href="nhaphang_them.php" class="btn btn-primary">＋ Tạo phiếu nhập</a>
         </div>
       </div>
 
       <!-- Quick stats -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      <div class="stats-grid stats-grid-3" style="gap:12px;margin-bottom:20px">
         <?php foreach([
           ['ChuaThanhToan','💳','Chưa thanh toán','orange'],
           ['DaThanhToan',  '✅','Đã thanh toán',  'green'],
@@ -95,7 +95,7 @@ include __DIR__ . '/includes/header.php';
       <div class="filter-bar">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:220px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Mã phiếu, tên NCC..." />
           </div>
           <select name="trangthai" class="form-control" style="width:160px">
@@ -110,7 +110,7 @@ include __DIR__ . '/includes/header.php';
             <option value="<?= e($ncc['MANCC']) ?>" <?= $mancc===$ncc['MANCC']?'selected':'' ?>><?= e($ncc['TENNCC']) ?></option>
             <?php endforeach; ?>
           </select>
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="nhaphang.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -134,8 +134,8 @@ include __DIR__ . '/includes/header.php';
             </thead>
             <tbody>
               <?php foreach($phieunhap as $pnh):
-                $st = $statusMap[$pnh['TRANGTHAI']] ?? ['#6b7280','—'];
-                $tt = $ttMap[$pnh['TRANGTHAI_THANHTOAN']] ?? ['#6b7280','—'];
+                $st = $statusMap[$pnh['TRANGTHAI']] ?? ['var(--text-secondary)','—'];
+                $tt = $ttMap[$pnh['TRANGTHAI_THANHTOAN']] ?? ['var(--text-secondary)','—'];
               ?>
               <tr>
                 <td><span style="font-family:monospace;font-weight:700;color:var(--blue-light)"><?= e($pnh['MAPNH']) ?></span></td>
@@ -157,23 +157,23 @@ include __DIR__ . '/includes/header.php';
                   <div style="font-size:11px;color:var(--text-muted)">VAT <?= $pnh['THUE_VAT'] ?>% / CK <?= $pnh['CHIETKHAU'] ?>%</div>
                 </td>
                 <td>
-                  <span style="background:<?= $tt[0] ?>22;color:<?= $tt[0] ?>;border:1px solid <?= $tt[0] ?>44;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600"><?= $tt[1] ?></span>
+                  <span style="background:color-mix(in srgb,<?= $tt[0] ?> 12%,transparent);color:<?= $tt[0] ?>;border:1px solid color-mix(in srgb,<?= $tt[0] ?> 30%,transparent);padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600"><?= $tt[1] ?></span>
                 </td>
                 <td>
-                  <span style="background:<?= $st[0] ?>22;color:<?= $st[0] ?>;border:1px solid <?= $st[0] ?>44;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600"><?= $st[1] ?></span>
+                  <span style="background:color-mix(in srgb,<?= $st[0] ?> 12%,transparent);color:<?= $st[0] ?>;border:1px solid color-mix(in srgb,<?= $st[0] ?> 30%,transparent);padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600"><?= $st[1] ?></span>
                 </td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="nhaphang_chitiet.php?mapnh=<?= e($pnh['MAPNH']) ?>" class="btn-icon" title="Chi tiết">👁️</a>
+                    <a href="nhaphang_chitiet.php?mapnh=<?= e($pnh['MAPNH']) ?>" class="btn-icon" title="Chi tiết"><?= icon('eye', 15) ?></a>
                     <?php if($pnh['TRANGTHAI'] === 'ChoDuyet'): ?>
-                    <a href="nhaphang_sua.php?mapnh=<?= e($pnh['MAPNH']) ?>" class="btn-icon" title="Sửa">✏️</a>
+                    <a href="nhaphang_sua.php?mapnh=<?= e($pnh['MAPNH']) ?>" class="btn-icon" title="Sửa"><?= icon('pencil', 15) ?></a>
                     <?php endif; ?>
                   </div>
                 </td>
               </tr>
               <?php endforeach; ?>
               <?php if(empty($phieunhap)): ?>
-              <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📦</div><p>Không có phiếu nhập hàng nào</p></div></td></tr>
+              <tr><td colspan="9"><div class="empty-state"><div class="empty-icon"><?= icon('package') ?></div><p>Không có phiếu nhập hàng nào</p></div></td></tr>
               <?php endif; ?>
             </tbody>
           </table>

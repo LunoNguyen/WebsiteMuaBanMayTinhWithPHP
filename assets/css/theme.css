@@ -1,0 +1,102 @@
+/* ==============================================================
+   Bảng màu dùng chung cho Admin, Kho, Bán hàng và màn đăng nhập.
+   Hai chế độ: sáng (mặc định) và tối, đổi bằng thuộc tính data-theme trên <html>.
+   ĐỔI THƯƠNG HIỆU: màu nhấn nằm ở --blue / --blue-solid của từng khối.
+   ============================================================== */
+
+:root {
+  color-scheme: light;
+
+  --bg-main:       #f4f4f6;   /* nền trang */
+  --bg-sidebar:    #ffffff;
+  --bg-card:       #ffffff;   /* card, ô nhập, thanh trên */
+  --bg-card-hover: #f8f8fa;   /* rê dòng bảng, khối lồng trong card */
+  --bg-input:      #ffffff;
+  --bg-hover:      #f1f1f3;   /* rê nút viền, mục menu */
+  --border:        #ececef;
+  --border-light:  #e2e2e6;   /* viền ô nhập, nút viền */
+
+  /* Màu nhấn. --blue cho chữ, viền, link; --blue-solid cho nền nút có chữ trắng */
+  --blue:          #3a56e4;
+  --blue-solid:    #3a56e4;
+  --blue-dark:     #2f47c4;   /* rê nút chính */
+  --blue-light:    #3a56e4;
+  --blue-glow:     rgba(58,86,228,0.10);
+
+  /* Màu mang nghĩa: chữ / nền đặc */
+  --green:         #15803d;   --green-solid:  #15803d;
+  --red:           #c81e1e;   --red-solid:    #c81e1e;
+  --orange:        #b45309;
+  --purple:        #6d28d9;
+  --cyan:          #0e7490;
+  --pink:          #be185d;
+
+  --text-primary:  #2c2c2c;
+  --text-secondary:#555a66;
+  --text-muted:    #707070;
+
+  --shadow:        0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+  --shadow-card:   none;
+
+}
+
+/* Chế độ tối: nền xám than, card sáng hơn nền một bậc, màu nhấn nhạt đi để đọc được */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-main:       #111318;
+  --bg-sidebar:    #181b22;
+  --bg-card:       #181b22;
+  --bg-card-hover: #1f232c;
+  --bg-input:      #1f232c;
+  --bg-hover:      #262b35;
+  --border:        #262b35;
+  --border-light:  #333947;
+
+  --blue:          #8fa2ff;
+  --blue-solid:    #3a56e4;
+  --blue-dark:     #4a66f0;
+  --blue-light:    #8fa2ff;
+  --blue-glow:     rgba(143,162,255,0.14);
+
+  --green:         #4ade80;   --green-solid:  #15803d;
+  --red:           #f87171;   --red-solid:    #c81e1e;
+  --orange:        #fbbf24;
+  --purple:        #c4b5fd;
+  --cyan:          #67e8f9;
+  --pink:          #f9a8d4;
+
+  --text-primary:  #e6e8ee;
+  --text-secondary:#b4b9c6;
+  --text-muted:    #9097a6;
+
+  --shadow:        0 10px 15px -3px rgb(0 0 0 / 0.45), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+
+}
+
+/* Logo: một thẻ <img> cho mỗi chế độ, CSS chọn cái đang dùng */
+.logo-img { display: block; height: 32px; width: auto; }
+.logo-img.for-dark { display: none; }
+:root[data-theme="dark"] .logo-img.for-light { display: none; }
+:root[data-theme="dark"] .logo-img.for-dark { display: block; }
+
+/* Nút đổi sáng/tối */
+.theme-toggle {
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color .15s, color .15s;
+}
+.theme-toggle:hover { background: var(--bg-hover); color: var(--text-primary); }
+.theme-toggle .ico-moon { display: block; }
+.theme-toggle .ico-sun  { display: none; }
+:root[data-theme="dark"] .theme-toggle .ico-moon { display: none; }
+:root[data-theme="dark"] .theme-toggle .ico-sun  { display: block; }
+
+/* Ảnh, khung ảnh trong chế độ tối: bớt chói */
+:root[data-theme="dark"] img:not(.logo-img) { filter: brightness(.92); }

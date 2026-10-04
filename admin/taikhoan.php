@@ -61,8 +61,8 @@ $typeMap = [];
 foreach($typeCounts as $t) $typeMap[$t['LOAI_TAIKHOAN']] = $t['cnt'];
 
 $loaiIcon  = ['Admin'=>'👑','NhanVien'=>'👔','KhachHang'=>'👤'];
-$loaiColor = ['Admin'=>'#f59e0b','NhanVien'=>'#4f6ef7','KhachHang'=>'#22c55e'];
-$ttColor   = ['HoatDong'=>'#22c55e','KhoaTamThoi'=>'#f59e0b','KhoaVinhVien'=>'#ef4444'];
+$loaiColor = ['Admin'=>'var(--orange)','NhanVien'=>'var(--blue)','KhachHang'=>'var(--green)'];
+$ttColor   = ['HoatDong'=>'var(--green)','KhoaTamThoi'=>'var(--orange)','KhoaVinhVien'=>'var(--red)'];
 $ttLabel   = ['HoatDong'=>'Hoạt động','KhoaTamThoi'=>'Khoá tạm','KhoaVinhVien'=>'Khoá vĩnh viễn'];
 
 include __DIR__ . '/includes/header.php';
@@ -75,7 +75,7 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>🔑 Quản lý Tài khoản</h1>
+          <h1>Quản lý Tài khoản</h1>
           <p>Tổng <strong style="color:var(--blue-light)"><?= formatNum($total) ?></strong> tài khoản trong hệ thống</p>
         </div>
         <div class="page-header-right">
@@ -84,7 +84,7 @@ include __DIR__ . '/includes/header.php';
       </div>
 
       <?php if($msg): ?>
-      <div class="alert alert-success" data-dismiss>✅ <?= e($msg) ?></div>
+      <div class="alert alert-success" data-dismiss><?= icon('check') ?> <?= e($msg) ?></div>
       <?php endif; ?>
 
       <!-- Type stats chips -->
@@ -96,14 +96,14 @@ include __DIR__ . '/includes/header.php';
           <strong style="font-size:15px;color:var(--text-primary);margin-left:4px"><?= $typeMap[$lt] ?? 0 ?></strong>
         </a>
         <?php endforeach; ?>
-        <?php if($loaifil || $ttfil): ?><a href="taikhoan.php" class="btn btn-sm btn-outline">✕ Xóa lọc</a><?php endif; ?>
+        <?php if($loaifil || $ttfil): ?><a href="taikhoan.php" class="btn btn-sm btn-outline">Xóa lọc</a><?php endif; ?>
       </div>
 
       <!-- Filter -->
       <div class="filter-bar">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:260px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm mã TK, email, tên..." />
           </div>
           <select name="trangthai" class="form-control" style="width:160px">
@@ -113,7 +113,7 @@ include __DIR__ . '/includes/header.php';
             <option value="KhoaVinhVien" <?= $ttfil==='KhoaVinhVien'?'selected':'' ?>>Khoá vĩnh viễn</option>
           </select>
           <input type="hidden" name="loai" value="<?= e($loaifil) ?>" />
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="taikhoan.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -137,16 +137,16 @@ include __DIR__ . '/includes/header.php';
               <?php foreach($taikhoan as $tk):
                 $loai = $tk['LOAI_TAIKHOAN'];
                 $icon = $loaiIcon[$loai] ?? '👤';
-                $color = $loaiColor[$loai] ?? '#8892b0';
+                $color = $loaiColor[$loai] ?? 'var(--text-muted)';
                 $name = $tk['TENKH'] ?? $tk['TENNV'] ?? 'Không xác định';
               ?>
               <tr>
                 <td>
                   <div style="font-family:monospace;font-weight:700;font-size:13px;color:var(--blue-light)"><?= e($tk['MATK']) ?></div>
-                  <div style="font-size:12px;color:var(--text-muted)">📧 <?= e($tk['EMAIL_TK']) ?></div>
+                  <div style="font-size:12px;color:var(--text-muted)"><?= icon('mail') ?> <?= e($tk['EMAIL_TK']) ?></div>
                 </td>
                 <td>
-                  <span style="background:<?= $color ?>22;color:<?= $color ?>;border:1px solid <?= $color ?>44;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                  <span style="background:color-mix(in srgb,<?= $color ?> 12%,transparent);color:<?= $color ?>;border:1px solid color-mix(in srgb,<?= $color ?> 30%,transparent);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
                     <?= $icon ?> <?= e($loai) ?>
                   </span>
                 </td>
@@ -155,12 +155,12 @@ include __DIR__ . '/includes/header.php';
                   <?php if($tk['TENCV']): ?>
                   <div style="font-size:11px;color:var(--text-muted)"><?= e($tk['TENCV']) ?></div>
                   <?php elseif($tk['SDT_KH']): ?>
-                  <div style="font-size:11px;color:var(--text-muted)">📞 <?= e($tk['SDT_KH']) ?></div>
+                  <div style="font-size:11px;color:var(--text-muted)"><?= icon('phone') ?> <?= e($tk['SDT_KH']) ?></div>
                   <?php endif; ?>
                 </td>
                 <td>
-                  <?php $ttC = $ttColor[$tk['TRANGTHAI']] ?? '#6b7280'; ?>
-                  <span style="background:<?= $ttC ?>22;color:<?= $ttC ?>;border:1px solid <?= $ttC ?>44;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                  <?php $ttC = $ttColor[$tk['TRANGTHAI']] ?? 'var(--text-secondary)'; ?>
+                  <span style="background:color-mix(in srgb,<?= $ttC ?> 12%,transparent);color:<?= $ttC ?>;border:1px solid color-mix(in srgb,<?= $ttC ?> 30%,transparent);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
                     <?= $ttLabel[$tk['TRANGTHAI']] ?? $tk['TRANGTHAI'] ?>
                   </span>
                 </td>
@@ -168,22 +168,22 @@ include __DIR__ . '/includes/header.php';
                 <td style="font-size:12px;color:var(--text-muted)"><?= $tk['NGAY_CAPNHAT'] ? date('d/m/Y H:i', strtotime($tk['NGAY_CAPNHAT'])) : '—' ?></td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="taikhoan_sua.php?matk=<?= e($tk['MATK']) ?>" class="btn-icon" title="Sửa">✏️</a>
+                    <a href="taikhoan_sua.php?matk=<?= e($tk['MATK']) ?>" class="btn-icon" title="Sửa"><?= icon('pencil', 15) ?></a>
                     <?php if($tk['LOAI_TAIKHOAN'] !== 'Admin'): ?>
                     <a href="taikhoan.php?action=toggle&matk=<?= urlencode($tk['MATK']) ?>"
                        class="btn-icon" title="<?= $tk['TRANGTHAI']==='HoatDong'?'Khoá':'Mở khoá' ?>"
                        onclick="return confirm('Thay đổi trạng thái tài khoản?')"
-                       style="border-color:<?= $tk['TRANGTHAI']==='HoatDong'?'rgba(239,68,68,0.3)':'rgba(34,197,94,0.3)' ?>">
+                       style="border-color:<?= $tk['TRANGTHAI']==='HoatDong'?'rgba(200,30,30,0.3)':'rgba(21,128,61,0.3)' ?>">
                       <?= $tk['TRANGTHAI']==='HoatDong'?'🔒':'🔓' ?>
                     </a>
                     <?php endif; ?>
-                    <button class="btn-icon" title="Reset mật khẩu" onclick="showToast('Tính năng đang phát triển','info')">🔄</button>
+                    <button class="btn-icon" title="Reset mật khẩu" onclick="showToast('Tính năng đang phát triển','info')"><?= icon('refresh', 15) ?></button>
                   </div>
                 </td>
               </tr>
               <?php endforeach; ?>
               <?php if(empty($taikhoan)): ?>
-              <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🔑</div><p>Không tìm thấy tài khoản nào</p></div></td></tr>
+              <tr><td colspan="7"><div class="empty-state"><div class="empty-icon"><?= icon('key', 15) ?></div><p>Không tìm thấy tài khoản nào</p></div></td></tr>
               <?php endif; ?>
             </tbody>
           </table>

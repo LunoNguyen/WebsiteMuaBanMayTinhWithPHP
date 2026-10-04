@@ -106,8 +106,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Chart.js default config for dark theme
 if (typeof Chart !== 'undefined') {
-  Chart.defaults.color = '#8892b0';
-  Chart.defaults.borderColor = '#2a2f4a';
+  Chart.defaults.color = '#707070';
+  Chart.defaults.borderColor = '#ececef';
   Chart.defaults.font.family = "'Inter', sans-serif";
   Chart.defaults.font.size = 12;
   Chart.defaults.plugins.legend.labels.boxWidth = 12;

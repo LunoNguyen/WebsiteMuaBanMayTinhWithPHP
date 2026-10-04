@@ -8,7 +8,6 @@ require_once __DIR__ . '/../config/auth.php';
 requireRole(['NhanVienBan','Admin']);
 
 $pageTitle = 'Quản lý Đơn hàng';
-define('NVB_URL', BASE_URL . '/nvbanhang');
 
 // Actions
 $action = $_GET['action'] ?? '';
@@ -78,18 +77,18 @@ $kpiHT    = dbFetchOne("SELECT COUNT(*) AS c FROM HOADON WHERE TRANGTHAI='HoanTh
 $kpiDT    = dbFetchOne("SELECT SUM(TONGTIEN_HD) AS t FROM HOADON WHERE TRANGTHAI IN ('DaGiao','HoanThanh') AND MONTH(NGAYLAP)=MONTH(CURDATE())");
 
 $stMap = [
-    'ChoXacNhan' => ['#f59e0b','Chờ Xác Nhận'],
-    'DaXacNhan'  => ['#4f6ef7','Đã Xác Nhận'],
-    'DangGiao'   => ['#8b5cf6','Đang Giao'],
-    'DaGiao'     => ['#06b6d4','Đã Giao'],
-    'HoanThanh'  => ['#22c55e','Hoàn Thành'],
-    'DaHuy'      => ['#ef4444','Đã Hủy'],
+    'ChoXacNhan' => ['var(--orange)','Chờ Xác Nhận'],
+    'DaXacNhan'  => ['var(--blue)','Đã Xác Nhận'],
+    'DangGiao'   => ['var(--purple)','Đang Giao'],
+    'DaGiao'     => ['var(--cyan)','Đã Giao'],
+    'HoanThanh'  => ['var(--green)','Hoàn Thành'],
+    'DaHuy'      => ['var(--red)','Đã Hủy'],
 ];
 
 include __DIR__ . '/includes/header.php';
 ?>
 <style>
-:root{--bg:#0d1117;--card:#161b22;--card2:#1c2333;--bd:#30363d;--tx:#e6edf3;--mt:#8b949e;--gr:#22c55e;--bl:#4f6ef7;}
+:root{--bg:var(--bg-main);--card:var(--bg-card);--card2:var(--bg-card-hover);--bd:var(--border);--tx:var(--text-primary);--mt:var(--text-muted);--gr:var(--green);--bl:var(--blue-solid);}
 *{box-sizing:border-box;}
 body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--tx);}
 .shell{display:flex;min-height:100vh;}
@@ -105,7 +104,7 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--tx);}
 .tb-search input::placeholder{color:var(--mt);}
 .tb-search button{background:var(--bl);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;}
 .tb-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
-.tb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);
+.tb-av{width:32px;height:32px;border-radius:50%;background:var(--green-solid);
   display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
 /* Content */
 .ct{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px;}
@@ -127,33 +126,33 @@ body{background:var(--bg);font-family:'Inter',sans-serif;color:var(--tx);}
 .fbar input::placeholder{color:var(--mt);}
 .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;
   display:flex;align-items:center;gap:5px;border:none;text-decoration:none;transition:all .15s;white-space:nowrap;}
-.btn-pri{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;}
+.btn-pri{background:var(--green-solid);color:#fff;}
 .btn-out{background:transparent;border:1px solid var(--bd)!important;color:var(--mt);}
 .btn-out:hover{border-color:var(--bl)!important;color:var(--tx);}
-.btn-sm-blue{background:rgba(79,110,247,.15);color:#7b93f7;border:1px solid rgba(79,110,247,.3)!important;padding:5px 10px;font-size:11px;}
-.btn-sm-red{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3)!important;padding:5px 10px;font-size:11px;}
+.btn-sm-blue{background:rgba(58,86,228,.15);color:var(--blue);border:1px solid rgba(58,86,228,.3)!important;padding:5px 10px;font-size:11px;}
+.btn-sm-red{background:rgba(200,30,30,.12);color:var(--red);border:1px solid rgba(200,30,30,.3)!important;padding:5px 10px;font-size:11px;}
 /* Table */
 .tcard{background:var(--card);border:1px solid var(--bd);border-radius:10px;overflow:hidden;}
 .thead-row{padding:11px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
 .thead-row h3{font-size:13px;font-weight:700;color:var(--tx);margin:0;}
-.cnt{background:rgba(34,197,94,.15);color:#22c55e;border-radius:20px;font-size:11px;padding:2px 8px;font-weight:700;}
+.cnt{background:rgba(21,128,61,.15);color:var(--green);border-radius:20px;font-size:11px;padding:2px 8px;font-weight:700;}
 table.dt{width:100%;border-collapse:collapse;}
-table.dt th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--bd);text-align:left;}
-table.dt td{padding:9px 12px;font-size:13px;color:var(--tx);border-bottom:1px solid rgba(48,54,61,.5);vertical-align:middle;}
+table.dt th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--mt);border-bottom:1px solid var(--bd);text-align:left;}
+table.dt td{padding:9px 12px;font-size:13px;color:var(--tx);border-bottom:1px solid var(--border);vertical-align:middle;}
 table.dt tr:last-child td{border-bottom:none;}
-table.dt tr:hover td{background:rgba(255,255,255,.02);}
+table.dt tr:hover td{background:rgba(0,0,0,.04);}
 .mono{font-family:monospace;font-weight:700;color:var(--gr);}
 .pil{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 /* Alert */
 .amsg{padding:11px 16px;border-radius:8px;font-size:13px;margin-bottom:2px;}
-.amsg.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;}
-.amsg.info{background:rgba(79,110,247,.1);border:1px solid rgba(79,110,247,.2);color:#7b93f7;}
+.amsg.ok{background:rgba(21,128,61,.1);border:1px solid rgba(21,128,61,.2);color:var(--green);}
+.amsg.info{background:rgba(58,86,228,.1);border:1px solid rgba(58,86,228,.2);color:var(--blue);}
 /* Pagination */
 .pg{padding:10px 14px;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;}
 .pga{display:flex;gap:3px;}
 .pga a{width:27px;height:27px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mt);background:transparent;border:1px solid transparent;text-decoration:none;transition:all .15s;}
-.pga a:hover{background:rgba(255,255,255,.05);color:var(--tx);}
-.pga a.active{background:rgba(34,197,94,.2);border-color:rgba(34,197,94,.4);color:var(--gr);}
+.pga a:hover{background:rgba(0,0,0,.04);color:var(--tx);}
+.pga a.active{background:rgba(21,128,61,.2);border-color:rgba(21,128,61,.4);color:var(--gr);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
 @media(max-width:1100px){.kgrid{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -164,15 +163,17 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
 
     <!-- Topbar -->
     <div class="topbar">
-      <span style="font-size:18px">🛒</span>
+      <button type="button" class="w-menu-btn" onclick="toggleNvbSidebar()" aria-label="Mở menu"><?= icon('menu', 18) ?></button>
+      <span style="display:flex;color:var(--mt)"><?= icon('cart', 18) ?></span>
       <h2>Quản lý Đơn hàng</h2>
       <div class="tb-search">
         <form method="GET">
           <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Tìm mã đơn, khách hàng..."/>
-          <button type="submit">🔍</button>
+          <button type="submit" aria-label="Tìm" style="display:flex;align-items:center"><?= icon('search', 14) ?></button>
         </form>
       </div>
       <div class="tb-right">
+        <?= themeToggle() ?>
         <div style="text-align:right">
           <div style="font-size:12px;font-weight:700;color:var(--tx)"><?= htmlspecialchars($_SESSION['tennv']??'NV Bán hàng') ?></div>
           <div style="font-size:10px;color:var(--mt)">NV Bán hàng &bull; <?= htmlspecialchars($_SESSION['manv']??'') ?></div>
@@ -191,7 +192,7 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
       <!-- Page header -->
       <div class="ph">
         <div>
-          <h1>🛒 Quản lý Đơn hàng</h1>
+          <h1>Quản lý Đơn hàng</h1>
           <p>Xác nhận &amp; Cập nhật trạng thái đơn hàng của khách</p>
         </div>
       </div>
@@ -199,23 +200,23 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
       <!-- KPI -->
       <div class="kgrid">
         <div class="kcard">
-          <div class="kico" style="background:rgba(245,158,11,.12)">⏳</div>
+          <div class="kico" style="background:rgba(180,83,9,.12)"><?= icon('clock') ?></div>
           <div>
             <div class="klbl">CHỜ XÁC NHẬN</div>
-            <div class="kval" style="color:#f59e0b"><?= $kpiCho['c']??0 ?></div>
+            <div class="kval" style="color:var(--orange)"><?= $kpiCho['c']??0 ?></div>
             <div style="font-size:10px;color:var(--mt);margin-top:2px">cần xử lý ngay</div>
           </div>
         </div>
         <div class="kcard">
-          <div class="kico" style="background:rgba(139,92,246,.12)">🚚</div>
+          <div class="kico" style="background:rgba(109,40,217,.12)"><?= icon('truck') ?></div>
           <div>
             <div class="klbl">ĐANG VẬN CHUYỂN</div>
-            <div class="kval" style="color:#8b5cf6"><?= $kpiGiao['c']??0 ?></div>
+            <div class="kval" style="color:var(--purple)"><?= $kpiGiao['c']??0 ?></div>
             <div style="font-size:10px;color:var(--mt);margin-top:2px">đơn trên đường</div>
           </div>
         </div>
         <div class="kcard">
-          <div class="kico" style="background:rgba(34,197,94,.1)">✅</div>
+          <div class="kico" style="background:rgba(21,128,61,.1)"><?= icon('check') ?></div>
           <div>
             <div class="klbl">HOÀN THÀNH THÁNG NÀY</div>
             <div class="kval" style="color:var(--gr)"><?= $kpiHT['c']??0 ?></div>
@@ -223,10 +224,10 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
           </div>
         </div>
         <div class="kcard">
-          <div class="kico" style="background:rgba(79,110,247,.1)">💰</div>
+          <div class="kico" style="background:rgba(58,86,228,.1)"><?= icon('wallet') ?></div>
           <div>
             <div class="klbl">DOANH THU THÁNG</div>
-            <div style="font-size:14px;font-weight:900;color:var(--bl);margin-top:2px"><?= formatVND($kpiDT['t']??0) ?></div>
+            <div style="font-size:14px;font-weight:900;color:var(--blue);margin-top:2px"><?= formatVND($kpiDT['t']??0) ?></div>
             <div style="font-size:10px;color:var(--mt);margin-top:2px">đơn đã hoàn thành</div>
           </div>
         </div>
@@ -241,18 +242,19 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
           <option value="<?= $tt ?>" <?= $trangthai===$tt?'selected':'' ?>><?= $stMap[$tt][1]??$tt ?></option>
           <?php endforeach; ?>
         </select>
-        <input type="date" name="from" value="<?= htmlspecialchars($from) ?>" title="Từ ngày">
-        <input type="date" name="to"   value="<?= htmlspecialchars($to) ?>"   title="Đến ngày">
-        <button type="submit" class="btn btn-pri">🔍 Lọc</button>
+        <input type="text" class="js-date" name="from" value="<?= htmlspecialchars($from) ?>" placeholder="Từ ngày" title="Từ ngày">
+        <input type="text" class="js-date" name="to" value="<?= htmlspecialchars($to) ?>" placeholder="Đến ngày" title="Đến ngày">
+        <button type="submit" class="btn btn-pri">Lọc</button>
         <a href="index.php" class="btn btn-out">↩ Reset</a>
       </form>
 
       <!-- Table -->
       <div class="tcard">
         <div class="thead-row">
-          <h3>📋 Danh sách Đơn hàng</h3>
+          <h3>Danh sách Đơn hàng</h3>
           <span class="cnt"><?= $total ?> đơn hàng</span>
         </div>
+        <div class="dt-scroll">
         <table class="dt">
           <thead>
             <tr>
@@ -263,7 +265,7 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
           </thead>
           <tbody>
             <?php foreach($donhang as $dh):
-              $st = $stMap[$dh['TRANGTHAI']] ?? ['#6b7280','—'];
+              $st = $stMap[$dh['TRANGTHAI']] ?? ['var(--text-secondary)','—'];
               $canNext = isset($validTransitions[$dh['TRANGTHAI']]);
               $canHuy  = in_array($dh['TRANGTHAI'],['ChoXacNhan','DaXacNhan']);
             ?>
@@ -278,7 +280,7 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
               <td style="font-size:12px"><?= $dh['NGAYLAP']?date('d/m/Y H:i',strtotime($dh['NGAYLAP'])):'—' ?></td>
               <td style="font-size:12px"><?= htmlspecialchars($dh['TENNV']??'Hệ thống') ?></td>
               <td>
-                <span class="pil" style="background:<?= $st[0] ?>22;color:<?= $st[0] ?>;border:1px solid <?= $st[0] ?>44">
+                <span class="pil" style="background:color-mix(in srgb,<?= $st[0] ?> 12%,transparent);color:<?= $st[0] ?>;border:1px solid color-mix(in srgb,<?= $st[0] ?> 30%,transparent)">
                   <?= $st[1] ?>
                 </span>
               </td>
@@ -295,12 +297,12 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
                   <a href="?action=huy&mahd=<?= htmlspecialchars($dh['MAHD']) ?>&<?= http_build_query(array_diff_key($_GET,['action'=>'','mahd'=>''])) ?>"
                      class="btn btn-sm-red"
                      onclick="return confirm('Hủy đơn <?= htmlspecialchars($dh['MAHD']) ?>?')">
-                    ✕ Hủy
+                    Hủy
                   </a>
                   <?php endif; ?>
                   <a href="xem_don.php?mahd=<?= htmlspecialchars($dh['MAHD']) ?>"
-                     style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;background:rgba(255,255,255,.05);"
-                     title="Xem">👁️</a>
+                     style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;background:rgba(0,0,0,.04);"
+                     title="Xem"><?= icon('eye', 15) ?></a>
                 </div>
               </td>
             </tr>
@@ -308,13 +310,14 @@ table.dt tr:hover td{background:rgba(255,255,255,.02);}
             <?php if(empty($donhang)): ?>
             <tr><td colspan="8">
               <div style="padding:32px;text-align:center;color:var(--mt)">
-                <div style="font-size:36px;opacity:.3">🛒</div>
+                <div style="font-size:36px;opacity:.3"><?= icon('cart') ?></div>
                 <p style="font-size:13px;margin:8px 0 0">Không có đơn hàng nào</p>
               </div>
             </td></tr>
             <?php endif; ?>
           </tbody>
         </table>
+        </div>
 
         <?php if($pages>1): ?>
         <div class="pg">

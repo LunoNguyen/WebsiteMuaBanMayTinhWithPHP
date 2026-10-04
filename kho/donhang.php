@@ -8,7 +8,6 @@ require_once __DIR__ . '/../config/auth.php';
 requireRole(['NhanVienKho','Admin']);
 
 $pageTitle = 'Đơn hàng cần xuất kho';
-define('KHO_URL', BASE_URL . '/kho');
 
 // Action: xác nhận đã chuẩn bị / đã giao
 $action = $_GET['action'] ?? '';
@@ -62,34 +61,34 @@ $kpiDangGiao = dbFetchOne("SELECT COUNT(*) AS c FROM HOADON WHERE TRANGTHAI='Dan
 $kpiHomNay = dbFetchOne("SELECT COUNT(*) AS c FROM HOADON WHERE TRANGTHAI='DaGiao' AND DATE(NGAYLAP)=CURDATE()");
 
 $stMap = [
-    'DaXacNhan' => ['#f59e0b','Chờ xuất kho','cwarn'],
-    'DangGiao'  => ['#4f6ef7','Đang giao',   'csc'],
-    'DaGiao'    => ['#22c55e','Đã giao',      'cok'],
+    'DaXacNhan' => ['var(--orange)','Chờ xuất kho','cwarn'],
+    'DangGiao'  => ['var(--blue)','Đang giao',   'csc'],
+    'DaGiao'    => ['var(--green)','Đã giao',      'cok'],
 ];
 
 include __DIR__ . '/includes/header.php';
 ?>
 <style>
 /* Reuse WMS styles */
-:root{--wc:#161b22;--wc2:#1c2333;--wb:#30363d;--wt:#e6edf3;--wm:#8b949e;--wr:10px;}
+:root{--wc:var(--bg-card);--wc2:var(--bg-card-hover);--wb:var(--border);--wt:var(--text-primary);--wm:var(--text-muted);--wr:10px;}
 *{box-sizing:border-box;}
-body{background:#0d1117;font-family:'Inter',sans-serif;}
+body{background:var(--bg-main);font-family:'Inter',sans-serif;}
 .wsh{display:flex;min-height:100vh;}
 .wsb{width:218px;min-width:218px;background:var(--wc);border-right:1px solid var(--wb);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
 .wlogo{padding:15px 13px 11px;border-bottom:1px solid var(--wb);}
 .wlogo-r{display:flex;align-items:center;gap:9px;}
-.wli{width:33px;height:33px;border-radius:8px;background:linear-gradient(135deg,#4f6ef7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;}
-.wln{font-size:14px;font-weight:800;color:var(--wt);}.wls{font-size:10px;color:var(--wm);letter-spacing:1px;text-transform:uppercase;}
-.wng{padding:11px 9px 4px;}.wnl{font-size:10px;color:var(--wm);letter-spacing:1.2px;text-transform:uppercase;padding:0 7px;margin-bottom:4px;}
+.wli{width:33px;height:33px;border-radius:8px;background:var(--blue-solid);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;}
+.wln{font-size:14px;font-weight:800;color:var(--wt);}.wls{font-size:10px;color:var(--wm);}
+.wng{padding:11px 9px 4px;}.wnl{font-size:10px;color:var(--wm);padding:0 7px;margin-bottom:4px;}
 .wni{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:2px;color:var(--wm);font-size:12.5px;font-weight:500;text-decoration:none;transition:all .15s;}
-.wni:hover{background:rgba(255,255,255,.05);color:var(--wt);}
-.wni.active{background:rgba(79,110,247,.15);color:#7b93f7;font-weight:600;}
+.wni:hover{background:rgba(0,0,0,.04);color:var(--wt);}
+.wni.active{background:rgba(58,86,228,.15);color:var(--blue);font-weight:600;}
 .wni .ni{font-size:14px;flex-shrink:0;}
-.nbg{margin-left:auto;background:#ef4444;color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700;}
-.wrb{margin:9px;padding:9px 11px;border-radius:8px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);}
-.rdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#22c55e;margin-right:4px;animation:pl 2s infinite;}
+.nbg{margin-left:auto;background:var(--red-solid);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700;}
+.wrb{margin:9px;padding:9px 11px;border-radius:8px;background:rgba(21,128,61,.08);border:1px solid rgba(21,128,61,.2);}
+.rdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green-solid);margin-right:4px;animation:pl 2s infinite;}
 @keyframes pl{0%,100%{opacity:1}50%{opacity:.3}}
-.wmn{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#0d1117;}
+.wmn{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg-main);}
 .wct{flex:1;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px;}
 .wph{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;}
 .wph h1{font-size:20px;font-weight:800;color:var(--wt);margin:0;}
@@ -106,37 +105,37 @@ body{background:#0d1117;font-family:'Inter',sans-serif;}
 .wtw{background:var(--wc);border:1px solid var(--wb);border-radius:var(--wr);overflow:hidden;}
 .wth{padding:10px 14px;border-bottom:1px solid var(--wb);display:flex;align-items:center;justify-content:space-between;}
 .wth h3{font-size:13px;font-weight:700;color:var(--wt);margin:0;}
-.wcnt{background:rgba(79,110,247,.15);color:#7b93f7;border-radius:20px;font-size:11px;padding:2px 8px;font-weight:700;}
+.wcnt{background:rgba(58,86,228,.15);color:var(--blue);border-radius:20px;font-size:11px;padding:2px 8px;font-weight:700;}
 table.wt{width:100%;border-collapse:collapse;}
-table.wt th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--wm);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--wb);text-align:left;}
-table.wt td{padding:10px 12px;font-size:13px;color:var(--wt);border-bottom:1px solid rgba(48,54,61,.5);vertical-align:middle;}
+table.wt th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--wm);border-bottom:1px solid var(--wb);text-align:left;}
+table.wt td{padding:10px 12px;font-size:13px;color:var(--wt);border-bottom:1px solid var(--border);vertical-align:middle;}
 table.wt tr:last-child td{border-bottom:none;}
-table.wt tr:hover td{background:rgba(255,255,255,.02);}
-.wcode{font-family:monospace;font-weight:700;color:#7b93f7;}
+table.wt tr:hover td{background:rgba(0,0,0,.04);}
+.wcode{font-family:monospace;font-weight:700;color:var(--blue);}
 .wpil{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 .wbn{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;border:none;transition:all .15s;text-decoration:none;white-space:nowrap;}
-.wb-pri{background:linear-gradient(135deg,#4f6ef7,#7c3aed);color:#fff;}
-.wb-suc{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;}
+.wb-pri{background:var(--blue-solid);color:#fff;}
+.wb-suc{background:var(--green-solid);color:#fff;}
 .wb-out{background:transparent;border:1px solid var(--wb)!important;color:var(--wm);}
-.wb-out:hover{border-color:#4f6ef7!important;color:var(--wt);}
+.wb-out:hover{border-color:var(--blue)!important;color:var(--wt);}
 .btn-ic{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;text-decoration:none;transition:all .15s;}
-.btn-ic:hover{background:rgba(255,255,255,.08);}
-.alert-msg{padding:11px 16px;border-radius:8px;font-size:13px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#22c55e;}
-.wni.active{background:rgba(79,110,247,.15);color:#7b93f7;font-weight:600;}
+.btn-ic:hover{background:rgba(0,0,0,.04);}
+.alert-msg{padding:11px 16px;border-radius:8px;font-size:13px;background:rgba(21,128,61,.1);border:1px solid rgba(21,128,61,.2);color:var(--green);}
+.wni.active{background:rgba(58,86,228,.15);color:var(--blue);font-weight:600;}
 /* Topbar minimal */
 .kho-topbar{height:52px;background:var(--wc);border-bottom:1px solid var(--wb);display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;}
 .kho-topbar h2{font-size:14px;font-weight:700;color:var(--wt);margin:0;}
 .kto-user{display:flex;align-items:center;gap:8px;margin-left:auto;}
-.kto-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4f6ef7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
+.kto-av{width:30px;height:30px;border-radius:50%;background:var(--blue-solid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
 .wpg{padding:10px 14px;border-top:1px solid var(--wb);display:flex;align-items:center;justify-content:space-between;}
 .wpa{display:flex;gap:3px;}
 .wpl2{width:27px;height:27px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--wm);background:transparent;border:1px solid transparent;text-decoration:none;transition:all .15s;}
-.wpl2:hover{background:rgba(255,255,255,.05);color:var(--wt);}
-.wpl2.active{background:rgba(79,110,247,.2);border-color:rgba(79,110,247,.4);color:#7b93f7;}
+.wpl2:hover{background:rgba(0,0,0,.04);color:var(--wt);}
+.wpl2.active{background:rgba(58,86,228,.2);border-color:rgba(58,86,228,.4);color:var(--blue);}
 ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--wb);border-radius:2px;}
-.cok{background:rgba(34,197,94,.14);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
-.csc{background:rgba(79,110,247,.14);color:#7b93f7;border:1px solid rgba(79,110,247,.3);}
-.cwarn{background:rgba(245,158,11,.14);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.cok{background:rgba(21,128,61,.14);color:var(--green);border:1px solid rgba(21,128,61,.3);}
+.csc{background:rgba(58,86,228,.14);color:var(--blue);border:1px solid rgba(58,86,228,.3);}
+.cwarn{background:rgba(180,83,9,.14);color:var(--orange);border:1px solid rgba(180,83,9,.3);}
 </style>
 
 <div class="wsh">
@@ -145,9 +144,11 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
 
   <!-- Topbar -->
   <div class="kho-topbar">
-    <span style="font-size:18px">🚚</span>
+    <button type="button" class="w-menu-btn" onclick="toggleKhoSidebar()" aria-label="Mở menu"><?= icon('menu', 18) ?></button>
+    <span style="display:flex;color:var(--wm)"><?= icon('truck', 18) ?></span>
     <h2>Đơn hàng cần xuất kho</h2>
     <div class="kto-user">
+      <?= themeToggle() ?>
       <div style="text-align:right">
         <div style="font-size:12px;font-weight:700;color:var(--wt)"><?= htmlspecialchars($_SESSION['tennv']??'NV Kho') ?></div>
         <div style="font-size:10px;color:var(--wm)">Nhân viên Kho &bull; <?= htmlspecialchars($_SESSION['manv']??'') ?></div>
@@ -158,13 +159,13 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
 
   <div class="wct">
     <?php if($msg): ?>
-    <div class="alert-msg">✅ <?= $msg ?></div>
+    <div class="alert-msg"><?= icon('check') ?> <?= $msg ?></div>
     <?php endif; ?>
 
     <!-- Page Header -->
     <div class="wph">
       <div>
-        <h1>🚚 Đơn hàng cần Xuất kho &amp; Bàn giao</h1>
+        <h1>Đơn hàng cần Xuất kho &amp; Bàn giao</h1>
         <p>Soạn hàng theo đơn đã xác nhận · Kiểm tra trước khi giao vận chuyển</p>
       </div>
     </div>
@@ -172,26 +173,26 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
     <!-- KPI -->
     <div class="wkg">
       <div class="wk">
-        <div class="wki" style="background:rgba(245,158,11,.12)">📋</div>
+        <div class="wki" style="background:rgba(180,83,9,.12)"><?= icon('clipboard') ?></div>
         <div>
           <div class="wkl">CHỜ XUẤT KHO</div>
-          <div class="wkv" style="color:#f59e0b"><?= $kpiCho['c']??0 ?></div>
+          <div class="wkv" style="color:var(--orange)"><?= $kpiCho['c']??0 ?></div>
           <div style="font-size:10px;color:var(--wm);margin-top:2px">đơn hàng chờ soạn</div>
         </div>
       </div>
       <div class="wk">
-        <div class="wki" style="background:rgba(79,110,247,.12)">🚚</div>
+        <div class="wki" style="background:rgba(58,86,228,.12)"><?= icon('truck') ?></div>
         <div>
           <div class="wkl">ĐANG VẬN CHUYỂN</div>
-          <div class="wkv" style="color:#7b93f7"><?= $kpiDangGiao['c']??0 ?></div>
+          <div class="wkv" style="color:var(--blue)"><?= $kpiDangGiao['c']??0 ?></div>
           <div style="font-size:10px;color:var(--wm);margin-top:2px">đơn đang trên đường</div>
         </div>
       </div>
       <div class="wk">
-        <div class="wki" style="background:rgba(34,197,94,.1)">✅</div>
+        <div class="wki" style="background:rgba(21,128,61,.1)"><?= icon('check') ?></div>
         <div>
           <div class="wkl">GIAO THÀNH CÔNG HÔM NAY</div>
-          <div class="wkv" style="color:#22c55e"><?= $kpiHomNay['c']??0 ?></div>
+          <div class="wkv" style="color:var(--green)"><?= $kpiHomNay['c']??0 ?></div>
           <div style="font-size:10px;color:var(--wm);margin-top:2px">đơn đã hoàn tất</div>
         </div>
       </div>
@@ -200,7 +201,7 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
     <!-- Filter -->
     <form method="GET" class="wfl">
       <div class="wfi">
-        <span style="color:var(--wm)">🔍</span>
+        <span style="color:var(--wm)"><?= icon('search') ?></span>
         <input type="text" name="q" value="<?= htmlspecialchars($search) ?>" placeholder="Tìm mã đơn, tên khách hàng..."/>
       </div>
       <select name="trangthai" class="wse" onchange="this.form.submit()">
@@ -209,16 +210,17 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
         <option value="DangGiao"   <?= $trangthai==='DangGiao'  ?'selected':'' ?>>🚚 Đang giao</option>
         <option value="DaGiao"     <?= $trangthai==='DaGiao'    ?'selected':'' ?>>✅ Đã giao</option>
       </select>
-      <button type="submit" class="wbn wb-out" style="padding:6px 12px">🔍 Lọc</button>
+      <button type="submit" class="wbn wb-out" style="padding:6px 12px">Lọc</button>
       <a href="donhang.php" class="wbn wb-out" style="padding:6px 12px">↩ Reset</a>
     </form>
 
     <!-- Table -->
     <div class="wtw">
       <div class="wth">
-        <h3>📦 Danh sách Đơn hàng cần Xử lý (Kho)</h3>
+        <h3>Danh sách Đơn hàng cần Xử lý (Kho)</h3>
         <span class="wcnt"><?= $total ?> đơn</span>
       </div>
+      <div class="wt-scroll">
       <table class="wt">
         <thead>
           <tr>
@@ -234,7 +236,7 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
         </thead>
         <tbody>
           <?php foreach($donhang as $dh):
-            $st = $stMap[$dh['TRANGTHAI']] ?? ['#6b7280','—',''];
+            $st = $stMap[$dh['TRANGTHAI']] ?? ['var(--text-secondary)','—',''];
           ?>
           <tr>
             <td><span class="wcode"><?= htmlspecialchars($dh['MAHD']) ?></span></td>
@@ -253,7 +255,7 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
             </td>
             <td>
               <span class="wpil <?= $st[2] ?>"
-                style="background:<?= $st[0] ?>22;color:<?= $st[0] ?>;border:1px solid <?= $st[0] ?>44">
+                style="background:color-mix(in srgb,<?= $st[0] ?> 12%,transparent);color:<?= $st[0] ?>;border:1px solid color-mix(in srgb,<?= $st[0] ?> 30%,transparent)">
                 <?= $st[1] ?>
               </span>
             </td>
@@ -263,14 +265,14 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
                 <a href="?action=xuatkho&mahd=<?= htmlspecialchars($dh['MAHD']) ?>"
                    class="wbn wb-suc" style="padding:5px 10px;font-size:11px"
                    onclick="return confirm('Xác nhận xuất kho đơn <?= htmlspecialchars($dh['MAHD']) ?>?')">
-                  📤 Xuất kho
+                  Xuất kho
                 </a>
                 <?php elseif($dh['TRANGTHAI']==='DangGiao'): ?>
                 <span style="font-size:11px;color:var(--wm)">Đang vận chuyển</span>
                 <?php else: ?>
-                <span style="font-size:11px;color:#22c55e">✅ Hoàn tất</span>
+                <span style="font-size:11px;color:var(--green)">Hoàn tất</span>
                 <?php endif; ?>
-                <a href="xem_chitiet.php?mahd=<?= htmlspecialchars($dh['MAHD']) ?>" class="btn-ic" title="Xem chi tiết">👁️</a>
+                <a href="xem_chitiet.php?mahd=<?= htmlspecialchars($dh['MAHD']) ?>" class="btn-ic" title="Xem chi tiết"><?= icon('eye', 15) ?></a>
               </div>
             </td>
           </tr>
@@ -278,13 +280,14 @@ table.wt tr:hover td{background:rgba(255,255,255,.02);}
           <?php if(empty($donhang)): ?>
           <tr><td colspan="8">
             <div style="padding:32px;text-align:center;color:var(--wm)">
-              <div style="font-size:36px;opacity:.3">🚚</div>
+              <div style="font-size:36px;opacity:.3"><?= icon('truck') ?></div>
               <p style="font-size:13px;margin:8px 0 0">Không có đơn hàng cần xử lý</p>
             </div>
           </td></tr>
           <?php endif; ?>
         </tbody>
       </table>
+      </div>
 
       <?php if($pages>1): ?>
       <div class="wpg">

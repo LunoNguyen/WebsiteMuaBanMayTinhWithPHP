@@ -27,6 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $msg = 'Email không hợp lệ!';
     } elseif (strlen($pass) < 6) {
         $msg = 'Mật khẩu phải ít nhất 6 ký tự!';
+    } elseif (strlen($pass) > 72) {
+        // bcrypt chỉ dùng 72 byte đầu, phần dư sẽ bị bỏ qua khi so khớp
+        $msg = 'Mật khẩu quá dài (tối đa 72 byte)!';
     } elseif ($pass !== $pass2) {
         $msg = 'Mật khẩu xác nhận không khớp!';
     } else {
@@ -44,9 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $makh  = 'KH' . str_pad($soMoi, 4, '0', STR_PAD_LEFT);
             $matk  = 'TK' . str_pad($soMoi + 100, 4, '0', STR_PAD_LEFT);
-            $hash  = password_hash($pass, PASSWORD_DEFAULT);
+            // Mã hóa mật khẩu bằng bcrypt (chuỗi 60 ký tự, đã gồm salt ngẫu nhiên)
+            $hash  = password_hash($pass, PASSWORD_BCRYPT, ['cost' => BCRYPT_COST]);
 
             try {
+                if ($hash === false) {
+                    throw new Exception('Không mã hóa được mật khẩu');
+                }
                 // Insert KHACHHANG
                 dbExecute(
                     "INSERT INTO KHACHHANG (MAKH, TENKH, SDT_KH, EMAIL_KH) VALUES (?,?,?,?)",
@@ -68,122 +75,148 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi"<?= themeHtmlAttr() ?>>
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <?= themeHead() ?>
   <title>Đăng ký | NEXUS System</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Inter',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh;
-      display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;padding:20px 0;}
-    .bg-orb{position:fixed;border-radius:50%;filter:blur(80px);z-index:0;pointer-events:none;}
-    .bg-orb1{width:500px;height:500px;top:-100px;right:-150px;background:rgba(34,197,94,.1);}
-    .bg-orb2{width:400px;height:400px;bottom:-80px;left:-100px;background:rgba(79,110,247,.09);}
-    .grid{position:fixed;inset:0;z-index:0;
-      background-image:radial-gradient(rgba(34,197,94,.05) 1px,transparent 1px);
-      background-size:28px 28px;}
-    .page{position:relative;z-index:1;width:100%;max-width:480px;padding:20px;}
-    .card{background:rgba(22,27,34,.95);border:1px solid #30363d;border-radius:20px;
-      padding:36px 40px;backdrop-filter:blur(24px);
-      box-shadow:0 0 0 1px rgba(255,255,255,.03),0 24px 64px rgba(0,0,0,.6);
-      animation:up .4s cubic-bezier(.16,1,.3,1);}
-    @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-    .logo{display:flex;align-items:center;gap:13px;justify-content:center;margin-bottom:26px;}
-    .logo-ico{width:46px;height:46px;border-radius:13px;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
+    body{font-family:'Inter',sans-serif;background:var(--bg-main);color:var(--text-primary);min-height:100vh;
+      display:flex;align-items:center;justify-content:center;}
+
+    .page{width:100%;max-width:480px;padding:24px 16px;}
+
+    /* Card */
+    .card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:32px;}
+
+    /* Logo */
+    .logo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:24px;}
+    .logo .s{font-size:12px;color:var(--text-muted);}
+    .theme-corner{position:fixed;top:16px;right:16px;}
+    .logo-ico{width:40px;height:40px;border-radius:10px;background:var(--blue-solid);
       display:flex;align-items:center;justify-content:center;
-      font-size:22px;font-weight:900;color:#fff;
-      box-shadow:0 8px 24px rgba(34,197,94,.4);}
-    .logo-text .n{font-size:21px;font-weight:900;color:#e6edf3;}
-    .logo-text .s{font-size:11px;color:#8b949e;margin-top:1px;}
-    .hd{text-align:center;margin-bottom:22px;}
-    .hd h1{font-size:19px;font-weight:800;color:#e6edf3;margin-bottom:4px;}
-    .hd p{font-size:12.5px;color:#8b949e;}
+      font-size:18px;font-weight:700;color:#fff;}
+    .logo-text .n{font-size:18px;font-weight:700;color:var(--text-primary);}
+    .logo-text .s{font-size:12px;color:var(--text-muted);margin-top:1px;}
+
+    /* Heading */
+    .hd{text-align:center;margin-bottom:20px;}
+    .hd h1{font-size:20px;font-weight:600;color:var(--text-primary);margin-bottom:4px;}
+    .hd p{font-size:13px;color:var(--text-muted);}
+
+    /* Role quick-fill tabs */
+    .rtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:20px;}
+    .rt{padding:9px 4px;border-radius:8px;border:1px solid var(--border-light);background:var(--bg-card);
+      text-align:center;cursor:pointer;transition:background-color .15s,border-color .15s;user-select:none;}
+    .rt:hover{background:var(--bg-main);}
+    .rt.on{border-color:var(--blue);background:rgba(58,86,228,.06);}
+    .rt-ico{font-size:16px;display:block;margin-bottom:3px;}
+    .rt-lbl{font-size:12px;font-weight:500;color:var(--text-secondary);}
+    .rt.on .rt-lbl{color:var(--blue);}
+
     /* Alert */
-    .alert{padding:11px 14px;border-radius:9px;font-size:13px;margin-bottom:16px;display:flex;align-items:flex-start;gap:9px;}
-    .alert-err{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#f87171;}
-    .alert-ok{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);color:#4ade80;}
-    /* Form 2-col */
-    .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;
+      display:flex;align-items:center;gap:9px;}
+    .alert-err{background:#fef2f2;border:1px solid #ffc9c9;color:#c10007;}
+    .alert-ok{background:#ecfdf5;border:1px solid #a4f4cf;color:#007a55;}
+
+    /* Form */
     .fg{margin-bottom:14px;}
-    .fg.full{grid-column:1/-1;}
-    .fg label{display:block;font-size:10.5px;font-weight:700;color:#8b949e;
-      text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-    .fg label .req{color:#ef4444;margin-left:2px;}
+    .fg label{display:block;font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:6px;}
     .iw{position:relative;}
-    .iw-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;}
-    .iw input{width:100%;padding:11px 13px 11px 42px;
-      background:rgba(13,17,23,.8);border:1px solid #30363d;border-radius:10px;
-      color:#e6edf3;font-family:inherit;font-size:14px;outline:none;transition:all .2s;}
-    .iw input:focus{border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.12);}
-    .iw input::placeholder{color:#484f58;}
-    .iw input.err{border-color:rgba(239,68,68,.5);}
-    .eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);
-      background:none;border:none;cursor:pointer;font-size:15px;color:#8b949e;padding:2px;}
-    /* Strength bar */
-    .strength{margin-top:6px;}
-    .str-bar{height:4px;background:#30363d;border-radius:2px;overflow:hidden;}
-    .str-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;}
-    .str-lbl{font-size:10px;color:#8b949e;margin-top:4px;}
-    /* Terms */
-    .terms{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:#8b949e;margin:4px 0 16px;}
-    .terms input[type=checkbox]{margin-top:2px;accent-color:#22c55e;width:14px;height:14px;cursor:pointer;}
-    .terms a{color:#4ade80;text-decoration:none;}
-    .terms a:hover{text-decoration:underline;}
+    .iw-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;}
+    .iw input{width:100%;height:40px;padding:0 12px 0 38px;
+      background:var(--bg-card);border:1px solid var(--border-light);border-radius:8px;
+      color:var(--text-primary);font-family:inherit;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;}
+    .iw input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(58,86,228,.12);}
+    .iw input::placeholder{color:var(--text-muted);}
+
+    /* Show/hide password */
+    .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);
+      width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+      background:none;border:none;border-radius:6px;cursor:pointer;font-size:14px;color:var(--text-muted);}
+    .eye:hover{background:var(--bg-main);}
+
     /* Submit */
-    .btn-sub{width:100%;padding:13px;
-      background:linear-gradient(135deg,#22c55e,#16a34a);
-      color:#fff;border:none;border-radius:11px;
-      font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
-      box-shadow:0 4px 16px rgba(34,197,94,.3);transition:all .2s;}
-    .btn-sub:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(34,197,94,.45);}
-    .btn-sub:active{transform:translateY(0);}
-    .btn-sub:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .btn-sub{width:100%;height:40px;margin-top:6px;background:var(--blue-solid);
+      color:#fff;border:none;border-radius:8px;
+      font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background-color .15s;}
+    .btn-sub:hover{background:#2f47c4;}
+
     /* Bottom link */
-    .divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:#484f58;font-size:11px;}
-    .divider::before,.divider::after{content:'';flex:1;height:1px;background:#30363d;}
-    .bottom-link{text-align:center;font-size:12.5px;color:#8b949e;}
-    .bottom-link a{color:#7b93f7;text-decoration:none;font-weight:600;}
+    .bottom-link{text-align:center;margin-top:16px;font-size:13px;color:var(--text-muted);}
+    .bottom-link a{color:var(--blue);text-decoration:none;font-weight:500;}
     .bottom-link a:hover{text-decoration:underline;}
-    /* Success state */
+
+    /* Divider */
+    .divider{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--text-muted);font-size:12px;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    /* Demo box */
+    .demo{margin-top:18px;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+    .demo-hd{padding:9px 14px;background:var(--bg-card-hover);font-size:12px;font-weight:500;
+      color:var(--text-secondary);display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;
+      border-bottom:1px solid transparent;}
+    .demo-hd:hover{background:var(--bg-main);}
+    .demo-body{display:none;background:var(--bg-card);}
+    .demo-row{display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:8px 14px;border-bottom:1px solid var(--border);
+      font-size:12px;cursor:pointer;transition:background-color .15s;}
+    .demo-row:last-child{border-bottom:none;}
+    .demo-row:hover{background:var(--bg-card-hover);}
+    .dr-left{display:flex;align-items:center;gap:7px;}
+    .dbg{padding:1px 7px;border-radius:4px;font-size:11px;font-weight:500;}
+    .dr-cred{font-family:monospace;font-size:11px;color:var(--text-muted);}
+    .dr-fill{font-size:11px;font-weight:500;color:var(--blue);white-space:nowrap;}
+    /* Form 2 cột */
+    .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .fg.full{grid-column:1/-1;}
+    .fg label .req{color:var(--red);margin-left:2px;}
+    .iw input.err{border-color:#fb2c36;}
+    @media(max-width:480px){.frow{grid-template-columns:1fr;gap:0;}}
+    /* Độ mạnh mật khẩu */
+    .strength{margin-top:6px;}
+    .str-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+    .str-fill{height:100%;border-radius:2px;transition:width .3s,background-color .3s;}
+    .str-lbl{font-size:12px;color:var(--text-muted);margin-top:4px;}
+    /* Điều khoản */
+    .terms{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:var(--text-secondary);margin:4px 0 16px;}
+    .terms input[type=checkbox]{margin-top:1px;accent-color:var(--blue);width:18px;height:18px;flex-shrink:0;cursor:pointer;}
+    .terms a{color:var(--blue);text-decoration:none;}
+    .terms a:hover{text-decoration:underline;}
+    .btn-sub:disabled{opacity:.5;cursor:not-allowed;}
+    /* Đăng ký thành công */
     .success-box{text-align:center;padding:20px 0;}
-    .success-ico{font-size:56px;margin-bottom:14px;animation:bounce .6s ease;}
-    @keyframes bounce{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
-    .success-box h2{font-size:18px;font-weight:800;color:#4ade80;margin-bottom:6px;}
-    .success-box p{font-size:13px;color:#8b949e;margin-bottom:20px;}
-    .btn-login-go{display:inline-flex;align-items:center;gap:7px;padding:12px 28px;
-      background:linear-gradient(135deg,#4f6ef7,#3a56e4);color:#fff;border-radius:11px;
-      font-size:14px;font-weight:700;text-decoration:none;
-      box-shadow:0 4px 16px rgba(79,110,247,.35);transition:all .2s;}
-    .btn-login-go:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,110,247,.5);}
+    .success-ico{font-size:48px;margin-bottom:14px;}
+    .success-box h2{font-size:18px;font-weight:600;color:#007a55;margin-bottom:6px;}
+    .success-box p{font-size:13px;color:var(--text-muted);margin-bottom:20px;}
+    .btn-login-go{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 24px;
+      background:var(--blue-solid);color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;transition:background-color .15s;}
+    .btn-login-go:hover{background:#2f47c4;}
   </style>
 </head>
 <body>
-<div class="bg-orb bg-orb1"></div>
-<div class="bg-orb bg-orb2"></div>
-<div class="grid"></div>
 
+<div class="theme-corner"><?= themeToggle() ?></div>
 <div class="page">
   <div class="card">
 
     <!-- Logo -->
     <div class="logo">
-      <div class="logo-ico">N</div>
-      <div class="logo-text">
-        <div class="n">NEXUS</div>
-        <div class="s">Hệ thống Quản lý Bán Máy Tính</div>
-      </div>
+      <?= themeLogo(52) ?>
+      <div class="s">Hệ thống Quản lý Bán Máy Tính</div>
     </div>
 
     <?php if ($success): ?>
     <!-- Success state -->
     <div class="success-box">
-      <div class="success-ico">🎉</div>
+      <div class="success-ico"><?= icon('check-circle') ?></div>
       <h2>Đăng ký thành công!</h2>
       <p>Tài khoản <strong style="color:#e6edf3"><?= htmlspecialchars($_POST['email']??'') ?></strong><br>đã được tạo. Bạn có thể đăng nhập ngay.</p>
-      <a href="<?= BASE_URL ?>/auth/login.php" class="btn-login-go">🚀 Đăng nhập ngay</a>
+      <a href="<?= BASE_URL ?>/auth/login.php" class="btn-login-go">Đăng nhập ngay</a>
     </div>
 
     <?php else: ?>
@@ -195,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($msg): ?>
-    <div class="alert alert-err">❌ <?= $msg ?></div>
+    <div class="alert alert-err"><?= icon('x') ?> <?= $msg ?></div>
     <?php endif; ?>
 
     <form method="POST" action="" id="regForm" novalidate>
@@ -204,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="fg full">
           <label>Họ và tên <span class="req">*</span></label>
           <div class="iw">
-            <span class="iw-ico">👤</span>
+            <span class="iw-ico"><?= icon('user') ?></span>
             <input type="text" name="hoten" id="hoten"
                    placeholder="Nguyễn Văn A"
                    value="<?= htmlspecialchars($_POST['hoten'] ?? '') ?>"
@@ -216,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="fg">
           <label>Email <span class="req">*</span></label>
           <div class="iw">
-            <span class="iw-ico">📧</span>
+            <span class="iw-ico"><?= icon('mail') ?></span>
             <input type="email" name="email" id="regEmail"
                    placeholder="email@gmail.com"
                    value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
@@ -228,7 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="fg">
           <label>Số điện thoại</label>
           <div class="iw">
-            <span class="iw-ico">📱</span>
+            <span class="iw-ico"><?= icon('smartphone') ?></span>
             <input type="tel" name="sdt" id="sdt"
                    placeholder="0912 345 678"
                    value="<?= htmlspecialchars($_POST['sdt'] ?? '') ?>"
@@ -240,12 +273,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="fg">
           <label>Mật khẩu <span class="req">*</span></label>
           <div class="iw">
-            <span class="iw-ico">🔒</span>
+            <span class="iw-ico"><?= icon('lock') ?></span>
             <input type="password" name="password" id="regPass"
                    placeholder="Tối thiểu 6 ký tự"
                    required minlength="6"
                    oninput="checkStrength(this.value)"/>
-            <button type="button" class="eye" onclick="togglePass('regPass')">👁️</button>
+            <button type="button" class="eye" onclick="togglePass('regPass')"><?= icon('eye') ?></button>
           </div>
           <div class="strength">
             <div class="str-bar"><div class="str-fill" id="strFill" style="width:0"></div></div>
@@ -257,12 +290,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="fg">
           <label>Xác nhận mật khẩu <span class="req">*</span></label>
           <div class="iw">
-            <span class="iw-ico">🔐</span>
+            <span class="iw-ico"><?= icon('lock') ?></span>
             <input type="password" name="password_confirm" id="regPass2"
                    placeholder="Nhập lại mật khẩu"
                    required
                    oninput="checkMatch()"/>
-            <button type="button" class="eye" onclick="togglePass('regPass2')">👁️</button>
+            <button type="button" class="eye" onclick="togglePass('regPass2')"><?= icon('eye') ?></button>
           </div>
           <div id="matchMsg" style="font-size:10px;margin-top:5px;"></div>
         </div>
@@ -278,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </div>
 
       <button type="submit" class="btn-sub" id="submitBtn">
-        ✅ Tạo tài khoản
+        Tạo tài khoản
       </button>
     </form>
 
@@ -294,11 +327,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <script>
 const strLevels = [
-  {w:'20%', bg:'#ef4444', t:'Rất yếu'},
-  {w:'40%', bg:'#f59e0b', t:'Yếu'},
-  {w:'60%', bg:'#eab308', t:'Trung bình'},
-  {w:'80%', bg:'#22c55e', t:'Mạnh'},
-  {w:'100%',bg:'#10b981', t:'Rất mạnh'},
+  {w:'20%', bg:'#c81e1e', t:'Rất yếu'},
+  {w:'40%', bg:'#b45309', t:'Yếu'},
+  {w:'60%', bg:'#a16207', t:'Trung bình'},
+  {w:'80%', bg:'#15803d', t:'Mạnh'},
+  {w:'100%',bg:'#047857', t:'Rất mạnh'},
 ];
 function checkStrength(v) {
   let sc = 0;

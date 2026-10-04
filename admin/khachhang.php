@@ -32,7 +32,7 @@ $khachhang = dbFetch("SELECT kh.*,
     ORDER BY tong_chi_tieu DESC
     LIMIT $perPage OFFSET $offset", $params, $types);
 
-$avatarColors = ['#4f6ef7','#22c55e','#8b5cf6','#f59e0b','#06b6d4','#ec4899','#ef4444'];
+$avatarColors = ['#3a56e4','#15803d','#6d28d9','#b45309','#0e7490','#be185d','#c81e1e'];
 
 include __DIR__ . '/includes/header.php';
 ?>
@@ -44,23 +44,23 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>👤 Quản lý Khách hàng</h1>
+          <h1>Quản lý Khách hàng</h1>
           <p>Tổng <strong style="color:var(--blue-light)"><?= formatNum($total) ?></strong> khách hàng</p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-outline" onclick="exportTableCSV('khTable','khachhang')">📥 Xuất CSV</button>
+          <button class="btn btn-outline" onclick="exportTableCSV('khTable','khachhang')">Xuất CSV</button>
           <a href="khachhang_them.php" class="btn btn-primary">＋ Thêm khách hàng</a>
         </div>
       </div>
 
       <!-- Filter -->
       <div class="filter-bar">
-        <form method="GET" style="display:flex;gap:10px;width:100%">
+        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="flex:1">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm tên, SĐT, email khách hàng..." />
           </div>
-          <button type="submit" class="btn btn-primary">🔍 Tìm kiếm</button>
+          <button type="submit" class="btn btn-primary">Tìm kiếm</button>
           <a href="khachhang.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -86,7 +86,7 @@ include __DIR__ . '/includes/header.php';
                 $initials = implode('', array_map(fn($w) => mb_strtoupper(mb_substr($w,0,1)), array_slice(explode(' ',$kh['TENKH']),-2)));
                 $color = $avatarColors[$i % count($avatarColors)];
                 $chiTieu = floatval($kh['tong_chi_tieu'] ?? 0);
-                $hang = $chiTieu >= 50000000 ? ['💎 VIP','#f59e0b'] : ($chiTieu >= 20000000 ? ['🥇 Gold','#22c55e'] : ($chiTieu >= 5000000 ? ['🥈 Silver','#8892b0'] : ['🥉 Bronze','#cd7f32']));
+                $hang = $chiTieu >= 50000000 ? ['💎 VIP','#b45309'] : ($chiTieu >= 20000000 ? ['🥇 Gold','#15803d'] : ($chiTieu >= 5000000 ? ['🥈 Silver','#707070'] : ['🥉 Bronze','#8a5a2b']));
               ?>
               <tr>
                 <td style="color:var(--text-muted);font-size:12px"><?= $offset+$i+1 ?></td>
@@ -107,8 +107,8 @@ include __DIR__ . '/includes/header.php';
                   </div>
                 </td>
                 <td>
-                  <div style="font-size:13px">📞 <?= e($kh['SDT_KH'] ?? '—') ?></div>
-                  <div style="font-size:12px;color:var(--text-muted)">📧 <?= e($kh['EMAIL_KH'] ?? '—') ?></div>
+                  <div style="font-size:13px"><?= icon('phone') ?> <?= e($kh['SDT_KH'] ?? '—') ?></div>
+                  <div style="font-size:12px;color:var(--text-muted)"><?= icon('mail') ?> <?= e($kh['EMAIL_KH'] ?? '—') ?></div>
                 </td>
                 <td style="font-size:12px;color:var(--text-secondary);max-width:200px">
                   <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?= e($kh['DIACHI_KH'] ?? '—') ?></div>
@@ -121,21 +121,21 @@ include __DIR__ . '/includes/header.php';
                   <div style="font-weight:700;color:var(--blue-light)"><?= formatVND($chiTieu) ?></div>
                 </td>
                 <td>
-                  <span style="background:<?= $hang[1] ?>22;color:<?= $hang[1] ?>;border:1px solid <?= $hang[1] ?>44;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                  <span style="background:color-mix(in srgb,<?= $hang[1] ?> 12%,transparent);color:<?= $hang[1] ?>;border:1px solid color-mix(in srgb,<?= $hang[1] ?> 30%,transparent);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
                     <?= $hang[0] ?>
                   </span>
                 </td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="khachhang_chitiet.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Chi tiết">👁️</a>
-                    <a href="khachhang_sua.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Sửa">✏️</a>
-                    <a href="donhang.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Xem đơn hàng">🛒</a>
+                    <a href="khachhang_chitiet.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Chi tiết"><?= icon('eye', 15) ?></a>
+                    <a href="khachhang_sua.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Sửa"><?= icon('pencil', 15) ?></a>
+                    <a href="donhang.php?makh=<?= e($kh['MAKH']) ?>" class="btn-icon" title="Xem đơn hàng"><?= icon('cart', 15) ?></a>
                   </div>
                 </td>
               </tr>
               <?php endforeach; ?>
               <?php if(empty($khachhang)): ?>
-              <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">👤</div><p>Không tìm thấy khách hàng nào</p></div></td></tr>
+              <tr><td colspan="8"><div class="empty-state"><div class="empty-icon"><?= icon('user') ?></div><p>Không tìm thấy khách hàng nào</p></div></td></tr>
               <?php endif; ?>
             </tbody>
           </table>

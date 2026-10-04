@@ -95,11 +95,11 @@ include __DIR__ . '/includes/header.php';
 
       <div class="page-header">
         <div class="page-header-left">
-          <h1>🛒 Quản lý Đơn hàng</h1>
+          <h1>Quản lý Đơn hàng</h1>
           <p>Tổng <strong style="color:var(--blue-light)"><?= formatNum($total) ?></strong> đơn hàng</p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-outline" onclick="exportTableCSV('hdTable','donhang_<?= date('Ymd') ?>')">📥 Xuất CSV</button>
+          <button class="btn btn-outline" onclick="exportTableCSV('hdTable','donhang_<?= date('Ymd') ?>')">Xuất CSV</button>
           <a href="donhang_them.php" class="btn btn-primary">＋ Tạo đơn mới</a>
         </div>
       </div>
@@ -130,7 +130,7 @@ include __DIR__ . '/includes/header.php';
         </a>
         <?php endforeach; ?>
         <?php if($trangthai): ?>
-          <a href="donhang.php" class="btn btn-sm btn-outline">✕ Xóa lọc</a>
+          <a href="donhang.php" class="btn btn-sm btn-outline">Xóa lọc</a>
         <?php endif; ?>
       </div>
 
@@ -138,7 +138,7 @@ include __DIR__ . '/includes/header.php';
       <div class="filter-bar">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
           <div class="search-box" style="min-width:240px">
-            <span class="si">🔍</span>
+            <span class="si"><?= icon('search') ?></span>
             <input type="text" name="q" value="<?= e($search) ?>" placeholder="Tìm mã HD, tên khách..." />
           </div>
           <select name="ptgh" class="form-control" style="width:150px">
@@ -149,7 +149,7 @@ include __DIR__ . '/includes/header.php';
           <input type="date" name="from" value="<?= e($from) ?>" class="form-control" style="width:140px" title="Từ ngày" />
           <input type="date" name="to"   value="<?= e($to) ?>"   class="form-control" style="width:140px" title="Đến ngày" />
           <input type="hidden" name="trangthai" value="<?= e($trangthai) ?>" />
-          <button type="submit" class="btn btn-primary">🔍 Lọc</button>
+          <button type="submit" class="btn btn-primary">Lọc</button>
           <a href="donhang.php" class="btn btn-outline">↩ Reset</a>
         </form>
       </div>
@@ -210,7 +210,7 @@ include __DIR__ . '/includes/header.php';
                 <td><?= statusBadge($hd['TRANGTHAI'], 'hoadon') ?></td>
                 <td>
                   <div style="display:flex;gap:5px;flex-wrap:wrap">
-                    <a href="donhang_chitiet.php?mahd=<?= e($hd['MAHD']) ?>" class="btn-icon" title="Chi tiết">👁️</a>
+                    <a href="donhang_chitiet.php?mahd=<?= e($hd['MAHD']) ?>" class="btn-icon" title="Chi tiết"><?= icon('eye', 15) ?></a>
                     <?php if(isset($validTransitions[$hd['TRANGTHAI']])): ?>
                     <a href="donhang.php?action=next&mahd=<?= e($hd['MAHD']) ?>"
                        class="btn btn-sm btn-success"
@@ -221,7 +221,7 @@ include __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                     <?php if(in_array($hd['TRANGTHAI'],['ChoXacNhan','DaXacNhan'])): ?>
                     <a href="donhang.php?action=huy&mahd=<?= e($hd['MAHD']) ?>"
-                       class="btn-icon" title="Hủy đơn" style="border-color:rgba(239,68,68,0.3)"
+                       class="btn-icon" title="Hủy đơn" style="border-color:rgba(200,30,30,0.3)"
                        onclick="return confirm('Hủy đơn hàng <?= e($hd['MAHD']) ?>?')">🚫</a>
                     <?php endif; ?>
                   </div>
@@ -229,7 +229,7 @@ include __DIR__ . '/includes/header.php';
               </tr>
               <?php endforeach; ?>
               <?php if(empty($donhang)): ?>
-              <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🛒</div><p>Không có đơn hàng nào</p></div></td></tr>
+              <tr><td colspan="8"><div class="empty-state"><div class="empty-icon"><?= icon('cart') ?></div><p>Không có đơn hàng nào</p></div></td></tr>
               <?php endif; ?>
             </tbody>
           </table>
