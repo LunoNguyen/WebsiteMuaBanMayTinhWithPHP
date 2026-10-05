@@ -3,16 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LuuSanPhamRequest;
 use App\Http\Requests\Admin\TaiAnhSanPhamRequest;
 use App\Models\ChiTietHoaDon;
 use App\Models\DanhSachAnh;
+use App\Models\LichSuGia;
 use App\Models\LoaiSanPham;
+use App\Models\MoTa;
+use App\Models\NhaCungCap;
 use App\Models\NhaSanXuat;
 use App\Models\SanPham;
 use App\Services\MinioStorage;
+use App\Services\Realtime;
+use App\Support\MaTuDong;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Throwable;
@@ -68,11 +75,131 @@ class SanPhamController extends Controller
     }
 
     /**
+     * Form thêm sản phẩm.
+     */
+    public function create(): View
+    {
+        return view('admin.sanpham-form', $this->duLieuForm(new SanPham(['TRANGTHAI' => 'DangBan', 'DONVT' => 'Cái', 'SOLUONGTON' => 0])));
+    }
+
+    /**
+     * Lưu sản phẩm mới cùng cấu hình.
+     */
+    public function store(LuuSanPhamRequest $request): RedirectResponse
+    {
+        $sanPham = DB::transaction(function () use ($request): SanPham {
+            $sanPham = SanPham::create([
+                'MASP' => MaTuDong::tiepTheo('SANPHAM', 'MASP', 'SP'),
+                ...$request->safe()->only(['TENSP', 'MALOAI', 'MANSX', 'MANCC', 'DONVT', 'DONGIA_SP', 'SOLUONGTON', 'TRANGTHAI']),
+                'NGAYTHEM' => now(),
+            ]);
+            $this->luuMoTa($sanPham, $request);
+
+            return $sanPham;
+        });
+
+        $loiAnh = $this->luuAnhTuForm($sanPham, $request);
+        Realtime::sanPham($sanPham->MASP);
+
+        return redirect()->route('admin.sanpham.edit', $sanPham->MASP)
+            ->with('thong_bao', "Đã thêm sản phẩm {$sanPham->MASP}.".$this->canhBaoAnh($loiAnh))
+            ->with('loai', $loiAnh > 0 ? 'info' : 'success');
+    }
+
+    /**
+     * Form sửa sản phẩm, kèm lịch sử giá.
+     */
+    public function edit(SanPham $sanPham): View
+    {
+        $sanPham->load('moTa');
+
+        return view('admin.sanpham-form', [
+            ...$this->duLieuForm($sanPham),
+            'lichSuGia' => $sanPham->lichSuGias()->orderByDesc('NGAY_CAPNHAT')->limit(10)->get(),
+        ]);
+    }
+
+    /**
+     * Cập nhật sản phẩm; đổi giá thì ghi vào lịch sử giá.
+     */
+    public function update(LuuSanPhamRequest $request, SanPham $sanPham): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $sanPham): void {
+            $giaCu = (float) $sanPham->DONGIA_SP;
+            $sanPham->update($request->safe()->only(['TENSP', 'MALOAI', 'MANSX', 'MANCC', 'DONVT', 'DONGIA_SP', 'TRANGTHAI']));
+
+            if ($giaCu !== (float) $sanPham->DONGIA_SP) {
+                LichSuGia::create([
+                    'MASP' => $sanPham->MASP,
+                    'DONGIA_MOI' => $sanPham->DONGIA_SP,
+                    'DONGIA_CU' => $giaCu,
+                    'NGAY_CAPNHAT' => now(),
+                    'MANV_CAPNHAT' => $request->user()->MANV,
+                    'GHI_CHU' => $request->validated('GHI_CHU_GIA'),
+                ]);
+            }
+
+            $this->luuMoTa($sanPham, $request);
+        });
+
+        $loiAnh = $this->luuAnhTuForm($sanPham, $request);
+        Realtime::sanPham($sanPham->MASP);
+
+        return redirect()->route($loiAnh > 0 ? 'admin.sanpham.edit' : 'admin.sanpham', $loiAnh > 0 ? $sanPham->MASP : [])
+            ->with('thong_bao', "Đã cập nhật sản phẩm {$sanPham->MASP}.".$this->canhBaoAnh($loiAnh))
+            ->with('loai', $loiAnh > 0 ? 'info' : 'success');
+    }
+
+    /**
+     * Dữ liệu chung cho form thêm / sửa.
+     *
+     * @return array<string, mixed>
+     */
+    private function duLieuForm(SanPham $sanPham): array
+    {
+        return [
+            'sp' => $sanPham,
+            'loaiList' => LoaiSanPham::query()->orderBy('TENLOAI')->get(),
+            'nsxList' => NhaSanXuat::query()->orderBy('TENNSX')->get(),
+            'nccList' => NhaCungCap::query()->orderBy('TENNCC')->get(),
+            'lichSuGia' => collect(),
+            'anhList' => $sanPham->exists
+                ? $sanPham->anhs()->orderByDesc('LA_ANH_CHINH')->orderBy('THU_TU')->get()
+                    ->each(fn (DanhSachAnh $anh) => $anh->setAttribute('url', $this->storage->url($anh->URL_ANH)))
+                : collect(),
+        ];
+    }
+
+    /**
+     * Câu báo thêm khi có ảnh không tải lên được.
+     */
+    private function canhBaoAnh(int $soLoi): string
+    {
+        return $soLoi > 0 ? " Có {$soLoi} ảnh chưa lưu được lên MinIO, kiểm tra MinIO rồi tải lại." : '';
+    }
+
+    /**
+     * Tạo hoặc cập nhật dòng cấu hình (MOTA) của sản phẩm; để trống hết thì không tạo.
+     */
+    private function luuMoTa(SanPham $sanPham, LuuSanPhamRequest $request): void
+    {
+        $cauHinh = $request->safe()->only(['CPU', 'RAM', 'ROM', 'MANHINH', 'VGA', 'PIN', 'KHAC']);
+        $moTa = $sanPham->moTa()->first();
+
+        if ($moTa) {
+            $moTa->update($cauHinh);
+        } elseif (array_filter($cauHinh, fn ($giaTri) => $giaTri !== null && $giaTri !== '')) {
+            MoTa::create(['MAMT' => MaTuDong::tiepTheo('MOTA', 'MAMT', 'MT'), 'MASP' => $sanPham->MASP, ...$cauHinh]);
+        }
+    }
+
+    /**
      * Ngừng bán / bật bán lại.
      */
     public function doiTrangThai(SanPham $sanPham): RedirectResponse
     {
         $sanPham->update(['TRANGTHAI' => $sanPham->TRANGTHAI === 'DangBan' ? 'NgungBan' : 'DangBan']);
+        Realtime::sanPham($sanPham->MASP);
 
         return back()->with('thong_bao', 'Đã cập nhật trạng thái sản phẩm!');
     }
@@ -82,8 +209,8 @@ class SanPhamController extends Controller
      */
     public function destroy(SanPham $sanPham): RedirectResponse
     {
-        if (ChiTietHoaDon::query()->where('MASP', $sanPham->MASP)->exists()) {
-            return back()->with('thong_bao', 'Không thể xóa sản phẩm đã có trong hóa đơn!')->with('loai', 'danger');
+        if (ChiTietHoaDon::query()->where('MASP', $sanPham->MASP)->exists() || DB::table('CT_PHIEUNHAPHANG')->where('MASP', $sanPham->MASP)->exists()) {
+            return back()->with('thong_bao', 'Không thể xóa sản phẩm đã có trong hóa đơn hoặc phiếu nhập! Hãy chuyển sang ngừng bán.')->with('loai', 'danger');
         }
 
         $anhs = $sanPham->anhs()->pluck('URL_ANH')->filter()->all();
@@ -112,21 +239,76 @@ class SanPhamController extends Controller
      */
     public function taiAnh(TaiAnhSanPhamRequest $request, SanPham $sanPham): JsonResponse
     {
-        $key = $this->storage->upload($request->file('anh'), 'sanpham/'.$sanPham->MASP);
+        $anh = $this->themAnh($sanPham, $request->file('anh'), $request->boolean('chinh'));
 
-        if ($key === null) {
-            return response()->json(['success' => false, 'error' => 'Không lưu được file lên MinIO. Kiểm tra MinIO có đang chạy không.'], 502);
+        if ($anh === null) {
+            return response()->json(['success' => false, 'error' => 'Không lưu được ảnh lên MinIO. Kiểm tra MinIO có đang chạy không.'], 502);
         }
 
-        $laChinh = $request->boolean('chinh') || ! $sanPham->anhs()->where('LA_ANH_CHINH', true)->exists();
+        return response()->json([
+            'success' => true,
+            'key' => $anh->URL_ANH,
+            'url' => $this->storage->url($anh->URL_ANH),
+            'la_chinh' => $anh->LA_ANH_CHINH,
+        ]);
+    }
+
+    /**
+     * Đặt một ảnh làm ảnh đại diện của sản phẩm.
+     */
+    public function datAnhChinh(SanPham $sanPham, DanhSachAnh $anh): RedirectResponse
+    {
+        abort_unless($anh->MASP === $sanPham->MASP, 404);
+
+        DB::transaction(function () use ($sanPham, $anh): void {
+            $sanPham->anhs()->update(['LA_ANH_CHINH' => false]);
+            $anh->update(['LA_ANH_CHINH' => true]);
+        });
+
+        return back()->with('thong_bao', 'Đã đổi ảnh đại diện.');
+    }
+
+    /**
+     * Xoá một ảnh (cả file trên MinIO); xoá ảnh chính thì ảnh kế tiếp thành ảnh chính.
+     */
+    public function xoaAnh(SanPham $sanPham, DanhSachAnh $anh): RedirectResponse
+    {
+        abort_unless($anh->MASP === $sanPham->MASP, 404);
+
+        DB::transaction(function () use ($sanPham, $anh): void {
+            $anh->delete();
+
+            if ($anh->LA_ANH_CHINH) {
+                $sanPham->anhs()->orderBy('THU_TU')->first()?->update(['LA_ANH_CHINH' => true]);
+            }
+        });
+
+        defer(fn () => $this->storage->delete($anh->URL_ANH));
+
+        return back()->with('thong_bao', 'Đã xoá ảnh.');
+    }
+
+    /**
+     * Tải một file lên MinIO rồi ghi vào DANHSACHANH. Sản phẩm chưa có ảnh chính thì ảnh này thành ảnh chính.
+     * Trả về null khi không lưu được (file trên MinIO được dọn lại nếu ghi DB lỗi).
+     */
+    private function themAnh(SanPham $sanPham, UploadedFile $file, bool $laChinh = false): ?DanhSachAnh
+    {
+        $key = $this->storage->upload($file, 'sanpham/'.$sanPham->MASP);
+
+        if ($key === null) {
+            return null;
+        }
+
+        $laChinh = $laChinh || ! $sanPham->anhs()->where('LA_ANH_CHINH', true)->exists();
 
         try {
-            DB::transaction(function () use ($sanPham, $key, $laChinh): void {
+            return DB::transaction(function () use ($sanPham, $key, $laChinh): DanhSachAnh {
                 if ($laChinh) {
                     $sanPham->anhs()->update(['LA_ANH_CHINH' => false]);
                 }
 
-                DanhSachAnh::create([
+                return DanhSachAnh::create([
                     'MASP' => $sanPham->MASP,
                     'URL_ANH' => $key,
                     'LA_ANH_CHINH' => $laChinh,
@@ -137,14 +319,23 @@ class SanPhamController extends Controller
             $this->storage->delete($key);
             report($exception);
 
-            return response()->json(['success' => false, 'error' => 'Lưu thông tin ảnh thất bại.'], 500);
+            return null;
+        }
+    }
+
+    /**
+     * Lưu các ảnh chọn trong form thêm / sửa; trả về số ảnh không lưu được.
+     */
+    private function luuAnhTuForm(SanPham $sanPham, LuuSanPhamRequest $request): int
+    {
+        $loi = 0;
+
+        foreach ($request->file('anh', []) as $file) {
+            if ($this->themAnh($sanPham, $file) === null) {
+                $loi++;
+            }
         }
 
-        return response()->json([
-            'success' => true,
-            'key' => $key,
-            'url' => $this->storage->url($key),
-            'la_chinh' => $laChinh,
-        ]);
+        return $loi;
     }
 }

@@ -41,9 +41,11 @@
         </a>
         <a href="{{ route('admin.donhang') }}" @class(['nav-item', 'active' => request()->routeIs('admin.donhang*')])>
             <span class="nav-icon">{!! icon('cart') !!}</span> Quản lý Đơn hàng
-            @if ($soDonChoXacNhan > 0)
-                <span class="nav-badge">{{ $soDonChoXacNhan }}</span>
-            @endif
+            <span data-rt-vung="so-don-cho" data-rt-khi="don" style="display:contents">
+                @if ($soDonChoXacNhan > 0)
+                    <span class="nav-badge">{{ $soDonChoXacNhan }}</span>
+                @endif
+            </span>
         </a>
         <a href="{{ route('admin.khachhang') }}" @class(['nav-item', 'active' => request()->routeIs('admin.khachhang*')])>
             <span class="nav-icon">{!! icon('user') !!}</span> Quản lý Khách hàng
@@ -55,6 +57,9 @@
         </a>
         <a href="{{ route('admin.baocao') }}" @class(['nav-item', 'active' => request()->routeIs('admin.baocao*')])>
             <span class="nav-icon">{!! icon('chart') !!}</span> Báo cáo & Thống kê
+        </a>
+        <a href="{{ route('admin.danhmuc') }}" @class(['nav-item', 'active' => request()->routeIs('admin.danhmuc*')])>
+            <span class="nav-icon">{!! icon('settings') !!}</span> Danh mục
         </a>
     </nav>
 

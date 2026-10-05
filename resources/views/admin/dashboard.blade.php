@@ -27,7 +27,7 @@
       <!-- ======================================================
            KPI STATS CARDS
            ====================================================== -->
-      <div class="stats-grid">
+      <div class="stats-grid" data-rt-vung="kpi" data-rt-khi="don sp">
         <!-- Doanh thu -->
         <div class="stat-card" style="--accent-color:#3a56e4">
           <div class="stat-card-top">
@@ -147,7 +147,7 @@
            ====================================================== -->
       <div class="grid-2" style="margin-bottom:20px">
         <!-- Cảnh báo tồn kho -->
-        <div class="card">
+        <div class="card" data-rt-vung="ton-kho" data-rt-khi="sp">
           <div class="card-header">
             <div>
               <h3>Cảnh báo Tồn kho &amp; Đề xuất Nhập</h3>
@@ -176,7 +176,7 @@
               <span class="stock-badge {{ $stockClass }}">
                 Còn {{ $sp['SOLUONGTON'] }} cái
               </span>
-              <a href="{{ route('admin.nhaphang') }}?masp={{ $sp['MASP'] }}" class="btn btn-sm btn-primary" style="margin-left:8px">
+              <a href="{{ route('admin.nhaphang.create', ['masp' => $sp['MASP']]) }}" class="btn btn-sm btn-primary" style="margin-left:8px">
                 Nhập
               </a>
             </div>
@@ -268,7 +268,7 @@
       <!-- ======================================================
            ROW 4: NHẬT KÝ HOẠT ĐỘNG & KIỂM SOÁT
            ====================================================== -->
-      <div class="card">
+      <div class="card" data-rt-vung="nhat-ky" data-rt-khi="don sp">
         <div class="card-header">
           <div>
             <h3>Nhật ký Hoạt động &amp; Đối Soát Kiểm Toán</h3>
@@ -303,7 +303,7 @@
               @foreach ($activityHD as $act)
               <tr class="activity-row" data-type="hoadon">
                 <td>
-                  <a href="{{ route('admin.donhang') }}?mahd={{ $act['MAHD'] }}" style="font-family:monospace;font-size:13px;color:var(--blue-light);font-weight:700">
+                  <a href="{{ route('admin.donhang.show', $act['MAHD']) }}" style="font-family:monospace;font-size:13px;color:var(--blue-light);font-weight:700">
                     {{ $act['MAHD'] }}
                   </a>
                 </td>
@@ -324,7 +324,7 @@
                 <td>{!! statusBadge($act['TRANGTHAI'], 'hoadon') !!}</td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="{{ route('admin.donhang') }}?mahd={{ $act['MAHD'] }}" class="btn-icon" title="Xem chi tiết">{!! icon('eye', 15) !!}</a>
+                    <a href="{{ route('admin.donhang.show', $act['MAHD']) }}" class="btn-icon" title="Xem chi tiết">{!! icon('eye', 15) !!}</a>
                     @if ($act['TRANGTHAI'] === 'ChoXacNhan')
                     <x-nut-hanh-dong :action="route('admin.donhang.buoc-tiep-theo', $act['MAHD'])" method="PATCH"
                         :confirm="'Xác nhận đơn '.$act['MAHD'].'?'"
@@ -362,7 +362,7 @@
                   </span>
                 </td>
                 <td>
-                  <a href="{{ route('admin.sanpham') }}?masp={{ $act['MASP'] }}" class="btn-icon" title="Xem sản phẩm">{!! icon('eye', 15) !!}</a>
+                  <a href="{{ route('admin.sanpham.edit', $act['MASP']) }}" class="btn-icon" title="Xem sản phẩm">{!! icon('eye', 15) !!}</a>
                 </td>
               </tr>
               @endforeach

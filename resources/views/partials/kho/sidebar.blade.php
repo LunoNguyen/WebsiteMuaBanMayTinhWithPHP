@@ -27,9 +27,11 @@
                 <div>Đơn hàng cần xuất kho</div>
                 <div style="font-size:10px;color:var(--wm)">Soạn hàng &amp; Điều phối xuất</div>
             </div>
+            <span data-rt-vung="so-don-xuat" data-rt-khi="don" style="display:contents">
             @if ($soDonChoXuatKho > 0)
                 <span class="nbg" style="background:var(--green-solid)">{{ $soDonChoXuatKho }}</span>
             @endif
+            </span>
         </a>
     </div>
 

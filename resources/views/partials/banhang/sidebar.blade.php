@@ -24,9 +24,11 @@
         <div>Quản lý Đơn hàng</div>
         <div style="font-size:10px;color:var(--text-muted)">Xử lý &amp; Theo dõi đơn</div>
       </div>
+      <span data-rt-vung="so-don-cho" data-rt-khi="don" style="display:contents">
       @if ($soDonChoXacNhan > 0)
         <span style="margin-left:auto;background:var(--red-solid);color:#fff;border-radius:10px;font-size:10px;padding:1px 6px;font-weight:700;">{{ $soDonChoXacNhan }}</span>
       @endif
+      </span>
     </a>
 
     <a href="{{ route('banhang.khachhang') }}"

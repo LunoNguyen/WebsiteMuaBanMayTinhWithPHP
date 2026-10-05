@@ -108,7 +108,7 @@ class TaiKhoan extends Authenticatable
     {
         return match ($this->LOAI_TAIKHOAN) {
             'Admin' => null,
-            'KhachHang' => 'Tài khoản khách hàng không đăng nhập được vào trang quản lý.',
+            'KhachHang' => $this->khachHang === null ? 'Tài khoản chưa được gắn với khách hàng nào.' : null,
             'NhanVien' => match (true) {
                 $this->nhanVien === null => 'Tài khoản chưa được gắn với nhân viên nào.',
                 ! $this->nhanVien->TRANGTHAI => 'Nhân viên đã nghỉ việc, không thể đăng nhập.',
@@ -131,6 +131,10 @@ class TaiKhoan extends Authenticatable
     {
         if ($this->LOAI_TAIKHOAN === 'Admin') {
             return VaiTro::Admin;
+        }
+
+        if ($this->LOAI_TAIKHOAN === 'KhachHang') {
+            return VaiTro::KhachHang;
         }
 
         return config('phanquyen.chuc_vu')[$this->nhanVien?->MACV] ?? null;

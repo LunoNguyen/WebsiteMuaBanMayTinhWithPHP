@@ -9,7 +9,7 @@
           <p>Tổng cộng <strong style="color:var(--blue-light)">{{ formatNum($total) }}</strong> sản phẩm{{ $search ? ' khớp "'.e($search).'"' : '' }}</p>
         </div>
         <div class="page-header-right">
-          <a href="{{ url('admin/sanpham-them') }}" class="btn btn-primary">＋ Thêm sản phẩm</a>
+          <a href="{{ route('admin.sanpham.create') }}" class="btn btn-primary">＋ Thêm sản phẩm</a>
           <button class="btn btn-outline" onclick="exportTableCSV('spTable','sanpham')">Xuất CSV</button>
         </div>
       </div>
@@ -51,7 +51,7 @@
       </div>
 
       <!-- Table -->
-      <div class="card">
+      <div class="card" data-rt-vung="ds-sp" data-rt-khi="sp">
         <div class="table-wrapper">
           <table id="spTable">
             <thead>
@@ -107,7 +107,7 @@
                 <td style="font-size:12px;color:var(--text-secondary)">{{ date('d/m/Y', strtotime($sp['NGAYTHEM'])) }}</td>
                 <td>
                   <div style="display:flex;gap:6px;align-items:center">
-                    <a href="{{ url('admin/sanpham-sua') }}?masp={{ $sp['MASP'] }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
+                    <a href="{{ route('admin.sanpham.edit', $sp['MASP']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
                     <x-nut-hanh-dong :action="route('admin.sanpham.trang-thai', $sp['MASP'])" method="PATCH"
                         confirm="Thay đổi trạng thái sản phẩm?" class="btn-icon"
                         :title="$sp['TRANGTHAI'] === 'DangBan' ? 'Ngừng bán' : 'Bật bán'"

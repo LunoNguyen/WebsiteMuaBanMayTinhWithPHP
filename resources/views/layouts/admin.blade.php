@@ -35,5 +35,6 @@
 <div id="toast-container"></div>
 <script src="{{ asset('assets/admin/admin.js') }}?v={{ filemtime(public_path('assets/admin/admin.js')) }}"></script>
 @stack('scripts')
+@include('partials.realtime')
 </body>
 </html>

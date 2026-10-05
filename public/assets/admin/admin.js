@@ -155,3 +155,8 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// Realtime vừa thay một vùng (số liệu dashboard): chạy lại hiệu ứng đếm số cho các ô mới
+document.addEventListener('rt:vung-moi', function () {
+  if (typeof animateCounters === 'function') animateCounters();
+});

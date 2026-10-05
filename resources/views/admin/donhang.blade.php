@@ -10,14 +10,14 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-outline" onclick="exportTableCSV('hdTable','donhang_{{ date('Ymd') }}')">Xuất CSV</button>
-          <a href="{{ url('admin/donhang-them') }}" class="btn btn-primary">＋ Tạo đơn mới</a>
+          <a href="{{ route('admin.donhang.create') }}" class="btn btn-primary">＋ Tạo đơn mới</a>
         </div>
       </div>
 
       @include('partials.thong-bao')
 
       <!-- Quick Stats -->
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" data-rt-vung="dem-don" data-rt-khi="don">
         @php $quickStats = [
           ['ChoXacNhan','dot','Chờ xác nhận','orange'],
           ['DaXacNhan', 'dot','Đã xác nhận', 'blue'],
@@ -57,7 +57,7 @@
       </div>
 
       <!-- Table -->
-      <div class="card">
+      <div class="card" data-rt-vung="ds-don" data-rt-khi="don">
         <div class="table-wrapper">
           <table id="hdTable">
             <thead>
@@ -76,7 +76,7 @@
               @foreach ($donhang as $hd)
               <tr>
                 <td>
-                  <a href="{{ url('admin/donhang-chitiet') }}?mahd={{ $hd['MAHD'] }}" style="font-family:monospace;font-weight:700;color:var(--blue-light)">
+                  <a href="{{ route('admin.donhang.show', $hd['MAHD']) }}" style="font-family:monospace;font-weight:700;color:var(--blue-light)">
                     {{ $hd['MAHD'] }}
                   </a>
                 </td>
@@ -109,7 +109,7 @@
                 <td>{!! statusBadge($hd['TRANGTHAI'], 'hoadon') !!}</td>
                 <td>
                   <div style="display:flex;gap:5px;flex-wrap:wrap">
-                    <a href="{{ url('admin/donhang-chitiet') }}?mahd={{ $hd['MAHD'] }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
+                    <a href="{{ route('admin.donhang.show', $hd['MAHD']) }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
                     @if (isset($validTransitions[$hd['TRANGTHAI']]))
                     <x-nut-hanh-dong :action="route('admin.donhang.buoc-tiep-theo', $hd['MAHD'])" method="PATCH"
                        :confirm="'Chuyển trạng thái đơn '.$hd['MAHD'].'?'"

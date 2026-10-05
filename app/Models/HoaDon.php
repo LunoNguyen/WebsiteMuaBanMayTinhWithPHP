@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Services\Realtime;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +29,20 @@ class HoaDon extends Model
         'DaXacNhan' => 'DangGiao',
         'DangGiao' => 'DaGiao',
         'DaGiao' => 'HoanThanh',
+    ];
+
+    /**
+     * Nhãn hiển thị của từng trạng thái đơn.
+     *
+     * @var array<string, string>
+     */
+    public const NHAN_TRANG_THAI = [
+        'ChoXacNhan' => 'Chờ xác nhận',
+        'DaXacNhan' => 'Đã xác nhận',
+        'DangGiao' => 'Đang giao',
+        'DaGiao' => 'Đã giao',
+        'HoanThanh' => 'Hoàn thành',
+        'DaHuy' => 'Đã huỷ',
     ];
 
     /**
@@ -70,6 +86,8 @@ class HoaDon extends Model
             }
         });
 
+        Realtime::donHang($this);
+
         return true;
     }
 
@@ -78,11 +96,64 @@ class HoaDon extends Model
      */
     public function huy(): bool
     {
-        if (! in_array($this->TRANGTHAI, self::HUY_DUOC, true)) {
+        // Khoá dòng đơn rồi mới kiểm tra trạng thái, để hai lần bấm huỷ không hoàn kho hai lần
+        $daHuy = DB::transaction(function (): bool {
+            $trangThai = self::query()->whereKey($this->MAHD)->lockForUpdate()->value('TRANGTHAI');
+
+            if (! in_array($trangThai, self::HUY_DUOC, true)) {
+                return false;
+            }
+
+            // Tồn kho bị trừ lúc đặt hàng, nên huỷ thì trả lại; sản phẩm đang "hết hàng" được bán lại
+            foreach ($this->chiTiets()->get(['MASP', 'SOLUONG']) as $chiTiet) {
+                SanPham::query()->whereKey($chiTiet->MASP)->increment('SOLUONGTON', $chiTiet->SOLUONG);
+                SanPham::query()->whereKey($chiTiet->MASP)->where('TRANGTHAI', 'HetHang')->update(['TRANGTHAI' => 'DangBan']);
+            }
+
+            // Trả lại lượt dùng mã; khách được dùng lại mã đó cho đơn khác
+            foreach ($this->khuyenMais()->pluck('KHUYENMAI.MAKM') as $maKhuyenMai) {
+                KhuyenMai::query()->whereKey($maKhuyenMai)->where('DA_SUDUNG', '>', 0)->decrement('DA_SUDUNG');
+            }
+
+            $this->update(['TRANGTHAI' => 'DaHuy']);
+
+            return true;
+        });
+
+        if ($daHuy) {
+            $this->TRANGTHAI = 'DaHuy';
+            Realtime::donHang($this);
+            Realtime::sanPham($this->chiTiets()->pluck('MASP'));
+        }
+
+        return $daHuy;
+    }
+
+    /**
+     * Nạp đủ quan hệ cho trang chi tiết đơn (Admin, Kho, Bán hàng).
+     */
+    public function napChiTiet(): static
+    {
+        return $this->load(['chiTiets.sanPham', 'thanhToan', 'khachHang', 'nhanVien', 'khuyenMais']);
+    }
+
+    /**
+     * Ghi nhận khách đã trả tiền (chuyển khoản / QR, hoặc COD thu tại quầy).
+     */
+    public function xacNhanThanhToan(): bool
+    {
+        if ($this->TRANGTHAI === 'DaHuy') {
             return false;
         }
 
-        return $this->update(['TRANGTHAI' => 'DaHuy']);
+        $daGhiNhan = $this->thanhToan()->where('TRANGTHAI', 'ChoThanhToan')
+            ->update(['TRANGTHAI' => 'DaThanhToan', 'NGAY_THANHTOAN' => now()]) > 0;
+
+        if ($daGhiNhan) {
+            Realtime::donHang($this);
+        }
+
+        return $daGhiNhan;
     }
 
     /**
@@ -131,6 +202,16 @@ class HoaDon extends Model
     public function chiTiets(): HasMany
     {
         return $this->hasMany(ChiTietHoaDon::class, 'MAHD', 'MAHD');
+    }
+
+    /**
+     * Mã khuyến mãi đã áp vào đơn (mỗi đơn tối đa một mã), kèm số tiền giảm.
+     *
+     * @return BelongsToMany<KhuyenMai, $this>
+     */
+    public function khuyenMais(): BelongsToMany
+    {
+        return $this->belongsToMany(KhuyenMai::class, 'HOADON_KHUYENMAI', 'MAHD', 'MAKM')->withPivot('SOTIEN_GIAM');
     }
 
     /**

@@ -9,7 +9,7 @@
           <p>Quản lý mã giảm giá và chương trình khuyến mãi</p>
         </div>
         <div class="page-header-right">
-          <a href="{{ url('admin/khuyenmai-them') }}" class="btn btn-primary">＋ Tạo khuyến mãi</a>
+          <a href="{{ route('admin.khuyenmai.create') }}" class="btn btn-primary">＋ Tạo khuyến mãi</a>
         </div>
       </div>
 
@@ -133,7 +133,7 @@
                  class="btn btn-sm {{ $isActive ? 'btn-outline' : 'btn-success' }}">
                 {!! $isActive ? icon('pause', 14).' Tạm dừng' : icon('play', 14).' Kích hoạt' !!}
               </x-nut-hanh-dong>
-              <a href="{{ url('admin/khuyenmai-sua') }}?makm={{ $km['MAKM'] }}" class="btn btn-sm btn-outline">Sửa</a>
+              <a href="{{ route('admin.khuyenmai.edit', $km['MAKM']) }}" class="btn btn-sm btn-outline">Sửa</a>
               <x-nut-hanh-dong :action="route('admin.khuyenmai.destroy', $km['MAKM'])" method="DELETE"
                  :confirm="'Xóa khuyến mãi '.$km['TENKM'].'?'"
                  class="btn btn-sm btn-outline" title="Xóa" style="border-color:color-mix(in srgb,var(--red) 30%,transparent);color:var(--red)">{!! icon('trash', 14) !!}</x-nut-hanh-dong>

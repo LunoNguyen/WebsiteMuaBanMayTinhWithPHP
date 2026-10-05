@@ -10,7 +10,7 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-outline" onclick="exportTableCSV('nvTable','nhanvien')">Xuất CSV</button>
-          <a href="{{ url('admin/nhanvien-them') }}" class="btn btn-primary">＋ Thêm nhân viên</a>
+          <a href="{{ route('admin.nhanvien.create') }}" class="btn btn-primary">＋ Thêm nhân viên</a>
         </div>
       </div>
 
@@ -90,8 +90,13 @@
                 {{ $nv['so_hd'] ?? 0 }} đơn hàng đã xử lý
               </span>
               <div style="display:flex;gap:6px">
-                <a href="{{ url('admin/nhanvien-sua') }}?manv={{ $nv['MANV'] }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
-                <a href="{{ route('admin.taikhoan') }}?manv={{ $nv['MANV'] }}" class="btn-icon" title="Tài khoản">{!! icon('key', 15) !!}</a>
+                <a href="{{ route('admin.nhanvien.edit', $nv['MANV']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
+                <a href="{{ route('admin.taikhoan', ['q' => $nv['MANV']]) }}" class="btn-icon" title="Tài khoản">{!! icon('key', 15) !!}</a>
+                @if ((int) ($nv['so_hd'] ?? 0) === 0)
+                <x-nut-hanh-dong :action="route('admin.nhanvien.destroy', $nv['MANV'])" method="DELETE" class="btn-icon" title="Xoá"
+                   :confirm="'Xoá nhân viên '.$nv['TENNV'].'? Nhân viên đã có tài khoản hoặc chứng từ thì không xoá được.'"
+                   style="border-color:color-mix(in srgb,var(--red) 30%,transparent)">{!! icon('trash', 15) !!}</x-nut-hanh-dong>
+                @endif
               </div>
             </div>
           </div>

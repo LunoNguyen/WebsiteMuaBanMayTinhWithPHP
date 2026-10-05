@@ -54,4 +54,16 @@ class KhachHangController extends Controller
             'colors' => ['#15803d', '#3a56e4', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#c81e1e'],
         ]);
     }
+
+    /**
+     * Hồ sơ khách hàng và lịch sử mua.
+     */
+    public function show(KhachHang $khachHang): View
+    {
+        return view('banhang.chi-tiet-khach', [
+            'kh' => $khachHang->load('taiKhoan'),
+            'tomTat' => $khachHang->tomTatMuaHang(),
+            'donHang' => $khachHang->hoaDons()->with('thanhToan')->withCount('chiTiets')->latest('NGAYLAP')->limit(20)->get(),
+        ]);
+    }
 }

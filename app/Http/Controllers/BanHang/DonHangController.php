@@ -67,6 +67,14 @@ class DonHangController extends Controller
     }
 
     /**
+     * Chi tiết đơn hàng.
+     */
+    public function show(HoaDon $hoaDon): View
+    {
+        return view('banhang.chi-tiet-don', ['hd' => $hoaDon->napChiTiet()]);
+    }
+
+    /**
      * Chuyển đơn sang bước kế tiếp của quy trình.
      */
     public function buocTiepTheo(HoaDon $hoaDon): RedirectResponse

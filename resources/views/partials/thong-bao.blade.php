@@ -5,3 +5,8 @@
         {!! icon($loai === 'success' ? 'check' : ($loai === 'info' ? 'bulb' : 'x')) !!} {{ session('thong_bao') }}
     </div>
 @endif
+@if ($errors->any())
+    <div class="alert alert-danger" data-dismiss>
+        {!! icon('x') !!} {{ $errors->count() > 1 ? 'Có '.$errors->count().' chỗ chưa hợp lệ, xem các ô được đánh dấu bên dưới.' : $errors->first() }}
+    </div>
+@endif

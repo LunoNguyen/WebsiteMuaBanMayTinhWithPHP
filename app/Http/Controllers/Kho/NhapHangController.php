@@ -7,6 +7,7 @@ use App\Models\CtPhieuNhapHang;
 use App\Models\NhaCungCap;
 use App\Models\PhieuNhapHang;
 use App\Models\SanPham;
+use App\Services\Realtime;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -122,6 +123,7 @@ class NhapHangController extends Controller
             }
 
             $phieu->update(['TRANGTHAI' => 'HoanThanh', 'NGAYNHAN' => now()]);
+            Realtime::sanPham($phieu->chiTiets()->pluck('MASP'));
 
             return null;
         });

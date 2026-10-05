@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LuuTaiKhoanRequest;
+use App\Models\KhachHang;
+use App\Models\NhanVien;
 use App\Models\TaiKhoan;
+use App\Support\MaTuDong;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class TaiKhoanController extends Controller
@@ -28,6 +33,8 @@ class TaiKhoanController extends Controller
                 'kh.TENKH', 'kh.SDT_KH', 'nv.TENNV', 'cv.TENCV')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('tk.MATK', 'like', "%{$search}%")
+                ->orWhere('tk.MANV', $search)
+                ->orWhere('tk.MAKH', $search)
                 ->orWhere('tk.EMAIL_TK', 'like', "%{$search}%")
                 ->orWhere('kh.TENKH', 'like', "%{$search}%")
                 ->orWhere('nv.TENNV', 'like', "%{$search}%")))
@@ -52,6 +59,102 @@ class TaiKhoanController extends Controller
             'ttColor' => ['HoatDong' => 'var(--green)', 'KhoaTamThoi' => 'var(--orange)', 'KhoaVinhVien' => 'var(--red)'],
             'ttLabel' => ['HoatDong' => 'Hoạt động', 'KhoaTamThoi' => 'Khoá tạm', 'KhoaVinhVien' => 'Khoá vĩnh viễn'],
         ]);
+    }
+
+    /**
+     * Form tạo tài khoản cho nhân viên hoặc khách hàng chưa có tài khoản.
+     */
+    public function create(Request $request): View
+    {
+        return view('admin.taikhoan-form', [
+            'tk' => new TaiKhoan([
+                'LOAI_TAIKHOAN' => $request->query('makh') ? 'KhachHang' : 'NhanVien',
+                'MANV' => $request->query('manv'),
+                'MAKH' => $request->query('makh'),
+                'TRANGTHAI' => 'HoatDong',
+            ]),
+            'nhanVienChuaCo' => NhanVien::query()->whereDoesntHave('taiKhoan')->orderBy('MANV')->get(),
+            'khachHangChuaCo' => KhachHang::query()->whereDoesntHave('taiKhoan')->orderBy('MAKH')->get(),
+        ]);
+    }
+
+    /**
+     * Lưu tài khoản mới (mật khẩu được mã hoá bcrypt qua cast "hashed").
+     */
+    public function store(LuuTaiKhoanRequest $request): RedirectResponse
+    {
+        $loai = $request->validated('LOAI_TAIKHOAN');
+        $laKhach = $loai === 'KhachHang';
+
+        $taiKhoan = DB::transaction(fn (): TaiKhoan => TaiKhoan::create([
+            'MATK' => $laKhach
+                ? MaTuDong::tiepTheo('TAIKHOAN', 'MATK', 'TK_KH')
+                : MaTuDong::tiepTheo('TAIKHOAN', 'MATK', $loai === 'Admin' ? 'TK_ADMIN' : 'TK_NV', $loai === 'Admin' ? 1 : 3),
+            'MANV' => $laKhach ? null : $request->validated('MANV'),
+            'MAKH' => $laKhach ? $request->validated('MAKH') : null,
+            'EMAIL_TK' => $request->validated('EMAIL_TK'),
+            'MATKHAU' => $request->validated('password'),
+            'LOAI_TAIKHOAN' => $loai,
+            'TRANGTHAI' => $request->validated('TRANGTHAI'),
+        ]));
+
+        return redirect()->route('admin.taikhoan')->with('thong_bao', "Đã tạo tài khoản {$taiKhoan->MATK} ({$taiKhoan->EMAIL_TK}).");
+    }
+
+    /**
+     * Form sửa tài khoản.
+     */
+    public function edit(TaiKhoan $taiKhoan): View
+    {
+        return view('admin.taikhoan-form', [
+            'tk' => $taiKhoan->load(['nhanVien.chucVu', 'khachHang']),
+            'nhanVienChuaCo' => collect(),
+            'khachHangChuaCo' => collect(),
+        ]);
+    }
+
+    /**
+     * Cập nhật email, trạng thái; nhập mật khẩu mới thì đặt lại mật khẩu.
+     */
+    public function update(LuuTaiKhoanRequest $request, TaiKhoan $taiKhoan): RedirectResponse
+    {
+        if ($taiKhoan->is($request->user()) && $request->validated('TRANGTHAI') !== 'HoatDong') {
+            return back()->withInput()->with('thong_bao', 'Không thể tự khoá tài khoản đang đăng nhập!')->with('loai', 'danger');
+        }
+
+        $taiKhoan->fill($request->safe()->only(['EMAIL_TK', 'TRANGTHAI']));
+
+        if ($request->filled('password')) {
+            $taiKhoan->MATKHAU = $request->validated('password');
+        }
+
+        $taiKhoan->save();
+
+        return redirect()->route('admin.taikhoan')->with('thong_bao', "Đã cập nhật tài khoản {$taiKhoan->MATK}.");
+    }
+
+    /**
+     * Xoá tài khoản chưa phát sinh đơn hàng (giỏ hàng và phiên chat bị xoá theo); có đơn thì chỉ khoá được.
+     */
+    public function destroy(Request $request, TaiKhoan $taiKhoan): RedirectResponse
+    {
+        if ($taiKhoan->is($request->user())) {
+            return back()->with('thong_bao', 'Không thể xoá tài khoản đang đăng nhập!')->with('loai', 'danger');
+        }
+
+        if (DB::table('HOADON')->where('MATK', $taiKhoan->MATK)->exists()) {
+            return back()->with('thong_bao', "Tài khoản {$taiKhoan->MATK} đã có đơn hàng, không xoá được. Hãy khoá tài khoản.")->with('loai', 'danger');
+        }
+
+        DB::transaction(function () use ($taiKhoan): void {
+            $gioHang = DB::table('GIOHANG')->where('MATK', $taiKhoan->MATK)->pluck('MAGIOHANG');
+            DB::table('CT_GIOHANG')->whereIn('MAGIOHANG', $gioHang)->delete();
+            DB::table('GIOHANG')->whereIn('MAGIOHANG', $gioHang)->delete();
+            DB::table('PHIEN_CHATBOT')->where('MATK', $taiKhoan->MATK)->update(['MATK' => null]);
+            $taiKhoan->delete();
+        });
+
+        return back()->with('thong_bao', "Đã xoá tài khoản {$taiKhoan->MATK}.");
     }
 
     /**

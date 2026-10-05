@@ -68,14 +68,27 @@ class DangNhapTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_tai_khoan_khach_hang_khong_vao_trang_quan_ly(): void
+    public function test_khach_hang_dang_nhap_ve_cua_hang_va_khong_vao_trang_quan_ly(): void
     {
         $taiKhoan = $this->taiKhoan('TK_KH001');
 
         $this->post('/dang-nhap', ['email' => $taiKhoan->EMAIL_TK, 'password' => self::MAT_KHAU_TEST])
-            ->assertSessionHasErrors(['email' => 'Tài khoản khách hàng không đăng nhập được vào trang quản lý.']);
+            ->assertRedirect('/');
 
-        $this->assertGuest();
+        $this->assertAuthenticatedAs($taiKhoan);
+        $this->get('/admin')->assertRedirect('/');
+    }
+
+    public function test_khach_hang_dang_nhap_quay_lai_trang_dang_xem(): void
+    {
+        $taiKhoan = $this->taiKhoan('TK_KH001');
+
+        $this->post('/dang-nhap', ['email' => $taiKhoan->EMAIL_TK, 'password' => self::MAT_KHAU_TEST, 'tiep' => '/san-pham/SP001'])
+            ->assertRedirect('/san-pham/SP001');
+
+        $this->post('/dang-xuat');
+        $this->post('/dang-nhap', ['email' => $taiKhoan->EMAIL_TK, 'password' => self::MAT_KHAU_TEST, 'tiep' => '//evil.example'])
+            ->assertRedirect('/');
     }
 
     public function test_tai_khoan_bi_khoa_khong_vao_duoc(): void
@@ -110,5 +123,25 @@ class DangNhapTest extends TestCase
             ->assertRedirect('/dang-nhap');
 
         $this->assertGuest();
+    }
+
+    public function test_trang_dang_nhap_va_dang_ky_dung_khung_cua_hang(): void
+    {
+        $this->get('/dang-nhap?tiep=/san-pham/SP001')
+            ->assertOk()
+            ->assertSee('Bạn cần tìm laptop, PC, linh kiện...?')
+            ->assertSee('name="tiep" value="/san-pham/SP001"', false);
+
+        $this->get('/dang-ky')->assertOk()->assertSee('Bạn cần tìm laptop, PC, linh kiện...?')->assertSee('Tạo tài khoản');
+    }
+
+    public function test_sai_mat_khau_chi_bao_loi_mot_lan_duoi_o_email(): void
+    {
+        $taiKhoan = $this->taiKhoan('TK_KH001');
+
+        $this->from('/dang-nhap')->followingRedirects()
+            ->post('/dang-nhap', ['email' => $taiKhoan->EMAIL_TK, 'password' => 'sai-mat-khau'])
+            ->assertSee('class="s-err"', false)
+            ->assertDontSee('s-flash err', false);
     }
 }

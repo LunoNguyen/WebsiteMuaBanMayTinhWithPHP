@@ -20,7 +20,6 @@ class MinioStorage
         private string $secretKey,
         private string $bucket,
         private string $region,
-        private int $urlTtl,
     ) {}
 
     /**
@@ -34,7 +33,6 @@ class MinioStorage
             secretKey: (string) config('minio.secret_key'),
             bucket: (string) config('minio.bucket'),
             region: (string) config('minio.region'),
-            urlTtl: (int) config('minio.url_ttl'),
         );
     }
 
@@ -100,9 +98,11 @@ class MinioStorage
     }
 
     /**
-     * Link xem file có thời hạn (presigned GET). Khoá rỗng trả về chuỗi rỗng; URL ngoài giữ nguyên.
+     * Link xem ảnh qua chính website (route "anh"), không lộ địa chỉ MinIO.
+     * Nhờ vậy ảnh vẫn xem được khi web chạy qua tên miền khác (Cloudflare Tunnel) mà MinIO chỉ mở ở máy chủ.
+     * Khoá rỗng trả về chuỗi rỗng; URL ngoài giữ nguyên.
      */
-    public function url(?string $key, ?int $ttl = null): string
+    public function url(?string $key): string
     {
         if ($key === null || $key === '') {
             return '';
@@ -112,24 +112,15 @@ class MinioStorage
             return $key;
         }
 
-        $path = '/'.$this->bucket.'/'.$this->encodeKey($key);
-        $now = gmdate('Ymd\THis\Z');
-        $date = substr($now, 0, 8);
-        $scope = "{$date}/{$this->region}/s3/aws4_request";
+        return route('anh', ['duongDan' => ltrim($key, '/')]);
+    }
 
-        $query = [
-            'X-Amz-Algorithm' => 'AWS4-HMAC-SHA256',
-            'X-Amz-Credential' => $this->accessKey.'/'.$scope,
-            'X-Amz-Date' => $now,
-            'X-Amz-Expires' => (string) ($ttl ?? $this->urlTtl),
-            'X-Amz-SignedHeaders' => 'host',
-        ];
-        ksort($query);
-        $canonicalQuery = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
-        $canonicalRequest = "GET\n{$path}\n{$canonicalQuery}\nhost:{$this->host()}\n\nhost\nUNSIGNED-PAYLOAD";
-        $signature = $this->sign($now, $scope, $canonicalRequest);
-
-        return $this->endpoint.$path.'?'.$canonicalQuery.'&X-Amz-Signature='.$signature;
+    /**
+     * Tải nội dung một object. Trả về null khi không kết nối được MinIO.
+     */
+    public function get(string $key): ?Response
+    {
+        return $this->request('GET', $key);
     }
 
     /**
@@ -161,11 +152,14 @@ class MinioStorage
 
         $headers['authorization'] = "AWS4-HMAC-SHA256 Credential={$this->accessKey}/{$scope}, "
             ."SignedHeaders={$signedHeaders}, Signature=".$this->sign($now, $scope, $canonicalRequest);
-        unset($headers['host']);
+        // Content-Type chỉ gửi qua withBody: để cả trong withHeaders thì header bị gộp thành
+        // "image/png, image/png", khác giá trị đã ký và MinIO trả 403 SignatureDoesNotMatch
+        $contentType = $headers['content-type'] ?? 'application/octet-stream';
+        unset($headers['host'], $headers['content-type']);
 
         try {
             return Http::withHeaders($headers)
-                ->withBody($body, $headers['content-type'] ?? 'application/octet-stream')
+                ->withBody($body, $contentType)
                 ->connectTimeout(3)
                 ->timeout(30)
                 ->send($method, $this->endpoint.$path);

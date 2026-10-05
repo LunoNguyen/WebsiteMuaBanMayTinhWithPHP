@@ -9,7 +9,7 @@
           <p>Tổng <strong style="color:var(--blue-light)">{{ formatNum($total) }}</strong> tài khoản trong hệ thống</p>
         </div>
         <div class="page-header-right">
-          <a href="{{ url('admin/taikhoan-them') }}" class="btn btn-primary">＋ Tạo tài khoản</a>
+          <a href="{{ route('admin.taikhoan.create') }}" class="btn btn-primary">＋ Tạo tài khoản</a>
         </div>
       </div>
 
@@ -91,7 +91,7 @@
                 <td style="font-size:12px;color:var(--text-muted)">{{ $tk['NGAY_CAPNHAT'] ? date('d/m/Y H:i', strtotime($tk['NGAY_CAPNHAT'])) : '—' }}</td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="{{ url('admin/taikhoan-sua') }}?matk={{ $tk['MATK'] }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
+                    <a href="{{ route('admin.taikhoan.edit', $tk['MATK']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
                     @if ($tk['LOAI_TAIKHOAN'] !== 'Admin')
                     <x-nut-hanh-dong :action="route('admin.taikhoan.trang-thai', $tk['MATK'])" method="PATCH"
                        confirm="Thay đổi trạng thái tài khoản?"
@@ -100,7 +100,11 @@
                       {!! $tk['TRANGTHAI'] === 'HoatDong' ? icon('lock', 15) : icon('unlock', 15) !!}
                     </x-nut-hanh-dong>
                     @endif
-                    <button class="btn-icon" title="Reset mật khẩu" onclick="showToast('Tính năng đang phát triển','info')">{!! icon('refresh', 15) !!}</button>
+                    @if ($tk['MATK'] !== auth()->id())
+                    <x-nut-hanh-dong :action="route('admin.taikhoan.destroy', $tk['MATK'])" method="DELETE" class="btn-icon" title="Xoá"
+                       :confirm="'Xoá tài khoản '.$tk['EMAIL_TK'].'? Tài khoản đã có đơn hàng thì chỉ khoá được.'"
+                       style="border-color:color-mix(in srgb,var(--red) 30%,transparent)">{!! icon('trash', 15) !!}</x-nut-hanh-dong>
+                    @endif
                   </div>
                 </td>
               </tr>

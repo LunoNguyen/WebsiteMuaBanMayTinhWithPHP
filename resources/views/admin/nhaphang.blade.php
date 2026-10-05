@@ -10,7 +10,7 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-outline" onclick="exportTableCSV('pnhTable','phieunhap')">Xuất CSV</button>
-          <a href="{{ url('admin/nhaphang-them') }}" class="btn btn-primary">＋ Tạo phiếu nhập</a>
+          <a href="{{ route('admin.nhaphang.create') }}" class="btn btn-primary">＋ Tạo phiếu nhập</a>
         </div>
       </div>
 
@@ -101,9 +101,9 @@
                 </td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="{{ url('admin/nhaphang-chitiet') }}?mapnh={{ $pnh['MAPNH'] }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
+                    <a href="{{ route('admin.nhaphang.show', $pnh['MAPNH']) }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
                     @if ($pnh['TRANGTHAI'] === 'ChoDuyet')
-                    <a href="{{ url('admin/nhaphang-sua') }}?mapnh={{ $pnh['MAPNH'] }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
+                    <a href="{{ route('admin.nhaphang.edit', $pnh['MAPNH']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
                     @endif
                   </div>
                 </td>

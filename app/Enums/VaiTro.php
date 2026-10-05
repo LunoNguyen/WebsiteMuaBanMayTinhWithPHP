@@ -3,13 +3,14 @@
 namespace App\Enums;
 
 /**
- * Khu vực làm việc trong hệ thống quản lý, suy ra từ loại tài khoản và chức vụ.
+ * Khu vực của tài khoản trong hệ thống, suy ra từ loại tài khoản và chức vụ.
  */
 enum VaiTro: string
 {
     case Admin = 'Admin';
     case NhanVienBan = 'NhanVienBan';
     case NhanVienKho = 'NhanVienKho';
+    case KhachHang = 'KhachHang';
 
     /**
      * Tên route trang chính của vai trò.
@@ -20,6 +21,7 @@ enum VaiTro: string
             self::Admin => 'admin.dashboard',
             self::NhanVienBan => 'banhang.donhang',
             self::NhanVienKho => 'kho.nhaphang',
+            self::KhachHang => 'home',
         };
     }
 
@@ -32,6 +34,7 @@ enum VaiTro: string
             self::Admin => 'Quản trị viên',
             self::NhanVienBan => 'Nhân viên bán hàng',
             self::NhanVienKho => 'Nhân viên kho',
+            self::KhachHang => 'Khách hàng',
         };
     }
 }

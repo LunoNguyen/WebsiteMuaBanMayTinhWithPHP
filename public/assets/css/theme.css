@@ -100,3 +100,6 @@
 
 /* Ảnh, khung ảnh trong chế độ tối: bớt chói */
 :root[data-theme="dark"] img:not(.logo-img) { filter: brightness(.92); }
+
+/* Phần tử có thuộc tính hidden luôn ẩn, kể cả khi class đặt display (nút mua bật / tắt theo tồn kho) */
+[hidden] { display: none !important; }

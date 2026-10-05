@@ -18,5 +18,6 @@
 
 <script src="{{ asset('assets/kho/kho.js') }}?v={{ filemtime(public_path('assets/kho/kho.js')) }}"></script>
 @stack('scripts')
+@include('partials.realtime')
 </body>
 </html>

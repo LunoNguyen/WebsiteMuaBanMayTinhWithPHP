@@ -3,7 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Shop\ThanhToanController;
+use App\Http\Requests\Admin\TaoDonHangRequest;
 use App\Models\HoaDon;
+use App\Models\KhachHang;
+use App\Models\SanPham;
+use App\Services\DatHangService;
+use App\Services\KhuyenMaiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -34,6 +40,7 @@ class DonHangController extends Controller
                 ->orWhere('kh.TENKH', 'like', "%{$search}%")
                 ->orWhere('hd.TEN_NGUOINHAN', 'like', "%{$search}%")))
             ->when($trangthai !== '', fn ($q) => $q->where('hd.TRANGTHAI', $trangthai))
+            ->when($request->filled('makh'), fn ($q) => $q->where('hd.MAKH', (string) $request->query('makh')))
             ->when($ptgh !== '', fn ($q) => $q->where('hd.PHUONG_THUC_GH', $ptgh))
             ->when($from !== '', fn ($q) => $q->whereDate('hd.NGAYLAP', '>=', $from))
             ->when($to !== '', fn ($q) => $q->whereDate('hd.NGAYLAP', '<=', $to))
@@ -57,6 +64,57 @@ class DonHangController extends Controller
             'validTransitions' => HoaDon::BUOC_TIEP_THEO,
             'actionLabel' => HoaDon::NHAN_BUOC_TIEP_THEO,
         ]);
+    }
+
+    /**
+     * Chi tiết đơn hàng.
+     */
+    public function show(HoaDon $hoaDon): View
+    {
+        return view('admin.donhang-chitiet', ['hd' => $hoaDon->napChiTiet()]);
+    }
+
+    /**
+     * Form tạo đơn tại quầy.
+     */
+    public function create(KhuyenMaiService $khuyenMai): View
+    {
+        return view('admin.donhang-form', [
+            'khachHangList' => KhachHang::query()->orderBy('TENKH')->get(['MAKH', 'TENKH', 'SDT_KH', 'DIACHI_KH']),
+            'sanPhamList' => SanPham::query()->where('TRANGTHAI', 'DangBan')->where('SOLUONGTON', '>', 0)
+                ->orderBy('TENSP')->get(['MASP', 'TENSP', 'DONGIA_SP', 'SOLUONGTON']),
+            'maDangChay' => $khuyenMai->dangApDung(),
+            'phuongThuc' => ThanhToanController::PHUONG_THUC,
+            'dong' => old('san_pham', [['MASP' => null, 'SOLUONG' => 1]]),
+        ]);
+    }
+
+    /**
+     * Tạo đơn tại quầy: kiểm tra tồn kho, áp mã (một mã, mỗi khách một lần), trừ tồn kho.
+     */
+    public function store(TaoDonHangRequest $request, DatHangService $datHang): RedirectResponse
+    {
+        $hoaDon = $datHang->taoDonTaiQuay(
+            $request->user()->MANV,
+            $request->validated('MAKH'),
+            $request->validated('san_pham'),
+            $request->safe()->only(['TEN_NGUOINHAN', 'SDT_NGUOINHAN', 'DIACHI_GIAOHANG', 'PHUONG_THUC_GH', 'PHUONG_THUC', 'GHI_CHU']),
+            $request->validated('MA_CODE'),
+        );
+
+        return redirect()->route('admin.donhang.show', $hoaDon->MAHD)->with('thong_bao', "Đã tạo đơn {$hoaDon->MAHD}.");
+    }
+
+    /**
+     * Ghi nhận đơn đã thanh toán.
+     */
+    public function thanhToan(HoaDon $hoaDon): RedirectResponse
+    {
+        if (! $hoaDon->xacNhanThanhToan()) {
+            return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không có khoản chờ thanh toán.")->with('loai', 'danger');
+        }
+
+        return back()->with('thong_bao', "Đã ghi nhận thanh toán đơn {$hoaDon->MAHD}.");
     }
 
     /**

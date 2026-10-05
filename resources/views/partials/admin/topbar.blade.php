@@ -27,9 +27,9 @@
             <span class="topbar-notif-dot" id="notifDot"></span>
         </div>
 
-        <a href="{{ url('admin/cai-dat') }}" class="topbar-btn" title="Cài đặt">{!! icon('settings', 18) !!}</a>
+        <a href="{{ route('admin.danhmuc') }}" class="topbar-btn" title="Cài đặt">{!! icon('settings', 18) !!}</a>
 
-        <div class="topbar-profile" onclick="window.location='{{ url('admin/ho-so') }}'">
+        <div class="topbar-profile" onclick="window.location='{{ route('admin.hoso') }}'">
             <div class="av">AD</div>
             <span>{{ auth()->user()->tenHienThi() }}</span>
             <span style="color:var(--text-muted);display:flex">{!! icon('chevron', 14) !!}</span>

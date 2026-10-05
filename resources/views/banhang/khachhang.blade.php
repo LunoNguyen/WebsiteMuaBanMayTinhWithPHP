@@ -123,7 +123,7 @@
       @else
       <div class="cgrid">
         @foreach ($khachhang as $idx => $kh) @php $color  = $colors[$idx % count($colors)]; $initials = mb_strtoupper(mb_substr($kh['TENKH']??'KH', 0, 2)); $chiTieu  = floatval($kh['tong_chi'] ?? 0); $isVip    = $chiTieu >= 50000000; $maxChi   = 100000000; $pct      = min(100, round($chiTieu / $maxChi * 100)); @endphp
-        <div class="ccard" onclick="window.location='{{ url('ban-hang/xem-khachhang') }}?makh={{ $kh['MAKH'] }}'">
+        <div class="ccard" onclick="window.location='{{ route('banhang.khachhang.show', $kh['MAKH']) }}'">
           <div class="cc-head">
             <div class="cc-av" style="background:{{ $color }}">{{ $initials }}</div>
             <div style="flex:1;min-width:0">

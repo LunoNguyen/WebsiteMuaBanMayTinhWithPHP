@@ -20,5 +20,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/vn.min.js"></script>
 <script src="{{ asset('assets/banhang/banhang.js') }}?v={{ filemtime(public_path('assets/banhang/banhang.js')) }}"></script>
 @stack('scripts')
+@include('partials.realtime')
 </body>
 </html>

@@ -29,6 +29,24 @@ class KhachHang extends Model
     }
 
     /**
+     * Số đơn, tổng chi tiêu (đơn đã giao / hoàn thành) và lần mua gần nhất.
+     *
+     * @return array{so_don: int, tong_chi: float, lan_cuoi: ?string}
+     */
+    public function tomTatMuaHang(): array
+    {
+        $tong = $this->hoaDons()->toBase()
+            ->selectRaw("COUNT(*) AS so_don, SUM(CASE WHEN TRANGTHAI IN ('DaGiao','HoanThanh') THEN TONGTIEN_HD ELSE 0 END) AS tong_chi, MAX(NGAYLAP) AS lan_cuoi")
+            ->first();
+
+        return [
+            'so_don' => (int) $tong->so_don,
+            'tong_chi' => (float) $tong->tong_chi,
+            'lan_cuoi' => $tong->lan_cuoi,
+        ];
+    }
+
+    /**
      * @return HasOne<TaiKhoan, $this>
      */
     public function taiKhoan(): HasOne

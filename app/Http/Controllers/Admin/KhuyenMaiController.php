@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\LuuKhuyenMaiRequest;
 use App\Models\HoaDonKhuyenMai;
 use App\Models\KhuyenMai;
+use App\Models\SanPham;
+use App\Support\MaTuDong;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +52,88 @@ class KhuyenMaiController extends Controller
             'statKMMap' => KhuyenMai::query()->toBase()->selectRaw('TRANGTHAI, COUNT(*) AS cnt')
                 ->groupBy('TRANGTHAI')->pluck('cnt', 'TRANGTHAI')->all(),
         ]);
+    }
+
+    /**
+     * Form tạo khuyến mãi.
+     */
+    public function create(): View
+    {
+        return view('admin.khuyenmai-form', $this->duLieuForm(new KhuyenMai([
+            'LOAI_KM' => 'PhanTram',
+            'TRANGTHAI' => 'HoatDong',
+            'SOTIENTOITHIEU_NHANKM' => 0,
+            'NGAYBD' => today(),
+            'NGAYKT' => today()->addMonth()->endOfDay(),
+        ])));
+    }
+
+    /**
+     * Lưu khuyến mãi mới cùng danh sách sản phẩm áp dụng.
+     */
+    public function store(LuuKhuyenMaiRequest $request): RedirectResponse
+    {
+        $khuyenMai = DB::transaction(function () use ($request): KhuyenMai {
+            $khuyenMai = KhuyenMai::create([
+                'MAKM' => MaTuDong::tiepTheo('KHUYENMAI', 'MAKM', 'KM'),
+                'DA_SUDUNG' => 0,
+                ...$this->thuocTinh($request),
+            ]);
+            $khuyenMai->sanPhams()->sync($request->validated('san_pham') ?? []);
+
+            return $khuyenMai;
+        });
+
+        return redirect()->route('admin.khuyenmai')->with('thong_bao', "Đã tạo khuyến mãi {$khuyenMai->MA_CODE}.");
+    }
+
+    /**
+     * Form sửa khuyến mãi.
+     */
+    public function edit(KhuyenMai $khuyenMai): View
+    {
+        return view('admin.khuyenmai-form', $this->duLieuForm($khuyenMai->load('sanPhams:MASP')));
+    }
+
+    /**
+     * Cập nhật khuyến mãi; lượt đã dùng giữ nguyên.
+     */
+    public function update(LuuKhuyenMaiRequest $request, KhuyenMai $khuyenMai): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $khuyenMai): void {
+            $khuyenMai->update($this->thuocTinh($request));
+            $khuyenMai->sanPhams()->sync($request->validated('san_pham') ?? []);
+        });
+
+        return redirect()->route('admin.khuyenmai')->with('thong_bao', "Đã cập nhật khuyến mãi {$khuyenMai->MA_CODE}.");
+    }
+
+    /**
+     * Cột của bảng KHUYENMAI từ form. Giảm số tiền cố định thì mức giảm tối đa chính là số tiền đó.
+     *
+     * @return array<string, mixed>
+     */
+    private function thuocTinh(LuuKhuyenMaiRequest $request): array
+    {
+        $duLieu = $request->safe()->except(['san_pham']);
+
+        if ($duLieu['LOAI_KM'] === 'SoTienCoDinh') {
+            $duLieu['SOTIENTOIDA_KM'] = $duLieu['GIATRI_KM'];
+        }
+
+        return $duLieu;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function duLieuForm(KhuyenMai $khuyenMai): array
+    {
+        return [
+            'km' => $khuyenMai,
+            'sanPhamList' => SanPham::query()->orderBy('TENSP')->get(['MASP', 'TENSP', 'DONGIA_SP']),
+            'daChon' => old('san_pham', $khuyenMai->exists ? $khuyenMai->sanPhams->pluck('MASP')->all() : []),
+        ];
     }
 
     /**

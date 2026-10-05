@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\VaiTro;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\DangNhapRequest;
 use App\Models\TaiKhoan;
@@ -70,6 +71,12 @@ class DangNhapController extends Controller
 
         Auth::login($taiKhoan);
         $request->session()->regenerate();
+
+        // Khách hàng quay lại trang đang xem trước khi đăng nhập (chỉ nhận đường dẫn nội bộ)
+        $tiep = (string) $request->input('tiep', '');
+        if ($vaiTro === VaiTro::KhachHang && str_starts_with($tiep, '/') && ! str_starts_with($tiep, '//')) {
+            return redirect()->to($tiep);
+        }
 
         return redirect()->intended(route($vaiTro->trangChu()));
     }

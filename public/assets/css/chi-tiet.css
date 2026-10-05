@@ -1,0 +1,44 @@
+/* Trang chi tiết dùng chung cho Admin, Kho, Bán hàng (đơn hàng, khách hàng, phiếu nhập).
+   Chỉ dùng token trong theme.css nên tự theo chế độ sáng / tối. */
+.ct-wrap { display: grid; gap: 16px; }
+.ct-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; align-items: start; }
+.ct-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.ct-card-hd { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+.ct-card-hd h3 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.ct-body { padding: 16px 18px; }
+.ct-dl { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 10px 16px; margin: 0; font-size: 13px; }
+.ct-dl dt { color: var(--text-muted); }
+.ct-dl dd { margin: 0; color: var(--text-primary); font-weight: 500; overflow-wrap: anywhere; }
+.ct-dl a, .ct-table a { color: var(--blue); }
+.ct-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ct-stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+.ct-stat span { display: block; font-size: 12px; color: var(--text-muted); }
+.ct-stat strong { display: block; margin-top: 4px; font-size: 20px; font-weight: 800; color: var(--text-primary); }
+.ct-table-wrap { overflow-x: auto; }
+.ct-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ct-table th, .ct-table td { padding: 10px 18px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-primary); }
+.ct-table th { font-size: 12px; font-weight: 600; color: var(--text-muted); background: var(--bg-card-hover); white-space: nowrap; }
+.ct-table tr:last-child td { border-bottom: none; }
+.ct-table .num { text-align: right; white-space: nowrap; }
+.ct-sub { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.ct-sum { padding: 12px 18px; border-top: 1px solid var(--border); display: grid; gap: 6px; justify-items: end; font-size: 13px; color: var(--text-secondary); }
+.ct-sum div { display: flex; gap: 24px; justify-content: space-between; min-width: 260px; }
+.ct-sum strong { color: var(--text-primary); }
+.ct-sum .ct-total strong { font-size: 18px; color: var(--red); }
+.ct-steps { display: flex; padding: 18px 18px 14px; }
+.ct-step { flex: 1; position: relative; text-align: center; font-size: 12px; color: var(--text-muted); }
+.ct-step::before { content: ''; display: block; width: 12px; height: 12px; border-radius: 50%; margin: 0 auto 6px; background: var(--border-light); position: relative; z-index: 1; }
+.ct-step::after { content: ''; position: absolute; top: 5px; left: 50%; width: 100%; height: 2px; background: var(--border-light); }
+.ct-step:last-child::after { display: none; }
+.ct-step.done { color: var(--text-primary); font-weight: 600; }
+.ct-step.done::before, .ct-step.done::after { background: var(--blue-solid); }
+.ct-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.ct-empty { padding: 28px 18px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.ct-note { padding: 10px 18px; font-size: 13px; color: var(--red); background: color-mix(in srgb, var(--red) 8%, transparent); }
+@media (max-width: 900px) {
+  .ct-grid { grid-template-columns: 1fr; }
+  .ct-stats { grid-template-columns: 1fr; }
+  .ct-dl { grid-template-columns: 1fr; gap: 2px; }
+  .ct-dl dd { margin-bottom: 8px; }
+  .ct-table th, .ct-table td { padding: 10px 12px; }
+}

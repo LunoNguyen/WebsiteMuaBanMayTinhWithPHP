@@ -10,7 +10,7 @@
         </div>
         <div class="page-header-right">
           <button class="btn btn-outline" onclick="exportTableCSV('khTable','khachhang')">Xuất CSV</button>
-          <a href="{{ url('admin/khachhang-them') }}" class="btn btn-primary">＋ Thêm khách hàng</a>
+          <a href="{{ route('admin.khachhang.create') }}" class="btn btn-primary">＋ Thêm khách hàng</a>
         </div>
       </div>
 
@@ -83,9 +83,9 @@
                 </td>
                 <td>
                   <div style="display:flex;gap:6px">
-                    <a href="{{ url('admin/khachhang-chitiet') }}?makh={{ $kh['MAKH'] }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
-                    <a href="{{ url('admin/khachhang-sua') }}?makh={{ $kh['MAKH'] }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
-                    <a href="{{ route('admin.donhang') }}?makh={{ $kh['MAKH'] }}" class="btn-icon" title="Xem đơn hàng">{!! icon('cart', 15) !!}</a>
+                    <a href="{{ route('admin.khachhang.show', $kh['MAKH']) }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
+                    <a href="{{ route('admin.khachhang.edit', $kh['MAKH']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
+                    <a href="{{ route('admin.donhang', ['makh' => $kh['MAKH']]) }}" class="btn-icon" title="Xem đơn hàng">{!! icon('cart', 15) !!}</a>
                   </div>
                 </td>
               </tr>
