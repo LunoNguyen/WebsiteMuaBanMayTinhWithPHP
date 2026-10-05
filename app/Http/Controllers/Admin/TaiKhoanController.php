@@ -55,6 +55,7 @@ class TaiKhoanController extends Controller
             'ttfil' => $ttfil,
             'typeMap' => TaiKhoan::query()->toBase()->selectRaw('LOAI_TAIKHOAN, COUNT(*) AS cnt')->groupBy('LOAI_TAIKHOAN')->pluck('cnt', 'LOAI_TAIKHOAN')->all(),
             'loaiIcon' => ['Admin' => 'star', 'NhanVien' => 'briefcase', 'KhachHang' => 'user'],
+            'loaiNhan' => ['Admin' => 'Quản trị', 'NhanVien' => 'Nhân viên', 'KhachHang' => 'Khách hàng'],
             'loaiColor' => ['Admin' => 'var(--orange)', 'NhanVien' => 'var(--blue)', 'KhachHang' => 'var(--green)'],
             'ttColor' => ['HoatDong' => 'var(--green)', 'KhoaTamThoi' => 'var(--orange)', 'KhoaVinhVien' => 'var(--red)'],
             'ttLabel' => ['HoatDong' => 'Hoạt động', 'KhoaTamThoi' => 'Khoá tạm', 'KhoaVinhVien' => 'Khoá vĩnh viễn'],

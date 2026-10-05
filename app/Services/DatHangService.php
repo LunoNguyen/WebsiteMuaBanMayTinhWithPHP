@@ -23,30 +23,68 @@ class DatHangService
     ) {}
 
     /**
-     * Khách đặt hàng từ giỏ. Đơn chờ cửa hàng xác nhận.
+     * Danh sách sản phẩm trong giỏ ở thời điểm khách bấm "Đặt hàng" (chỉ mã và số lượng).
      *
+     * @return list<array{MASP: string, SOLUONG: int}>
+     */
+    public function chupGioHang(TaiKhoan $taiKhoan): array
+    {
+        return $this->gioHang->dong($taiKhoan)
+            ->map(fn (CtGioHang $ct): array => ['MASP' => $ct->MASP, 'SOLUONG' => (int) $ct->SOLUONG])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Đặt hàng theo danh sách đã chụp lúc khách bấm "Đặt hàng" (worker hàng đợi gọi hàm này).
+     * Giá lấy theo thời điểm xử lý; các dòng đã mua được bỏ khỏi giỏ, dòng khách thêm sau vẫn giữ lại.
+     *
+     * @param  list<array{MASP: string, SOLUONG: int|string}>  $sanPham
      * @param  array{TEN_NGUOINHAN: string, SDT_NGUOINHAN: string, DIACHI_GIAOHANG: ?string, PHUONG_THUC_GH: string, PHUONG_THUC: string, GHI_CHU?: ?string}  $thongTin
      */
-    public function datHang(TaiKhoan $taiKhoan, array $thongTin, ?string $maCode): HoaDon
+    public function datHangTheoDanhSach(TaiKhoan $taiKhoan, array $sanPham, array $thongTin, ?string $maCode): HoaDon
     {
-        return DB::transaction(function () use ($taiKhoan, $thongTin, $maCode): HoaDon {
-            $dong = $this->gioHang->dong($taiKhoan);
+        if ($sanPham === []) {
+            throw ValidationException::withMessages(['gio_hang' => 'Giỏ hàng đang trống.']);
+        }
 
-            if ($dong->isEmpty()) {
-                throw ValidationException::withMessages(['gio_hang' => 'Giỏ hàng đang trống.']);
-            }
-
-            $hoaDon = $this->lapHoaDon($dong, $thongTin, $maCode, [
+        return DB::transaction(function () use ($taiKhoan, $sanPham, $thongTin, $maCode): HoaDon {
+            $hoaDon = $this->lapHoaDon($this->taoDong($sanPham), $thongTin, $maCode, [
                 'MATK' => $taiKhoan->MATK,
                 'MAKH' => $taiKhoan->MAKH,
                 'MANV' => null,
                 'TRANGTHAI' => 'ChoXacNhan',
             ], $taiKhoan, 'gio_hang');
 
-            $this->gioHang->gioHang($taiKhoan)->update(['TRANGTHAI' => 'DaThanhToan']);
+            $gioHang = $this->gioHang->gioHang($taiKhoan);
+            $gioHang->chiTiets()->whereIn('MASP', array_column($sanPham, 'MASP'))->delete();
+
+            if (! $gioHang->chiTiets()->exists()) {
+                $gioHang->update(['TRANGTHAI' => 'DaThanhToan']);
+            }
 
             return $hoaDon;
         });
+    }
+
+    /**
+     * Dòng sản phẩm (chưa lưu) từ danh sách mã + số lượng; gộp các dòng trùng mã.
+     *
+     * @param  list<array{MASP: string, SOLUONG: int|string}>  $sanPham
+     * @return Collection<int, CtGioHang>
+     */
+    private function taoDong(array $sanPham): Collection
+    {
+        $gop = [];
+        foreach ($sanPham as $d) {
+            $gop[$d['MASP']] = ($gop[$d['MASP']] ?? 0) + (int) $d['SOLUONG'];
+        }
+
+        return new Collection(array_map(
+            fn (string $ma, int $soLuong): CtGioHang => new CtGioHang(['MASP' => $ma, 'SOLUONG' => $soLuong]),
+            array_keys($gop),
+            $gop,
+        ));
     }
 
     /**
@@ -60,12 +98,7 @@ class DatHangService
         return DB::transaction(function () use ($maNhanVien, $maKhachHang, $sanPham, $thongTin, $maCode): HoaDon {
             $taiKhoan = $maKhachHang !== null ? TaiKhoan::query()->where('MAKH', $maKhachHang)->first() : null;
 
-            $dong = new Collection(array_map(
-                fn (array $d): CtGioHang => new CtGioHang(['MASP' => $d['MASP'], 'SOLUONG' => (int) $d['SOLUONG']]),
-                $sanPham,
-            ));
-
-            return $this->lapHoaDon($dong, $thongTin, $maCode, [
+            return $this->lapHoaDon($this->taoDong($sanPham), $thongTin, $maCode, [
                 'MATK' => $taiKhoan?->MATK,
                 'MAKH' => $maKhachHang,
                 'MANV' => $maNhanVien,

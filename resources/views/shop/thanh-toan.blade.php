@@ -11,6 +11,8 @@
 
     <form method="POST" action="{{ route('thanhtoan.store') }}" class="s-cart">
         @csrf
+        {{-- Mỗi lần mở trang thanh toán một mã: gửi lại cùng mã không tạo đơn trùng --}}
+        <input type="hidden" name="ma_yeu_cau" value="{{ old('ma_yeu_cau', (string) \Illuminate\Support\Str::uuid()) }}">
         <div>
             <section class="s-card s-panel">
                 <h2>Thông tin nhận hàng</h2>
@@ -86,7 +88,7 @@
             @error('ma_code') <div class="s-err">{{ $message }}</div> @enderror
             @error('so_luong') <div class="s-err">{{ $message }}</div> @enderror
 
-            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:16px">Đặt hàng</button>
+            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:16px" data-nut-dat>Đặt hàng</button>
             <a href="{{ route('giohang.index') }}" class="btn btn-ghost btn-block" style="margin-top:6px">Quay lại giỏ hàng</a>
         </aside>
     </form>
@@ -94,6 +96,13 @@
 
 @push('scripts')
     <script>
+        // Khoá nút sau lần bấm đầu để không gửi đơn hai lần
+        document.querySelector('[data-nut-dat]').closest('form').addEventListener('submit', function () {
+            var nut = this.querySelector('[data-nut-dat]');
+            nut.disabled = true;
+            nut.textContent = 'Đang gửi đơn...';
+        });
+
         document.querySelectorAll('[data-giao-hang]').forEach(function (r) {
             r.addEventListener('change', function () {
                 var tanNoi = document.querySelector('[data-giao-hang]:checked').value === 'GiaoHang';

@@ -117,6 +117,11 @@
       .catch(function () { /* mạng chập chờn: lần sự kiện sau sẽ thử lại */ });
   }
 
+  // Báo cho script riêng của từng trang (vd. trang chờ xử lý đơn) mỗi khi có sự kiện
+  function baoTrang(ten, duLieu) {
+    document.dispatchEvent(new CustomEvent('rt:su-kien', { detail: { ten: ten, du_lieu: duLieu } }));
+  }
+
   // ---------- Kênh ----------
   echo.channel('cua-hang').listen('.san-pham.cap-nhat', function (d) {
     capNhatSanPham(d);
@@ -136,6 +141,7 @@
 
   if (cfg.kenhDon) {
     echo.private(cfg.kenhDon).listen('.don-hang.thay-doi', function (d) {
+      baoTrang('don-hang.thay-doi', d);
       if (!d.moi) thongBao('Đơn ' + d.ma, 'Trạng thái: ' + d.nhan);
       danhDauVung(['don', 'don:' + d.ma]);
     });

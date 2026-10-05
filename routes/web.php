@@ -31,6 +31,9 @@ Route::middleware(['auth', 'vaitro:KhachHang'])->group(function () {
 
     Route::get('/thanh-toan', [Shop\ThanhToanController::class, 'create'])->name('thanhtoan.create');
     Route::post('/thanh-toan', [Shop\ThanhToanController::class, 'store'])->name('thanhtoan.store');
+    Route::get('/thanh-toan/dang-xu-ly/{maYeuCau}', [Shop\ThanhToanController::class, 'dangXuLy'])->whereUuid('maYeuCau')->name('thanhtoan.dang-xu-ly');
+    Route::get('/thanh-toan/trang-thai/{maYeuCau}', [Shop\ThanhToanController::class, 'trangThai'])->whereUuid('maYeuCau')->name('thanhtoan.trang-thai');
+    Route::get('/thanh-toan/ket-qua/{maYeuCau}', [Shop\ThanhToanController::class, 'ketQua'])->whereUuid('maYeuCau')->name('thanhtoan.ket-qua');
 
     Route::get('/don-hang-cua-toi', [Shop\DonHangController::class, 'index'])->name('donhang.index');
     Route::get('/don-hang-cua-toi/{hoaDon}', [Shop\DonHangController::class, 'show'])->name('donhang.show');

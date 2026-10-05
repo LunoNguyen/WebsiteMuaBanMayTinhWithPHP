@@ -988,8 +988,10 @@ select.form-control { cursor: pointer; }
 /* Xử lý cursor pointer cho các phần tử tương tác */
 [onclick], .clickable { cursor: pointer; }
 
-/* Icon SVG (hàm icon() trong config.php) */
-.ico { display: block; flex-shrink: 0; }
+/* Icon SVG (hàm icon() trong app/Support/helpers.php).
+   inline-block để icon nằm trên cùng dòng với chữ (email, số điện thoại, badge); trong khung flex vẫn như cũ. */
+.ico { display: inline-block; vertical-align: -0.15em; flex-shrink: 0; }
+.tag-loai { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap; line-height: 1.4; }
 
 /* Placeholder mọi ô nhập: dùng màu chữ phụ của hệ thống (đủ tương phản) */
 input::placeholder, textarea::placeholder { color: var(--text-muted); }

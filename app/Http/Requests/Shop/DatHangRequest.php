@@ -27,6 +27,8 @@ class DatHangRequest extends FormRequest
             'DIACHI_GIAOHANG' => ['required_if:PHUONG_THUC_GH,GiaoHang', 'nullable', 'string', 'max:300'],
             'PHUONG_THUC' => ['required', 'in:COD,ChuyenKhoan,QR'],
             'GHI_CHU' => ['nullable', 'string', 'max:500'],
+            // Mã do form thanh toán sinh ra; gửi lại cùng mã (bấm hai lần, tải lại trang) không tạo đơn thứ hai
+            'ma_yeu_cau' => ['nullable', 'uuid'],
         ];
     }
 

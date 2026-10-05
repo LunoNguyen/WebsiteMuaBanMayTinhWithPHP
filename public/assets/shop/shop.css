@@ -101,6 +101,14 @@ main { padding: 20px 0 48px; }
 .s-auth-aside li .ico, .s-auth-aside li svg { flex-shrink: 0; margin-top: 1px; color: #fff; }
 .s-auth-aside strong { color: #fff; }
 
+/* ---------- Đang xử lý đơn (hàng đợi) ---------- */
+.s-cho { max-width: 520px; margin: 24px auto; padding: 40px 32px; text-align: center; display: grid; gap: 12px; justify-items: center; }
+.s-cho h1 { font-size: 22px; font-weight: 800; }
+.s-cho p { color: var(--text-secondary); font-size: 14px; }
+.s-cho-vong { width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--border); border-top-color: var(--blue-solid); animation: s-quay 0.9s linear infinite; }
+@keyframes s-quay { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .s-cho-vong { animation-duration: 3s; } }
+
 /* ---------- Trang chủ ---------- */
 .s-hero { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
 .s-hero-main { position: relative; overflow: hidden; border-radius: 14px; background: var(--blue-solid); color: #fff; padding: 36px 40px; min-height: 280px; display: flex; flex-direction: column; justify-content: center; }

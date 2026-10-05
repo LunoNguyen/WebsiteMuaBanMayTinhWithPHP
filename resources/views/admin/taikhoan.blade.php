@@ -20,7 +20,7 @@
         @foreach (['Admin','NhanVien','KhachHang'] as $lt)
         <a href="?loai={{ $lt }}" style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;{{ $loaifil===$lt?'border-color:var(--blue);background:var(--blue-glow)':'' }}">
           <span style="display:inline-flex">{!! icon($loaiIcon[$lt], 14) !!}</span>
-          <span style="font-size:13px;color:var(--text-secondary)">{{ $lt }}</span>
+          <span style="font-size:13px;color:var(--text-secondary)">{{ $loaiNhan[$lt] }}</span>
           <strong style="font-size:15px;color:var(--text-primary);margin-left:4px">{{ $typeMap[$lt] ?? 0 }}</strong>
         </a>
         @endforeach
@@ -69,8 +69,8 @@
                   <div style="font-size:12px;color:var(--text-muted)">{!! icon('mail') !!} {{ $tk['EMAIL_TK'] }}</div>
                 </td>
                 <td>
-                  <span style="background:color-mix(in srgb,{{ $color }} 12%,transparent);color:{{ $color }};border:1px solid color-mix(in srgb,{{ $color }} 30%,transparent);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
-                    {!! icon($icon, 13) !!} {{ $loai }}
+                  <span class="tag-loai" style="background:color-mix(in srgb,{{ $color }} 12%,transparent);color:{{ $color }};border:1px solid color-mix(in srgb,{{ $color }} 30%,transparent)">
+                    {!! icon($icon, 13) !!} {{ $loaiNhan[$loai] ?? $loai }}
                   </span>
                 </td>
                 <td>
