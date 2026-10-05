@@ -1,83 +1,201 @@
 <?php
-// ==============================================================
-// Cấu hình kết nối Database
-// ==============================================================
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'QL_BANMT');
-define('DB_CHARSET', 'utf8mb4');
+use Illuminate\Support\Str;
+use Pdo\Mysql;
 
-function getDB()
-{
-    static $conn = null;
-    if ($conn === null) {
-        $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if ($conn->connect_error) {
-            die(json_encode(['error' => 'Kết nối thất bại: ' . $conn->connect_error]));
-        }
-        $conn->set_charset(DB_CHARSET);
-        $conn->query("SET NAMES utf8mb4");
-   
-        $conn->query("SET SESSION sql_mode = (SELECT REPLACE(@@sql_mode, 'ONLY_FULL_GROUP_BY', ''))");
-    }
-    return $conn;
-}
+return [
 
-// Hàm helper query an toàn
-function dbQuery($sql, $params = [], $types = '')
-{
-    $conn = getDB();
-    if (empty($params)) {
-        $result = $conn->query($sql);
-        if ($result === false) {
-            error_log("SQL Error: " . $conn->error . " | Query: " . $sql);
-            return false;
-        }
-        return $result;
-    }
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        error_log("Prepare Error: " . $conn->error);
-        return false;
-    }
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-    return $result;
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify which of the database connections below you wish
+    | to use as your default connection for database operations. This is
+    | the connection which will be utilized unless another connection
+    | is explicitly specified when you execute a query / statement.
+    |
+    */
 
-function dbFetch($sql, $params = [], $types = '')
-{
-    $result = dbQuery($sql, $params, $types);
-    if (!$result) return [];
-    $rows = [];
-    while ($row = $result->fetch_assoc()) {
-        $rows[] = $row;
-    }
-    return $rows;
-}
+    'default' => env('DB_CONNECTION', 'sqlite'),
 
-function dbFetchOne($sql, $params = [], $types = '')
-{
-    $result = dbQuery($sql, $params, $types);
-    if (!$result) return null;
-    return $result->fetch_assoc();
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Database Connections
+    |--------------------------------------------------------------------------
+    |
+    | Below are all of the database connections defined for your application.
+    | An example configuration is provided for each database system which
+    | is supported by Laravel. You're free to add / remove connections.
+    |
+    */
 
-function dbExecute($sql, $params = [], $types = '')
-{
-    $conn = getDB();
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) return false;
-    if (!empty($params)) {
-        $stmt->bind_param($types, ...$params);
-    }
-    $ok = $stmt->execute();
-    $stmt->close();
-    return $ok;
-}
+    'connections' => [
+
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'prefix_indexes' => null,
+            'mask_bindings_in_exception_messages' => env('DB_MASK_BINDINGS', false),
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+            'pragmas' => [],
+        ],
+
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'mask_bindings_in_exception_messages' => env('DB_MASK_BINDINGS', false),
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mariadb' => [
+            'driver' => 'mariadb',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'mask_bindings_in_exception_messages' => env('DB_MASK_BINDINGS', false),
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'mask_bindings_in_exception_messages' => env('DB_MASK_BINDINGS', false),
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+            'pooled' => env('DB_POOLED', false),
+            'direct' => array_filter([
+                'host' => env('DB_DIRECT_HOST'),
+                'port' => env('DB_DIRECT_PORT'),
+                'username' => env('DB_DIRECT_USERNAME'),
+                'password' => env('DB_DIRECT_PASSWORD'),
+                'sslmode' => env('DB_DIRECT_SSLMODE'),
+            ]),
+        ],
+
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'mask_bindings_in_exception_messages' => env('DB_MASK_BINDINGS', false),
+            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
+            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Migration Repository Table
+    |--------------------------------------------------------------------------
+    |
+    | This table keeps track of all the migrations that have already run for
+    | your application. Using this information, we can determine which of
+    | the migrations on disk haven't actually been run on the database.
+    |
+    */
+
+    'migrations' => [
+        'table' => 'migrations',
+        'update_date_on_publish' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redis Databases
+    |--------------------------------------------------------------------------
+    |
+    | Redis is an open source, fast, and advanced key-value store that also
+    | provides a richer body of commands than a typical key-value system
+    | such as Memcached. You may define your connection settings here.
+    |
+    */
+
+    'redis' => [
+
+        'client' => env('REDIS_CLIENT', 'phpredis'),
+
+        'options' => [
+            'cluster' => env('REDIS_CLUSTER', 'redis'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'persistent' => env('REDIS_PERSISTENT', false),
+        ],
+
+        'default' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+            'command_retries' => env('REDIS_COMMAND_RETRIES', 0),
+        ],
+
+        'cache' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_CACHE_DB', '1'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+            'command_retries' => env('REDIS_COMMAND_RETRIES', 0),
+        ],
+
+    ],
+
+];
