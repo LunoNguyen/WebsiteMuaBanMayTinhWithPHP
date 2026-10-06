@@ -74,10 +74,30 @@ document.querySelectorAll('[data-hien-mk]').forEach(function (btn) {
   fab.addEventListener('click', function () { toggle(!box.classList.contains('open')); });
   document.getElementById('cbClose').addEventListener('click', function () { toggle(false); });
 
+  function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function formatBotText(raw) {
+    var safe = escapeHtml(raw);
+    safe = safe.replace(/\[([^\]]+)\]\(((?:https?:\/\/[^\s\)]+)|\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    safe = safe.replace(/(^|[^"'])(https?:\/\/[^\s<]+)/g, '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+    safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    safe = safe.replace(/(?:^|\n)-\s+([^\n]+)/g, '<br>• $1');
+    safe = safe.replace(/\n/g, '<br>');
+    return safe;
+  }
+
   function them(lop, text) {
     var el = document.createElement('div');
     el.className = lop;
-    el.textContent = text;
+    if (lop.indexOf('bot') !== -1) {
+      el.innerHTML = formatBotText(text);
+    } else {
+      el.textContent = text;
+    }
     body.appendChild(el);
     body.scrollTop = body.scrollHeight;
     return el;
@@ -114,11 +134,37 @@ document.querySelectorAll('[data-hien-mk]').forEach(function (btn) {
           d.san_pham.forEach(function (sp) {
             var a = document.createElement('a');
             a.href = sp.url;
+
+            if (sp.anh) {
+              var img = document.createElement('img');
+              img.src = sp.anh;
+              img.alt = sp.ten;
+              img.className = 'cb-prod-img';
+              img.loading = 'lazy';
+              img.onerror = function () { this.style.display = 'none'; };
+              a.appendChild(img);
+            }
+
+            var info = document.createElement('div');
+            info.className = 'cb-prod-info';
+
             var ten = document.createElement('span');
+            ten.className = 'cb-prod-name';
             ten.textContent = sp.ten;
+            ten.title = sp.ten;
+
             var gia = document.createElement('b');
+            gia.className = 'cb-prod-price';
             gia.textContent = sp.gia;
-            a.append(ten, gia);
+
+            info.append(ten, gia);
+            a.appendChild(info);
+
+            var btn = document.createElement('span');
+            btn.className = 'cb-prod-btn';
+            btn.textContent = 'Xem ›';
+            a.appendChild(btn);
+
             list.appendChild(a);
           });
           body.appendChild(list);
