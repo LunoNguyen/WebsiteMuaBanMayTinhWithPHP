@@ -7,6 +7,10 @@ use App\Models\LoaiSanPham;
 use App\Models\PhieuNhapHang;
 use App\Services\GioHangService;
 use App\Services\MinioStorage;
+use App\Services\YeuCauDatHang;
+use Illuminate\Foundation\DevCommands;
+use Illuminate\Queue\Events\Looping;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\View\View as BladeView;
@@ -26,6 +30,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // "php artisan dev" (hoặc "composer dev"): một lệnh chạy đủ web, Reverb (realtime) và worker đặt hàng.
+        // Bỏ các lệnh mặc định: queue (chỉ nghe hàng "default"), vite (giao diện không build bằng Vite),
+        // server (gọi "php" trần, Windows không có trong PATH khi PHP của Laragon chưa được thêm vào).
+        if ($this->app->runningInConsole()) {
+            $php = PHP_BINARY;
+            DevCommands::except('server', 'queue', 'vite');
+            DevCommands::register("{$php} artisan serve", 'web');
+            DevCommands::register("{$php} artisan reverb:start", 'reverb');
+            DevCommands::register("{$php} artisan queue:work --queue=dat-hang,default --tries=1", 'dat-hang');
+        }
+
+        // Worker đang nghe hàng đợi "dat-hang" ghi nhịp mỗi vòng lặp; web dựa vào nhịp này để biết
+        // nên xếp đơn vào hàng đợi hay xử lý ngay (khi không có worker)
+        Queue::looping(function (Looping $suKien): void {
+            if (in_array('dat-hang', explode(',', $suKien->queue), true)) {
+                app(YeuCauDatHang::class)->ghiNhipWorker();
+            }
+        });
+
         // Số đếm trên sidebar của từng khu vực
         View::composer('partials.admin.sidebar', function (BladeView $view): void {
             $view->with('soDonChoXacNhan', HoaDon::query()->where('TRANGTHAI', 'ChoXacNhan')->count());

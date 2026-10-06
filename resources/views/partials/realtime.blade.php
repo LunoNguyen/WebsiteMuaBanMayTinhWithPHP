@@ -8,7 +8,8 @@
         $vaiTro = $taiKhoan?->vaiTro();
         $cauHinhRt = [
             'key' => config('cuahang.realtime.key'),
-            'host' => config('cuahang.realtime.host') ?? request()->getHost(),
+            // "localhost" trên Windows hay thử IPv6 (::1) trước rồi mới về IPv4; Reverb chỉ nghe IPv4 nên nối thẳng 127.0.0.1
+            'host' => config('cuahang.realtime.host') ?? (request()->getHost() === 'localhost' ? '127.0.0.1' : request()->getHost()),
             'port' => config('cuahang.realtime.port'),
             'tls' => (config('cuahang.realtime.scheme') ?? (request()->secure() ? 'https' : 'http')) === 'https',
             'nhanVien' => $vaiTro !== null && $vaiTro !== \App\Enums\VaiTro::KhachHang,

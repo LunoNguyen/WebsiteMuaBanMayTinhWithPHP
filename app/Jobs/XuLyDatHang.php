@@ -14,6 +14,7 @@ use Throwable;
  * Xử lý một lần đặt hàng trong hàng đợi "dat-hang".
  * Chạy một worker cho hàng đợi này thì các đơn được xử lý lần lượt, không tranh nhau tồn kho hay lượt dùng mã;
  * khoá dòng trong DatHangService vẫn giữ an toàn khi có thêm worker hoặc đơn tại quầy chạy song song.
+ * Không có worker thì job được chạy ngay trong request (dispatchSync) hoặc do trang chờ tự gọi.
  */
 class XuLyDatHang implements ShouldQueue
 {
@@ -40,26 +41,47 @@ class XuLyDatHang implements ShouldQueue
         $this->onQueue('dat-hang');
     }
 
+    /**
+     * Dựng lại job từ dữ liệu đã lưu khi nhận yêu cầu (dùng khi job trong hàng đợi không có worker lấy).
+     *
+     * @param  array{san_pham: list<array{MASP: string, SOLUONG: int}>, thong_tin: array<string, string|null>, ma_code: ?string}  $duLieu
+     */
+    public static function tuDuLieu(string $maTaiKhoan, string $maYeuCau, array $duLieu): self
+    {
+        return new self($maTaiKhoan, $maYeuCau, $duLieu['san_pham'], $duLieu['thong_tin'], $duLieu['ma_code']);
+    }
+
     public function handle(DatHangService $datHang, YeuCauDatHang $yeuCau): void
     {
-        if (($yeuCau->trangThai($this->maTaiKhoan, $this->maYeuCau)['trang_thai'] ?? null) !== YeuCauDatHang::CHO) {
-            return;
-        }
+        // Worker và trang chờ có thể cùng nhắm tới một yêu cầu: chỉ một bên được xử lý, bên còn lại bỏ qua
+        $khoa = $yeuCau->khoaXuLy($this->maTaiKhoan, $this->maYeuCau);
 
-        $taiKhoan = TaiKhoan::query()->find($this->maTaiKhoan);
-
-        if ($taiKhoan === null) {
-            $yeuCau->loi($this->maTaiKhoan, $this->maYeuCau, 'Tài khoản không còn tồn tại.');
-
+        if (! $khoa->get()) {
             return;
         }
 
         try {
-            $hoaDon = $datHang->datHangTheoDanhSach($taiKhoan, $this->sanPham, $this->thongTin, $this->maCode);
-            $yeuCau->xong($this->maTaiKhoan, $this->maYeuCau, $hoaDon->MAHD);
-        } catch (ValidationException $e) {
-            $truong = array_key_first($e->errors()) ?? 'gio_hang';
-            $yeuCau->loi($this->maTaiKhoan, $this->maYeuCau, $e->validator->errors()->first(), $truong);
+            if (($yeuCau->trangThai($this->maTaiKhoan, $this->maYeuCau)['trang_thai'] ?? null) !== YeuCauDatHang::CHO) {
+                return;
+            }
+
+            $taiKhoan = TaiKhoan::query()->find($this->maTaiKhoan);
+
+            if ($taiKhoan === null) {
+                $yeuCau->loi($this->maTaiKhoan, $this->maYeuCau, 'Tài khoản không còn tồn tại.');
+
+                return;
+            }
+
+            try {
+                $hoaDon = $datHang->datHangTheoDanhSach($taiKhoan, $this->sanPham, $this->thongTin, $this->maCode);
+                $yeuCau->xong($this->maTaiKhoan, $this->maYeuCau, $hoaDon->MAHD);
+            } catch (ValidationException $e) {
+                $truong = array_key_first($e->errors()) ?? 'gio_hang';
+                $yeuCau->loi($this->maTaiKhoan, $this->maYeuCau, $e->validator->errors()->first(), $truong);
+            }
+        } finally {
+            $khoa->release();
         }
     }
 

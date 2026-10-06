@@ -10,7 +10,7 @@
         <span class="s-cho-vong" aria-hidden="true"></span>
         <h1>Đang xử lý đơn hàng</h1>
         <p>Cửa hàng đang giữ hàng và kiểm tra mã giảm giá cho bạn. Trang sẽ tự chuyển khi xong, thường chỉ vài giây.</p>
-        <p class="s-hint" data-cho-lau hidden>Đơn vẫn đang xếp hàng xử lý do nhiều người đặt cùng lúc. Bạn không cần đặt lại.</p>
+        <p class="s-hint" data-cho-lau hidden>Đơn vẫn đang được xử lý, bạn không cần đặt lại. Nếu trang chưa tự chuyển, bấm “Kiểm tra lại”.</p>
         <a href="{{ route('thanhtoan.ket-qua', $maYeuCau) }}" class="btn btn-outline" data-cho-lau hidden>Kiểm tra lại</a>
     </section>
 @endsection
@@ -35,7 +35,7 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (d) {
         if (d && d.trang_thai !== 'cho') { chuyen(); return; }
-        if (Date.now() - batDau > 15000) {
+        if (Date.now() - batDau > 10000) {
           document.querySelectorAll('[data-cho-lau]').forEach(function (el) { el.hidden = false; });
         }
         setTimeout(hoi, 1500);

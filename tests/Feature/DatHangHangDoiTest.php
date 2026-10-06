@@ -8,6 +8,8 @@ use App\Models\HoaDon;
 use App\Models\KhuyenMai;
 use App\Models\SanPham;
 use App\Models\TaiKhoan;
+use App\Services\YeuCauDatHang;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -30,6 +32,7 @@ class DatHangHangDoiTest extends TestCase
 
     public function test_dat_hang_dua_vao_hang_doi_va_cho_ket_qua(): void
     {
+        $this->coWorker();
         Queue::fake();
         $ma = (string) Str::uuid();
         $soDon = HoaDon::query()->where('MATK', 'TK_KH001')->count();
@@ -73,6 +76,7 @@ class DatHangHangDoiTest extends TestCase
 
     public function test_don_dung_voi_gio_luc_bam_dat_hang_hang_them_sau_van_o_lai_gio(): void
     {
+        $this->coWorker();
         Queue::fake();
         $ma = (string) Str::uuid();
         $this->post('/gio-hang/SP003', ['so_luong' => 1]);
@@ -97,6 +101,7 @@ class DatHangHangDoiTest extends TestCase
             'SOTIENTOIDA_KM' => 100000, 'SOTIENTOITHIEU_NHANKM' => 0, 'SOLUONG_MA' => 10, 'DA_SUDUNG' => 0,
             'NGAYBD' => now()->subDay(), 'NGAYKT' => now()->addDay(), 'TRANGTHAI' => 'HoatDong',
         ]);
+        $this->coWorker();
         Queue::fake();
         $ma = (string) Str::uuid();
         SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 2, 'TRANGTHAI' => 'DangBan']);
@@ -117,12 +122,56 @@ class DatHangHangDoiTest extends TestCase
 
     public function test_khong_xem_duoc_yeu_cau_cua_nguoi_khac(): void
     {
+        $this->coWorker();
         Queue::fake();
         $ma = (string) Str::uuid();
         $this->post('/gio-hang/SP003');
         $this->post('/thanh-toan', [...$this->thongTin(), 'ma_yeu_cau' => $ma]);
 
         $this->actingAs($this->taiKhoan('TK_KH002'))->getJson("/thanh-toan/trang-thai/{$ma}")->assertNotFound();
+    }
+
+    public function test_khong_co_worker_thi_xu_ly_ngay_khong_bat_khach_cho(): void
+    {
+        Queue::fake();
+        $ma = (string) Str::uuid();
+        $this->post('/gio-hang/SP003');
+
+        $phanHoi = $this->post('/thanh-toan', [...$this->thongTin(), 'ma_yeu_cau' => $ma]);
+
+        $hd = HoaDon::query()->where('MATK', 'TK_KH001')->latest('NGAYLAP')->latest('MAHD')->firstOrFail();
+        $phanHoi->assertRedirect("/don-hang-cua-toi/{$hd->MAHD}");
+        Queue::assertNothingPushed();
+    }
+
+    public function test_worker_tat_giua_chung_thi_trang_cho_tu_xu_ly_va_job_cu_khong_tao_don_trung(): void
+    {
+        $this->coWorker();
+        Queue::fake();
+        $ma = (string) Str::uuid();
+        $soDon = HoaDon::query()->where('MATK', 'TK_KH001')->count();
+        $this->post('/gio-hang/SP003');
+        $this->post('/thanh-toan', [...$this->thongTin(), 'ma_yeu_cau' => $ma])->assertRedirect("/thanh-toan/dang-xu-ly/{$ma}");
+
+        // Worker tắt trước khi lấy job; khách vẫn đứng ở trang chờ
+        Cache::forget(YeuCauDatHang::NHIP_WORKER);
+        $this->getJson("/thanh-toan/trang-thai/{$ma}")->assertJson(['trang_thai' => 'cho']);
+
+        $this->travel(YeuCauDatHang::CHO_TOI_DA_GIAY + 1)->seconds();
+        $this->getJson("/thanh-toan/trang-thai/{$ma}")->assertJson(['trang_thai' => 'xong']);
+        $this->assertSame($soDon + 1, HoaDon::query()->where('MATK', 'TK_KH001')->count());
+
+        // Worker bật lại và lấy job cũ ra: bỏ qua vì yêu cầu đã xong
+        $this->chayWorker();
+        $this->assertSame($soDon + 1, HoaDon::query()->where('MATK', 'TK_KH001')->count());
+    }
+
+    /**
+     * Giả lập worker hàng đợi "dat-hang" đang chạy (worker thật ghi nhịp này mỗi vòng lặp).
+     */
+    private function coWorker(): void
+    {
+        app(YeuCauDatHang::class)->ghiNhipWorker();
     }
 
     /**
