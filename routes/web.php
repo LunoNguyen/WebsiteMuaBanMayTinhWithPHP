@@ -151,6 +151,8 @@ Route::middleware(['auth', 'vaitro:Admin'])->prefix('admin')->name('admin.')->gr
 
 Route::middleware(['auth', 'vaitro:NhanVienKho,Admin'])->prefix('kho')->name('kho.')->group(function () {
     Route::get('/', [Kho\NhapHangController::class, 'index'])->name('nhaphang');
+    Route::get('/nhap-hang/them', [Kho\NhapHangController::class, 'create'])->name('nhaphang.create');
+    Route::post('/nhap-hang', [Kho\NhapHangController::class, 'store'])->name('nhaphang.store');
     Route::post('/phieu-nhap/{phieuNhapHang}/hoan-tat', [Kho\NhapHangController::class, 'hoanTat'])->name('nhaphang.hoan-tat');
 
     Route::get('/don-hang', [Kho\DonHangController::class, 'index'])->name('donhang');

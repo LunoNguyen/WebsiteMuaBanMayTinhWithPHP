@@ -161,12 +161,18 @@ table.wt tr.sel td:first-child{border-left:3px solid var(--blue);padding-left:7p
 
   <!-- Content -->
   <div class="wct">
+    @if (session('thong_bao'))
+      <div style="padding:10px 14px;border-radius:8px;background:rgba(21,128,61,.12);border:1px solid rgba(21,128,61,.3);color:var(--green);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px">
+        {!! icon('check-circle', 16) !!} {{ session('thong_bao') }}
+      </div>
+    @endif
+
     <div class="wph">
       <div>
         <h1>Quản lý Phiếu nhập hàng &amp; Kiểm đếm kho</h1>
         <p>Nhận hàng từ nhà cung cấp &middot; Kiểm đếm &amp; Đối chiếu SKU &middot; Cập nhật tồn kho thời gian thực</p>
       </div>
-      <a href="{{ route('admin.nhaphang') }}" class="wbn wb-pri" style="padding:9px 15px;font-size:13px">&#65291; Tạo phiếu nhập kho mới</a>
+      <a href="{{ route('kho.nhaphang.create') }}" class="wbn wb-pri" style="padding:9px 15px;font-size:13px">&#65291; Tạo phiếu nhập kho mới</a>
     </div>
 
     <!-- KPI -->
@@ -177,7 +183,7 @@ table.wt tr.sel td:first-child{border-left:3px solid var(--blue);padding-left:7p
           <div class="wkl">TỔNG PHIẾU THÁNG NÀY</div>
           <div class="wkv" style="color:var(--blue)">{{ $kpiPhieu['tong']??0 }}</div>
           <div style="font-size:11px;color:var(--wm);margin-top:2px">phiếu</div>
-          <div style="font-size:10px;margin-top:3px;color:var(--green)">&#8679; +6 phiếu mới tuần này</div>
+          <div style="font-size:10px;margin-top:3px;color:var(--green)">&#8679; +{{ $kpiPhieu['tuan'] ?? 0 }} phiếu mới tuần này</div>
         </div>
       </div>
       <div class="wk">
@@ -391,10 +397,6 @@ table.wt tr.sel td:first-child{border-left:3px solid var(--blue);padding-left:7p
           @else
           <button disabled style="width:100%;padding:11px;font-size:13px;background:rgba(0,0,0,.04);border:1px solid var(--wb);border-radius:9px;color:var(--wm);cursor:not-allowed">Đã hoàn tất nhập kho</button>
           @endif
-          <div class="wtrg">
-            <div class="tt">Tự động kích hoạt <strong>Trigger QL_BANMT</strong><br><span style="font-size:9px">Cập nhật tức thì vào bảng TONKHO &amp; LICH_SU_GIAODICH</span></div>
-            <span class="wrdy">READY</span>
-          </div>
         </div>
 
         @else
