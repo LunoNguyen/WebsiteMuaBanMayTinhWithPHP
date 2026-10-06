@@ -257,7 +257,7 @@ class NhapHangController extends Controller
             'pn' => $phieu,
             'dong' => old('dong', $dong ?: [['MASP' => null, 'SOLUONG' => 1, 'DONGIA_NHAP' => null, 'GHI_CHU' => null]]),
             'nccList' => NhaCungCap::query()->orderBy('TENNCC')->get(),
-            'sanPhamList' => SanPham::query()->orderBy('TENSP')->get(['MASP', 'TENSP', 'SOLUONGTON']),
+            'sanPhamList' => SanPham::query()->with('loaiSanPham')->orderBy('TENSP')->get(['MASP', 'TENSP', 'SOLUONGTON', 'DONGIA_SP', 'MANCC', 'MALOAI']),
         ];
     }
 }
