@@ -33,27 +33,35 @@ class NhapHangController extends Controller
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
-        $filter = (string) $request->query('filter', '');
+        $trangthai = (string) $request->query('trangthai', '');
         $mancc = (string) $request->query('mancc', '');
-        $thang = (string) $request->query('thang', now()->format('Y-m'));
+        $khoang = (string) $request->query('khoang', '');
+        [$tuNgay, $denNgay] = $this->khoangNgay($khoang);
 
-        $query = PhieuNhapHang::query()->toBase()
+        $nhomTrangThai = ['cho' => self::CHO_KIEM_DEM, 'HoanThanh' => ['HoanThanh'], 'DaHuy' => ['DaHuy']];
+
+        $coSo = PhieuNhapHang::query()->toBase()
             ->from('PHIEUNHAPHANG as pnh')
             ->leftJoin('NHACUNGCAP as ncc', 'pnh.MANCC', '=', 'ncc.MANCC')
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('pnh.MAPNH', 'like', "%{$search}%")
+                ->orWhere('ncc.TENNCC', 'like', "%{$search}%")))
+            ->when($mancc !== '', fn ($q) => $q->where('pnh.MANCC', $mancc))
+            ->when($tuNgay, fn ($q) => $q->whereBetween(DB::raw('DATE(pnh.NGAYTAO)'), [$tuNgay, $denNgay]));
+
+        $statMap = (clone $coSo)->selectRaw('pnh.TRANGTHAI as gia_tri, COUNT(*) as so')->groupBy('pnh.TRANGTHAI')->pluck('so', 'gia_tri')->all();
+        $demNhom = fn (array $ds): int => (int) array_sum(array_intersect_key($statMap, array_flip($ds)));
+
+        $query = (clone $coSo)
             ->leftJoin('NHANVIEN as nv', 'pnh.MANV', '=', 'nv.MANV')
             ->select('pnh.*', 'ncc.TENNCC', 'nv.TENNV')
             ->selectSub('SELECT COUNT(*) FROM CT_PHIEUNHAPHANG WHERE MAPNH = pnh.MAPNH', 'so_sku')
             ->selectSub('SELECT SUM(SOLUONG) FROM CT_PHIEUNHAPHANG WHERE MAPNH = pnh.MAPNH', 'tong_sl')
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('pnh.MAPNH', 'like', "%{$search}%")
-                ->orWhere('ncc.TENNCC', 'like', "%{$search}%")))
-            ->when($filter === 'cho', fn ($q) => $q->whereIn('pnh.TRANGTHAI', ['ChoDuyet', 'DaDuyet']))
-            ->when($mancc !== '', fn ($q) => $q->where('pnh.MANCC', $mancc))
-            ->when($thang !== '', fn ($q) => $q->whereRaw("DATE_FORMAT(pnh.NGAYTAO, '%Y-%m') = ?", [$thang]))
+            ->when(isset($nhomTrangThai[$trangthai]), fn ($q) => $q->whereIn('pnh.TRANGTHAI', $nhomTrangThai[$trangthai]))
             ->orderByDesc('pnh.NGAYTAO')
             ->orderBy('pnh.MAPNH');
 
-        $perPage = 8;
+        $perPage = 10;
         $trang = $this->phanTrang($query, $perPage);
         $phieunhap = $trang['rows'];
 
@@ -79,9 +87,6 @@ class NhapHangController extends Controller
                 ->get(['ct.*', 'sp.TENSP', 'sp.MASP', 'sp.SOLUONGTON', 'lsp.TENLOAI', 'nsx.TENNSX']));
         }
 
-        $thangNay = PhieuNhapHang::query()->whereMonth('NGAYTAO', now()->month)->whereYear('NGAYTAO', now()->year);
-        $tuanNay = PhieuNhapHang::query()->whereBetween('NGAYTAO', [now()->startOfWeek(), now()->endOfWeek()])->count();
-
         return view('kho.nhaphang', [
             'phieunhap' => $phieunhap,
             'total' => $trang['total'],
@@ -89,26 +94,26 @@ class NhapHangController extends Controller
             'page' => $trang['page'],
             'perPage' => $perPage,
             'search' => $search,
-            'filter' => $filter,
+            'trangthai' => $trangthai,
             'mancc' => $mancc,
-            'thang' => $thang,
+            'khoang' => $khoang,
+            'dem' => [
+                ['', 'Tất cả', (int) array_sum($statMap)],
+                ['cho', 'Chờ kiểm đếm', $demNhom(self::CHO_KIEM_DEM)],
+                ['HoanThanh', 'Đã nhập kho', $demNhom(['HoanThanh'])],
+                ['DaHuy', 'Đã huỷ', $demNhom(['DaHuy'])],
+            ],
             'selectedMapnh' => $selectedMapnh,
             'detail' => $detail ? (array) $detail : null,
             'ctpnList' => $ctpnList,
-            'nccList' => $this->mang(NhaCungCap::query()->toBase()->orderBy('TENNCC')->get(['MANCC', 'TENNCC'])),
-            'kpiPhieu' => [
-                'tong' => (clone $thangNay)->count(),
-                'tuan' => $tuanNay,
-            ],
-            'kpiCho' => ['tong' => PhieuNhapHang::query()->whereIn('TRANGTHAI', ['ChoDuyet', 'DaDuyet'])->count()],
-            'kpiTonThap' => ['tong' => SanPham::query()->where('SOLUONGTON', '<=', 10)->where('TRANGTHAI', 'DangBan')->count()],
-            'kpiGiaTri' => ['tong' => (clone $thangNay)->sum('TONGCONG_PNH')],
+            'nccList' => NhaCungCap::query()->orderBy('TENNCC')->pluck('TENNCC', 'MANCC')->all(),
+            'tonThap' => SanPham::query()->where('SOLUONGTON', '<=', 10)->where('TRANGTHAI', 'DangBan')->count(),
             'stMap' => [
                 'ChoDuyet' => ['var(--orange)', 'Chờ duyệt'],
                 'DaDuyet' => ['var(--blue)', 'Đã duyệt'],
                 'DaNhan' => ['var(--purple)', 'Đang kiểm đếm'],
-                'HoanThanh' => ['var(--green)', 'Đã nhập đủ'],
-                'DaHuy' => ['var(--red)', 'Đã hủy'],
+                'HoanThanh' => ['var(--green)', 'Đã nhập kho'],
+                'DaHuy' => ['var(--red)', 'Đã huỷ'],
                 'DangVanChuyen' => ['var(--cyan)', 'Đang vận chuyển'],
             ],
         ]);
@@ -189,10 +194,10 @@ class NhapHangController extends Controller
             if ($mancc === '__new__') {
                 $mancc = MaTuDong::tiepTheo('NHACUNGCAP', 'MANCC', 'NCC');
                 NhaCungCap::create([
-                    'MANCC'     => $mancc,
-                    'TENNCC'    => trim($request->input('ncc_moi_ten')),
+                    'MANCC' => $mancc,
+                    'TENNCC' => trim($request->input('ncc_moi_ten')),
                     'DIACHI_NCC' => trim($request->input('ncc_moi_diachi') ?? ''),
-                    'SDT_NCC'   => trim($request->input('ncc_moi_sdt') ?? ''),
+                    'SDT_NCC' => trim($request->input('ncc_moi_sdt') ?? ''),
                     'EMAIL_NCC' => trim($request->input('ncc_moi_email') ?? ''),
                 ]);
             }
@@ -244,21 +249,21 @@ class NhapHangController extends Controller
                     }
 
                     $giaNhap = (float) ($dong['DONGIA_NHAP'] ?? 0);
-                    $giaBan  = ! empty($dong['DONGIA_BAN_MOI']) && (float) $dong['DONGIA_BAN_MOI'] > 0
+                    $giaBan = ! empty($dong['DONGIA_BAN_MOI']) && (float) $dong['DONGIA_BAN_MOI'] > 0
                         ? (float) $dong['DONGIA_BAN_MOI']
                         : round($giaNhap * 1.2);
 
                     SanPham::create([
-                        'MASP'        => $masp,
-                        'TENSP'       => trim($dong['TENSP_MOI'] ?? '') ?: 'Sản phẩm mới',
-                        'MALOAI'      => $maloai,
-                        'MANSX'       => $mansx,
-                        'MANCC'       => $mancc,
-                        'DONVT'       => 'Cái',
-                        'SOLUONGTON'  => 0,
-                        'DONGIA_SP'   => $giaBan,
-                        'TRANGTHAI'   => 'DangBan',
-                        'NGAYTHEM'    => now(),
+                        'MASP' => $masp,
+                        'TENSP' => trim($dong['TENSP_MOI'] ?? '') ?: 'Sản phẩm mới',
+                        'MALOAI' => $maloai,
+                        'MANSX' => $mansx,
+                        'MANCC' => $mancc,
+                        'DONVT' => 'Cái',
+                        'SOLUONGTON' => 0,
+                        'DONGIA_SP' => $giaBan,
+                        'TRANGTHAI' => 'DangBan',
+                        'NGAYTHEM' => now(),
                     ]);
                     $dong['MASP'] = $masp;
                 }
@@ -268,11 +273,11 @@ class NhapHangController extends Controller
             $manv = $request->user()->MANV ?? DB::table('NHANVIEN')->value('MANV') ?? 'NV003';
 
             $phieu = PhieuNhapHang::create([
-                'MAPNH'                 => MaTuDong::tiepTheo('PHIEUNHAPHANG', 'MAPNH', 'PNH'),
-                'MANV'                  => $manv,
-                'MANCC'                 => $mancc,
-                'TRANGTHAI'             => 'ChoDuyet',
-                'NGAYTAO'               => now(),
+                'MAPNH' => MaTuDong::tiepTheo('PHIEUNHAPHANG', 'MAPNH', 'PNH'),
+                'MANV' => $manv,
+                'MANCC' => $mancc,
+                'TRANGTHAI' => 'ChoDuyet',
+                'NGAYTAO' => now(),
                 ...collect($request->validated())->except(['dong', 'MANCC', 'ncc_moi_ten', 'ncc_moi_diachi', 'ncc_moi_sdt', 'ncc_moi_email'])->all(),
             ]);
 
@@ -305,7 +310,7 @@ class NhapHangController extends Controller
                     $gopList[$m]['DONGIA_NHAP'] = $dong['DONGIA_NHAP'];
                 }
                 if (! empty($dong['GHI_CHU'])) {
-                    $gopList[$m]['GHI_CHU'] = trim($gopList[$m]['GHI_CHU'] . '; ' . $dong['GHI_CHU'], '; ');
+                    $gopList[$m]['GHI_CHU'] = trim($gopList[$m]['GHI_CHU'].'; '.$dong['GHI_CHU'], '; ');
                 }
             } else {
                 $gopList[$m] = $dong;
@@ -317,12 +322,12 @@ class NhapHangController extends Controller
             $tienHang += $thanhTien;
 
             DB::table('CT_PHIEUNHAPHANG')->insert([
-                'MAPNH'        => $phieu->MAPNH,
-                'MASP'         => $dong['MASP'],
-                'SOLUONG'      => (int) $dong['SOLUONG'],
-                'DONGIA_NHAP'  => $dong['DONGIA_NHAP'],
-                'THANHTIEN'    => $thanhTien,
-                'GHI_CHU'      => $dong['GHI_CHU'] ?? null,
+                'MAPNH' => $phieu->MAPNH,
+                'MASP' => $dong['MASP'],
+                'SOLUONG' => (int) $dong['SOLUONG'],
+                'DONGIA_NHAP' => $dong['DONGIA_NHAP'],
+                'THANHTIEN' => $thanhTien,
+                'GHI_CHU' => $dong['GHI_CHU'] ?? null,
             ]);
         }
 

@@ -1,158 +1,104 @@
-@extends('layouts.admin', ['title' => 'Quản lý Sản phẩm', 'breadcrumb' => ['Quản lý', 'Sản phẩm']])
+@extends('layouts.admin', ['title' => 'Sản phẩm', 'breadcrumb' => ['Danh mục', 'Sản phẩm']])
 
 @section('content')
-
-      <!-- Header -->
-      <div class="page-header">
+    @php
+        $mauTrangThai = ['DangBan' => ['var(--green)', 'Đang bán'], 'HetHang' => ['var(--orange)', 'Hết hàng'], 'NgungBan' => ['var(--text-muted)', 'Ngừng bán']];
+    @endphp
+    <div class="page-header">
         <div class="page-header-left">
-          <h1>Quản lý Sản phẩm</h1>
-          <p>Tổng cộng <strong style="color:var(--blue-light)">{{ formatNum($total) }}</strong> sản phẩm{{ $search ? ' khớp "'.e($search).'"' : '' }}</p>
+            <h1>Sản phẩm</h1>
+            <p>
+                {{ formatNum($dem[0][2]) }} sản phẩm{{ $filter === 'low_stock' ? ' tồn từ 20 trở xuống' : '' }}
+                @if ($filter === 'low_stock')
+                    · <a href="{{ url()->current().'?'.http_build_query(request()->except(['filter', 'page'])) }}">bỏ lọc tồn thấp</a>
+                @endif
+            </p>
         </div>
         <div class="page-header-right">
-          <a href="{{ route('admin.sanpham.create') }}" class="btn btn-primary">＋ Thêm sản phẩm</a>
-          <button class="btn btn-outline" onclick="exportTableCSV('spTable','sanpham')">Xuất CSV</button>
+            <button type="button" class="btn btn-outline" onclick="exportTableCSV('spTable','sanpham')">{!! icon('download', 16) !!} Xuất CSV</button>
+            <a href="{{ route('admin.sanpham.create') }}" class="btn btn-primary">{!! icon('plus', 16) !!} Thêm sản phẩm</a>
         </div>
-      </div>
+    </div>
 
-      @include('partials.thong-bao')
+    @include('partials.thong-bao')
 
-      <!-- Filter Bar -->
-      <div class="filter-bar">
-        <form method="GET" action="{{ route('admin.sanpham') }}" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
-          <div class="search-box" style="min-width:280px">
-            <span class="si">{!! icon('search') !!}</span>
-            <input type="text" name="q" value="{{ $search }}" placeholder="Tìm tên hoặc mã sản phẩm..." />
-          </div>
-          <select name="maloai" class="form-control" style="width:180px">
-            <option value="">Tất cả loại SP</option>
-            @foreach ($loaiList as $l)
-            <option value="{{ $l['MALOAI'] }}" {{ $maloai === $l['MALOAI'] ? 'selected' : '' }}>
-              {{ $l['TENLOAI'] }}
-            </option>
+    <x-qt.dem :muc="$dem" :dang="$trangthai" />
+
+    <div class="card" data-rt-vung="ds-sp" data-rt-khi="sp">
+        <form method="GET" class="qt-toolbar">
+            @foreach (['trangthai' => $trangthai, 'filter' => $filter] as $ten => $giaTri)
+                @if ($giaTri !== '')
+                    <input type="hidden" name="{{ $ten }}" value="{{ $giaTri }}">
+                @endif
             @endforeach
-          </select>
-          <select name="mansx" class="form-control" style="width:160px">
-            <option value="">Tất cả NSX</option>
-            @foreach ($nsxList as $n)
-            <option value="{{ $n['MANSX'] }}" {{ $mansx === $n['MANSX'] ? 'selected' : '' }}>
-              {{ $n['TENNSX'] }}
-            </option>
-            @endforeach
-          </select>
-          <select name="trangthai" class="form-control" style="width:150px">
-            <option value="">Tất cả trạng thái</option>
-            <option value="DangBan" {{ $trangthai==='DangBan' ? 'selected' : '' }}>Đang Bán</option>
-            <option value="HetHang" {{ $trangthai==='HetHang' ? 'selected' : '' }}>Hết Hàng</option>
-            <option value="NgungBan" {{ $trangthai==='NgungBan' ? 'selected' : '' }}>Ngừng Bán</option>
-          </select>
-          <button type="submit" class="btn btn-primary">Lọc</button>
-          <a href="{{ route('admin.sanpham') }}" class="btn btn-outline">↩ Reset</a>
+            <x-qt.tim :value="$search" placeholder="Tìm tên hoặc mã sản phẩm" />
+            <x-qt.chon name="maloai" :value="$maloai" :options="['' => 'Mọi loại'] + $loaiList" />
+            <x-qt.chon name="mansx" :value="$mansx" :options="['' => 'Mọi nhà sản xuất'] + $nsxList" />
         </form>
-      </div>
 
-      <!-- Table -->
-      <div class="card" data-rt-vung="ds-sp" data-rt-khi="sp">
-        <div class="table-wrapper">
-          <table id="spTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Sản phẩm</th>
-                <th>Loại</th>
-                <th>NSX</th>
-                <th>Giá bán</th>
-                <th>Tồn kho</th>
-                <th>Trạng thái</th>
-                <th>Ngày thêm</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach ($sanpham as $i => $sp)
-              <tr>
-                <td style="color:var(--text-muted);font-size:12px">{{ $offset + $i + 1 }}</td>
-                <td>
-                  <div style="display:flex;align-items:center;gap:10px">
-                    <label class="sp-thumb" title="Bấm để tải ảnh lên">
-                      @if (!empty($sp['ANH_CHINH']))
-                        <img src="{{ $sp['ANH_URL'] }}" alt="" loading="lazy" onerror="this.remove()">
-                      @endif
-                      {!! icon('laptop', 18) !!}
-                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-url="{{ route('admin.sanpham.anh', $sp['MASP']) }}" onchange="uploadAnhSP(this)">
-                    </label>
-                    <div>
-                      <div style="font-weight:600;font-size:13px;color:var(--text-primary)">{{ $sp['TENSP'] }}</div>
-                      <div style="font-size:11px;color:var(--text-muted)">
-                        <code style="background:var(--bg-main);padding:1px 5px;border-radius:3px">{{ $sp['MASP'] }}</code>
-                        &bull; {{ $sp['DONVT'] ?? 'Cái' }}
-                        @if ($sp['MANCC']) &bull; {{ $sp['TENNCC'] }} @endif
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td style="font-size:13px">
-                  <span style="background:rgba(58,86,228,0.1);color:var(--blue-light);padding:2px 8px;border-radius:6px;font-size:12px">
-                    {{ $sp['TENLOAI'] ?? '—' }}
-                  </span>
-                </td>
-                <td style="font-size:13px;color:var(--text-secondary)">{{ $sp['TENNSX'] ?? '—' }}</td>
-                <td>
-                  <div style="font-weight:700;font-size:13px;color:var(--text-primary)">{{ formatVND($sp['DONGIA_SP']) }}</div>
-                </td>
-                <td>
-                  @php $stock = intval($sp['SOLUONGTON']); $sc = $stock <= 5 ? 'stock-danger' : ($stock <= 20 ? 'stock-warning' : 'stock-ok'); @endphp
-                  <span class="stock-badge {{ $sc }}">{{ formatNum($stock) }}</span>
-                </td>
-                <td>{!! statusBadge($sp['TRANGTHAI'], 'sanpham') !!}</td>
-                <td style="font-size:12px;color:var(--text-secondary)">{{ date('d/m/Y', strtotime($sp['NGAYTHEM'])) }}</td>
-                <td>
-                  <div style="display:flex;gap:6px;align-items:center">
-                    <a href="{{ route('admin.sanpham.edit', $sp['MASP']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
-                    <x-nut-hanh-dong :action="route('admin.sanpham.trang-thai', $sp['MASP'])" method="PATCH"
-                        confirm="Thay đổi trạng thái sản phẩm?" class="btn-icon"
-                        :title="$sp['TRANGTHAI'] === 'DangBan' ? 'Ngừng bán' : 'Bật bán'"
-                        :aria-label="$sp['TRANGTHAI'] === 'DangBan' ? 'Ngừng bán' : 'Bật bán'">
-                        {!! $sp['TRANGTHAI'] === 'DangBan' ? icon('pause', 15) : icon('play', 15) !!}
-                    </x-nut-hanh-dong>
-                    <x-nut-hanh-dong :action="route('admin.sanpham.destroy', $sp['MASP'])" method="DELETE"
-                        :confirm="'Xóa sản phẩm '.$sp['TENSP'].'?'" class="btn-icon" title="Xóa"
-                        style="border-color:color-mix(in srgb,var(--red) 30%,transparent)">
-                        {!! icon('trash', 15) !!}
-                    </x-nut-hanh-dong>
-                  </div>
-                </td>
-              </tr>
-              @endforeach
-              @if (empty($sanpham))
-              <tr><td colspan="9">
-                <div class="empty-state">
-                  <div class="empty-icon">{!! icon('laptop') !!}</div>
-                  <p>Không tìm thấy sản phẩm nào</p>
-                </div>
-              </td></tr>
-              @endif
-            </tbody>
-          </table>
-        </div>
-        <!-- Pagination -->
-        @if ($pages > 1)
-        <div class="pagination">
-          @if ($page > 1)
-            <a href="?{{ http_build_query(array_merge(request()->query(), ['page' => $page-1])) }}" class="page-link">‹</a>
-          @endif
-          @for ($p = max(1,$page-2); $p <= min($pages,$page+2); $p++)
-            <a href="?{{ http_build_query(array_merge(request()->query(), ['page' => $p])) }}"
-               class="page-link {{ $p === $page ? 'active' : '' }}">{{ $p }}</a>
-          @endfor
-          @if ($page < $pages)
-            <a href="?{{ http_build_query(array_merge(request()->query(), ['page' => $page+1])) }}" class="page-link">›</a>
-          @endif
-          <span style="font-size:12px;color:var(--text-muted);margin-left:8px">
-            Trang {{ $page }}/{{ $pages }} — {{ formatNum($total) }} sản phẩm
-          </span>
-        </div>
+        @if (empty($sanpham))
+            <div class="qt-empty">
+                {!! icon('laptop', 40) !!}
+                <h3>Không có sản phẩm nào khớp điều kiện lọc</h3>
+                <a href="{{ route('admin.sanpham') }}" class="btn btn-outline">Xoá bộ lọc</a>
+            </div>
+        @else
+            <div class="table-wrapper">
+                <table id="spTable">
+                    <thead>
+                        <tr><th>Sản phẩm</th><th>Loại</th><th>Nhà sản xuất</th><th class="num">Giá bán</th><th class="num">Tồn kho</th><th>Trạng thái</th><th>Ngày thêm</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($sanpham as $sp)
+                            @php
+                                [$mau, $nhan] = $mauTrangThai[$sp['TRANGTHAI']] ?? ['var(--text-secondary)', $sp['TRANGTHAI']];
+                                $ton = (int) $sp['SOLUONGTON'];
+                            @endphp
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px">
+                                        <label class="sp-thumb" title="Bấm để tải ảnh lên">
+                                            @if (! empty($sp['ANH_CHINH']))
+                                                <img src="{{ $sp['ANH_URL'] }}" alt="" loading="lazy" onerror="this.remove()">
+                                            @endif
+                                            {!! icon('laptop', 18) !!}
+                                            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-url="{{ route('admin.sanpham.anh', $sp['MASP']) }}" onchange="uploadAnhSP(this)">
+                                        </label>
+                                        <span>
+                                            <a href="{{ route('admin.sanpham.edit', $sp['MASP']) }}" style="color:var(--text-primary);font-weight:600">{{ $sp['TENSP'] }}</a>
+                                            <span class="qt-sub">{{ $sp['MASP'] }}{{ $sp['TENNCC'] ? ' · '.$sp['TENNCC'] : '' }}</span>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>{{ $sp['TENLOAI'] ?? '—' }}</td>
+                                <td>{{ $sp['TENNSX'] ?? '—' }}</td>
+                                <td class="num"><strong>{{ formatVND($sp['DONGIA_SP']) }}</strong></td>
+                                <td class="num" @if ($ton <= 5) style="color:var(--red);font-weight:700" @elseif ($ton <= 20) style="color:var(--orange);font-weight:700" @endif>{{ formatNum($ton) }}</td>
+                                <td><span class="badge-tt" style="--c:{{ $mau }}">{{ $nhan }}</span></td>
+                                <td>{{ date('d/m/Y', strtotime($sp['NGAYTHEM'])) }}</td>
+                                <td>
+                                    <div class="qt-actions">
+                                        <a href="{{ route('admin.sanpham.edit', $sp['MASP']) }}" class="btn-icon" title="Sửa" aria-label="Sửa {{ $sp['TENSP'] }}">{!! icon('pencil', 15) !!}</a>
+                                        <x-nut-hanh-dong :action="route('admin.sanpham.trang-thai', $sp['MASP'])" method="PATCH"
+                                            confirm="Thay đổi trạng thái sản phẩm?" class="btn-icon"
+                                            :title="$sp['TRANGTHAI'] === 'DangBan' ? 'Ngừng bán' : 'Bật bán'"
+                                            :aria-label="$sp['TRANGTHAI'] === 'DangBan' ? 'Ngừng bán' : 'Bật bán'">
+                                            {!! $sp['TRANGTHAI'] === 'DangBan' ? icon('pause', 15) : icon('play', 15) !!}
+                                        </x-nut-hanh-dong>
+                                        <x-nut-hanh-dong :action="route('admin.sanpham.destroy', $sp['MASP'])" method="DELETE"
+                                            :confirm="'Xoá sản phẩm '.$sp['TENSP'].'?'" class="btn-icon" title="Xoá" aria-label="Xoá {{ $sp['TENSP'] }}">
+                                            {!! icon('trash', 15) !!}
+                                        </x-nut-hanh-dong>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <x-qt.phan-trang :page="$page" :pages="$pages" :total="$total" :per-page="$perPage" don-vi="sản phẩm" />
         @endif
-      </div>
+    </div>
 @endsection
 
 @push('scripts')

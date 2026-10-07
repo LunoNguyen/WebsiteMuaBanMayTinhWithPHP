@@ -1,128 +1,76 @@
-@extends('layouts.admin', ['title' => 'Quản lý Nhập hàng', 'breadcrumb' => ['Quản lý', 'Nhập hàng']])
+@extends('layouts.admin', ['title' => 'Nhập hàng', 'breadcrumb' => ['Kho', 'Nhập hàng']])
 
 @section('content')
-
-
-      <div class="page-header">
+    <div class="page-header">
         <div class="page-header-left">
-          <h1>Quản lý Nhập hàng</h1>
-          <p>Tổng tháng này: <strong style="color:var(--blue-light)">{{ formatVND($tongNhapThang['tong'] ?? 0) }}</strong></p>
+            <h1>Nhập hàng</h1>
+            <p>Đã nhập {{ formatVND($tongNhapThang) }} trong tháng này · {{ formatNum($dem[1][2]) }} phiếu chờ duyệt</p>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-outline" onclick="exportTableCSV('pnhTable','phieunhap')">Xuất CSV</button>
-          <a href="{{ route('admin.nhaphang.create') }}" class="btn btn-primary">＋ Tạo phiếu nhập</a>
+            <button type="button" class="btn btn-outline" onclick="exportTableCSV('pnhTable','phieunhap')">{!! icon('download', 16) !!} Xuất CSV</button>
+            <a href="{{ route('admin.nhaphang.create') }}" class="btn btn-primary">{!! icon('plus', 16) !!} Tạo phiếu nhập</a>
         </div>
-      </div>
+    </div>
 
-      <!-- Quick stats -->
-      <div class="stats-grid stats-grid-3" style="gap:12px;margin-bottom:20px">
-        @foreach ([
-          ['ChuaThanhToan','💳','Chưa thanh toán','orange'],
-          ['DaThanhToan',  '✅','Đã thanh toán',  'green'],
-          ['HoanTien',     '↩️','Hoàn tiền',       'gray'],
-        ] as [$key,$icon,$label,$c])
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:24px">{{ $icon }}</span>
-          <div>
-            <div style="font-size:12px;color:var(--text-muted)">{{ $label }}</div>
-            <div style="font-size:20px;font-weight:700;color:var(--text-primary)">{{ $statsTT[$key] }} phiếu</div>
-          </div>
-        </div>
-        @endforeach
-      </div>
+    @include('partials.thong-bao')
 
-      <!-- Filter -->
-      <div class="filter-bar">
-        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
-          <div class="search-box" style="min-width:220px">
-            <span class="si">{!! icon('search') !!}</span>
-            <input type="text" name="q" value="{{ $search }}" placeholder="Mã phiếu, tên NCC..." />
-          </div>
-          <select name="trangthai" class="form-control" style="width:160px">
-            <option value="">Tất cả trạng thái</option>
-            @foreach (['ChoDuyet','DaDuyet','DaNhan','HoanThanh','DaHuy'] as $tt)
-            <option value="{{ $tt }}" {{ $trangthai===$tt?'selected':'' }}>{{ $statusMap[$tt][1] ?? $tt }}</option>
-            @endforeach
-          </select>
-          <select name="mancc" class="form-control" style="width:180px">
-            <option value="">Tất cả NCC</option>
-            @foreach ($nccList as $ncc)
-            <option value="{{ $ncc['MANCC'] }}" {{ $mancc===$ncc['MANCC']?'selected':'' }}>{{ $ncc['TENNCC'] }}</option>
-            @endforeach
-          </select>
-          <button type="submit" class="btn btn-primary">Lọc</button>
-          <a href="{{ route('admin.nhaphang') }}" class="btn btn-outline">↩ Reset</a>
+    <x-qt.dem :muc="$dem" :dang="$trangthai" />
+
+    <div class="card">
+        <form method="GET" class="qt-toolbar">
+            @if ($trangthai !== '')
+                <input type="hidden" name="trangthai" value="{{ $trangthai }}">
+            @endif
+            <x-qt.tim :value="$search" placeholder="Tìm mã phiếu hoặc nhà cung cấp" />
+            <x-qt.chon name="mancc" :value="$mancc" :options="['' => 'Mọi nhà cung cấp'] + $nccList" />
+            <x-qt.chon name="tttt" :value="$tttt" :options="['' => 'Mọi thanh toán'] + array_map(fn ($tt) => $tt[1], $ttMap)" />
         </form>
-      </div>
 
-      <!-- Table -->
-      <div class="card">
-        <div class="table-wrapper">
-          <table id="pnhTable">
-            <thead>
-              <tr>
-                <th>Mã phiếu</th>
-                <th>Nhà cung cấp</th>
-                <th>Nhân viên kho</th>
-                <th>Ngày đặt / Nhận</th>
-                <th>SP / SL</th>
-                <th>Tổng tiền</th>
-                <th>Thanh toán</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach ($phieunhap as $pnh) @php $st = $statusMap[$pnh['TRANGTHAI']] ?? ['var(--text-secondary)','—']; $tt = $ttMap[$pnh['TRANGTHAI_THANHTOAN']] ?? ['var(--text-secondary)','—']; @endphp
-              <tr>
-                <td><span style="font-family:monospace;font-weight:700;color:var(--blue-light)">{{ $pnh['MAPNH'] }}</span></td>
-                <td>
-                  <div style="font-weight:600;font-size:13px">{{ $pnh['TENNCC'] }}</div>
-                  <div style="font-size:11px;color:var(--text-muted)">{{ $pnh['MANCC'] }}</div>
-                </td>
-                <td style="font-size:13px">{{ $pnh['TENNV'] ?? '—' }}</td>
-                <td>
-                  <div style="font-size:12px">{{ $pnh['NGAY_DATMUA'] ? date('d/m/Y',strtotime($pnh['NGAY_DATMUA'])) : '—' }}</div>
-                  <div style="font-size:11px;color:var(--text-muted)">{{ $pnh['NGAYNHAN'] ? '📥 '.date('d/m/Y',strtotime($pnh['NGAYNHAN'])) : '—' }}</div>
-                </td>
-                <td style="text-align:center">
-                  <div style="font-weight:600">{{ $pnh['so_san_pham'] }} SP</div>
-                  <div style="font-size:11px;color:var(--text-muted)">{{ formatNum($pnh['tong_sl'] ?? 0) }} cái</div>
-                </td>
-                <td>
-                  <div style="font-weight:700;color:var(--text-primary)">{{ formatVND($pnh['TONGCONG_PNH'] ?? 0) }}</div>
-                  <div style="font-size:11px;color:var(--text-muted)">VAT {{ $pnh['THUE_VAT'] }}% / CK {{ $pnh['CHIETKHAU'] }}%</div>
-                </td>
-                <td>
-                  <span style="background:color-mix(in srgb,{{ $tt[0] }} 12%,transparent);color:{{ $tt[0] }};border:1px solid color-mix(in srgb,{{ $tt[0] }} 30%,transparent);padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">{{ $tt[1] }}</span>
-                </td>
-                <td>
-                  <span style="background:color-mix(in srgb,{{ $st[0] }} 12%,transparent);color:{{ $st[0] }};border:1px solid color-mix(in srgb,{{ $st[0] }} 30%,transparent);padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600">{{ $st[1] }}</span>
-                </td>
-                <td>
-                  <div style="display:flex;gap:6px">
-                    <a href="{{ route('admin.nhaphang.show', $pnh['MAPNH']) }}" class="btn-icon" title="Chi tiết">{!! icon('eye', 15) !!}</a>
-                    @if ($pnh['TRANGTHAI'] === 'ChoDuyet')
-                    <a href="{{ route('admin.nhaphang.edit', $pnh['MAPNH']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
-                    @endif
-                  </div>
-                </td>
-              </tr>
-              @endforeach
-              @if (empty($phieunhap))
-              <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">{!! icon('package') !!}</div><p>Không có phiếu nhập hàng nào</p></div></td></tr>
-              @endif
-            </tbody>
-          </table>
-        </div>
-        @if ($pages > 1)
-        <div class="pagination">
-          @if ($page>1)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page-1])) }}" class="page-link">‹</a>@endif
-          @for ($p=max(1,$page-2);$p<=min($pages,$page+2);$p++)
-            <a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$p])) }}" class="page-link {{ $p===$page?'active':'' }}">{{ $p }}</a>
-          @endfor
-          @if ($page<$pages)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page+1])) }}" class="page-link">›</a>@endif
-        </div>
+        @if (empty($phieunhap))
+            <div class="qt-empty">
+                {!! icon('inbox', 40) !!}
+                <h3>Không có phiếu nhập nào khớp điều kiện lọc</h3>
+                <a href="{{ route('admin.nhaphang') }}" class="btn btn-outline">Xoá bộ lọc</a>
+            </div>
+        @else
+            <div class="table-wrapper">
+                <table id="pnhTable">
+                    <thead>
+                        <tr><th>Mã phiếu</th><th>Nhà cung cấp</th><th>Ngày đặt</th><th class="num">Số lượng</th><th class="num">Tổng tiền</th><th>Thanh toán</th><th>Trạng thái</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($phieunhap as $pnh)
+                            @php
+                                [$mauSt, $nhanSt] = $statusMap[$pnh['TRANGTHAI']] ?? ['var(--text-secondary)', $pnh['TRANGTHAI']];
+                                [$mauTt, $nhanTt] = $ttMap[$pnh['TRANGTHAI_THANHTOAN']] ?? ['var(--text-secondary)', '—'];
+                            @endphp
+                            <tr>
+                                <td><a href="{{ route('admin.nhaphang.show', $pnh['MAPNH']) }}" class="qt-ma">{{ $pnh['MAPNH'] }}</a><span class="qt-sub">{{ $pnh['TENNV'] ?? '' }}</span></td>
+                                <td>{{ $pnh['TENNCC'] ?? '—' }}<span class="qt-sub">{{ $pnh['MANCC'] }}</span></td>
+                                <td>
+                                    {{ $pnh['NGAY_DATMUA'] ? date('d/m/Y', strtotime($pnh['NGAY_DATMUA'])) : '—' }}
+                                    @if ($pnh['NGAYNHAN'])
+                                        <span class="qt-sub">nhận {{ date('d/m/Y', strtotime($pnh['NGAYNHAN'])) }}</span>
+                                    @endif
+                                </td>
+                                <td class="num">{{ formatNum($pnh['tong_sl'] ?? 0) }}<span class="qt-sub">{{ $pnh['so_san_pham'] }} mã</span></td>
+                                <td class="num"><strong>{{ formatVND($pnh['TONGCONG_PNH'] ?? 0) }}</strong><span class="qt-sub">VAT {{ (float) $pnh['THUE_VAT'] }}% · CK {{ (float) $pnh['CHIETKHAU'] }}%</span></td>
+                                <td><span class="badge-tt" style="--c:{{ $mauTt }}">{{ $nhanTt }}</span></td>
+                                <td><span class="badge-tt" style="--c:{{ $mauSt }}">{{ $nhanSt }}</span></td>
+                                <td>
+                                    <div class="qt-actions">
+                                        <a href="{{ route('admin.nhaphang.show', $pnh['MAPNH']) }}" class="btn-icon" title="Chi tiết" aria-label="Chi tiết {{ $pnh['MAPNH'] }}">{!! icon('eye', 15) !!}</a>
+                                        @if ($pnh['TRANGTHAI'] === 'ChoDuyet')
+                                            <a href="{{ route('admin.nhaphang.edit', $pnh['MAPNH']) }}" class="btn-icon" title="Sửa" aria-label="Sửa {{ $pnh['MAPNH'] }}">{!! icon('pencil', 15) !!}</a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <x-qt.phan-trang :page="$page" :pages="$pages" :total="$total" :per-page="$perPage" don-vi="phiếu" />
         @endif
-      </div>
+    </div>
 @endsection

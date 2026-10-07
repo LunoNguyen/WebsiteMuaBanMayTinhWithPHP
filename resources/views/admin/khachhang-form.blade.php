@@ -4,11 +4,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ $laSua ? route('admin.khachhang.show', $kh->MAKH) : route('admin.khachhang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Khách hàng</a>
             <h1>{{ $laSua ? 'Sửa khách hàng' : 'Thêm khách hàng' }}</h1>
             <p>{{ $laSua ? $kh->MAKH.' · '.$kh->TENKH : 'Mã khách hàng được tạo tự động khi lưu.' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ $laSua ? route('admin.khachhang.show', $kh->MAKH) : route('admin.khachhang') }}" class="btn btn-outline">← Quay lại</a>
         </div>
     </div>
 

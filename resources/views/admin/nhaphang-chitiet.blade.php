@@ -14,6 +14,7 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.nhaphang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Nhập hàng</a>
             <h1>Phiếu nhập {{ $pn->MAPNH }}</h1>
             <p>
                 <span style="color:{{ $mau }};font-weight:600">{{ $nhan }}</span>
@@ -21,7 +22,6 @@
             </p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.nhaphang') }}" class="btn btn-outline">← Danh sách</a>
             @if ($huyDuoc)
                 <x-nut-hanh-dong :action="route('admin.nhaphang.huy', $pn->MAPNH)" method="PATCH" class="btn btn-outline" style="color:var(--red)"
                                  :confirm="'Huỷ phiếu '.$pn->MAPNH.'?'">Huỷ phiếu</x-nut-hanh-dong>

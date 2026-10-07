@@ -7,27 +7,7 @@
   'use strict';
 
   var cfg = window.NEXUS_REALTIME;
-  // Bản IIFE của laravel-echo gán module vào biến toàn cục Echo; lớp Echo nằm ở .default
-  var EchoClass = window.Echo && (window.Echo.default || window.Echo);
-  if (!cfg || !cfg.key || typeof EchoClass !== 'function' || !window.Pusher) return;
-  var csrf = document.querySelector('meta[name=csrf-token]');
-
-  var echo;
-  try {
-    echo = new EchoClass({
-      broadcaster: 'reverb',
-      key: cfg.key,
-      wsHost: cfg.host,
-      wsPort: cfg.port,
-      wssPort: cfg.port,
-      forceTLS: cfg.tls,
-      enabledTransports: ['ws', 'wss'],
-      auth: { headers: { 'X-CSRF-TOKEN': csrf ? csrf.content : '' } }
-    });
-  } catch (e) {
-    return;
-  }
-  window.NexusEcho = echo;
+  if (!cfg) return;
 
   // ---------- Thông báo nhỏ góc màn hình ----------
   var khayThongBao;
@@ -107,6 +87,7 @@
             choThay.add(t);
             return;
           }
+          if (cu.outerHTML === thay.outerHTML) return;
           var nut = document.importNode(thay, true);
           cu.replaceWith(nut);
           nut.classList.add('rt-nhay');
@@ -121,6 +102,54 @@
   function baoTrang(ten, duLieu) {
     document.dispatchEvent(new CustomEvent('rt:su-kien', { detail: { ten: ten, du_lieu: duLieu } }));
   }
+
+  function danhDauMoiVung() {
+    document.querySelectorAll('[data-rt-vung]').forEach(function (vung) { choThay.add(vung.getAttribute('data-rt-vung')); });
+    if (choThay.size && !hen) hen = setTimeout(taiVung, 0);
+  }
+
+  // ---------- Kết nối Reverb ----------
+  // Bản IIFE của laravel-echo gán module vào biến toàn cục Echo; lớp Echo nằm ở .default
+  var EchoClass = window.Echo && (window.Echo.default || window.Echo);
+  var csrf = document.querySelector('meta[name=csrf-token]');
+  var echo = null;
+  if (cfg.key && typeof EchoClass === 'function' && window.Pusher) {
+    try {
+      echo = new EchoClass({
+        broadcaster: 'reverb',
+        key: cfg.key,
+        wsHost: cfg.host,
+        wsPort: cfg.port,
+        wssPort: cfg.port,
+        forceTLS: cfg.tls,
+        enabledTransports: ['ws', 'wss'],
+        auth: { headers: { 'X-CSRF-TOKEN': csrf ? csrf.content : '' } }
+      });
+      window.NexusEcho = echo;
+    } catch (e) {
+      echo = null;
+    }
+  }
+
+  function dangNoi() {
+    var pusher = echo && echo.connector && echo.connector.pusher;
+    return !!pusher && pusher.connection.state === 'connected';
+  }
+
+  // ---------- Dự phòng khi WebSocket không nối được (Reverb tắt, mạng chặn) ----------
+  // Tự tải lại các vùng realtime mỗi 15 giây; nối lại được thì tải bù một lần cho những gì đã lỡ.
+  if (document.querySelector('[data-rt-vung]')) {
+    setInterval(function () {
+      if (!document.hidden && !dangNoi()) danhDauMoiVung();
+    }, 15000);
+  }
+  if (!echo) return;
+
+  var daTungNoi = false;
+  echo.connector.pusher.connection.bind('connected', function () {
+    if (daTungNoi) danhDauMoiVung();
+    daTungNoi = true;
+  });
 
   // ---------- Kênh ----------
   echo.channel('cua-hang').listen('.san-pham.cap-nhat', function (d) {

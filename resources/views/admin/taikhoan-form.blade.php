@@ -8,11 +8,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.taikhoan') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Tài khoản</a>
             <h1>{{ $laSua ? 'Sửa tài khoản' : 'Tạo tài khoản' }}</h1>
             <p>{{ $laSua ? $tk->MATK.' · '.$tk->tenHienThi() : 'Mỗi nhân viên / khách hàng có một tài khoản đăng nhập.' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.taikhoan') }}" class="btn btn-outline">← Danh sách</a>
         </div>
     </div>
 

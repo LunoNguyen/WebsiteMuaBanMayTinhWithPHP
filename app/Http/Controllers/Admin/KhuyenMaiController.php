@@ -24,33 +24,35 @@ class KhuyenMaiController extends Controller
         $trangthai = (string) $request->query('trangthai', '');
         $loaikm = (string) $request->query('loaikm', '');
 
-        $query = KhuyenMai::query()->toBase()
+        $coSo = KhuyenMai::query()->toBase()
             ->from('KHUYENMAI as km')
-            ->select('km.*')
-            ->selectSub('SELECT COUNT(*) FROM CT_KHUYENMAI WHERE MAKM = km.MAKM', 'so_sp_ap_dung')
-            ->selectSub('SELECT COUNT(*) FROM HOADON_KHUYENMAI WHERE MAKM = km.MAKM', 'so_hd_da_dung')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('km.TENKM', 'like', "%{$search}%")
                 ->orWhere('km.MA_CODE', 'like', "%{$search}%")
                 ->orWhere('km.MAKM', 'like', "%{$search}%")))
+            ->when($loaikm !== '', fn ($q) => $q->where('km.LOAI_KM', $loaikm));
+
+        $query = (clone $coSo)
+            ->select('km.*')
+            ->selectSub('SELECT COUNT(*) FROM CT_KHUYENMAI WHERE MAKM = km.MAKM', 'so_sp_ap_dung')
             ->when($trangthai !== '', fn ($q) => $q->where('km.TRANGTHAI', $trangthai))
-            ->when($loaikm !== '', fn ($q) => $q->where('km.LOAI_KM', $loaikm))
             ->orderByRaw("km.TRANGTHAI = 'HoatDong' DESC")
             ->orderByDesc('km.NGAYKT')
             ->orderBy('km.MAKM');
 
-        $trang = $this->phanTrang($query, 10);
+        $perPage = 10;
+        $trang = $this->phanTrang($query, $perPage);
 
         return view('admin.khuyenmai', [
             'khuyenmai' => $trang['rows'],
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
+            'perPage' => $perPage,
             'search' => $search,
             'trangthai' => $trangthai,
             'loaikm' => $loaikm,
-            'statKMMap' => KhuyenMai::query()->toBase()->selectRaw('TRANGTHAI, COUNT(*) AS cnt')
-                ->groupBy('TRANGTHAI')->pluck('cnt', 'TRANGTHAI')->all(),
+            'dem' => $this->hangDemTheoCot($coSo, 'km.TRANGTHAI', ['HoatDong' => 'Hoạt động', 'TamDung' => 'Tạm dừng', 'HetHan' => 'Hết hạn']),
         ]);
     }
 

@@ -38,20 +38,20 @@ class KhachHangController extends Controller
             ->orderByDesc('so_hd')
             ->orderBy('kh.MAKH');
 
-        $trang = $this->phanTrang($query, 12);
+        $trang = $this->phanTrang($query, 10);
 
         return view('banhang.khachhang', [
             'khachhang' => $trang['rows'],
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
+            'perPage' => 10,
             'search' => $search,
             'kpiTotal' => ['c' => KhachHang::query()->count()],
             'kpiMoi' => ['c' => TaiKhoan::query()->where('LOAI_TAIKHOAN', 'KhachHang')
                 ->whereMonth('NGAYTAO', now()->month)->whereYear('NGAYTAO', now()->year)->count()],
             'kpiVip' => ['c' => KhachHang::query()->toBase()->from('KHACHHANG as kh')
                 ->whereRaw("({$tongChi}) >= ?", [self::MUC_VIP])->count()],
-            'colors' => ['#15803d', '#3a56e4', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#c81e1e'],
         ]);
     }
 

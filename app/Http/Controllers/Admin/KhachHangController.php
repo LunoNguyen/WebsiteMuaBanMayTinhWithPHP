@@ -25,6 +25,7 @@ class KhachHangController extends Controller
             ->select('kh.*')
             ->selectSub('SELECT COUNT(*) FROM HOADON WHERE MAKH = kh.MAKH', 'so_hd')
             ->selectSub("SELECT SUM(TONGTIEN_HD) FROM HOADON WHERE MAKH = kh.MAKH AND TRANGTHAI IN ('DaGiao','HoanThanh')", 'tong_chi_tieu')
+            ->selectSub('SELECT MAX(NGAYLAP) FROM HOADON WHERE MAKH = kh.MAKH', 'lan_mua_cuoi')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('kh.TENKH', 'like', "%{$search}%")
                 ->orWhere('kh.MAKH', 'like', "%{$search}%")
@@ -40,9 +41,8 @@ class KhachHangController extends Controller
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
-            'offset' => $trang['offset'],
+            'perPage' => 10,
             'search' => $search,
-            'avatarColors' => ['#3a56e4', '#15803d', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#c81e1e'],
         ]);
     }
 

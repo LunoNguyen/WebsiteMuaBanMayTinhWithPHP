@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\BanHang;
 
+use App\Http\Controllers\Concerns\LocDonHang;
 use App\Http\Controllers\Controller;
 use App\Models\HoaDon;
 use Illuminate\Http\RedirectResponse;
@@ -10,59 +11,19 @@ use Illuminate\View\View;
 
 class DonHangController extends Controller
 {
+    use LocDonHang;
+
     /**
-     * Danh sách đơn hàng cho nhân viên bán hàng.
+     * Danh sách đơn hàng cho nhân viên bán hàng (bộ lọc dùng chung ở trait LocDonHang).
      */
     public function index(Request $request): View
     {
-        $search = trim((string) $request->query('q', ''));
-        $trangthai = (string) $request->query('trangthai', '');
-        $from = (string) $request->query('from', '');
-        $to = (string) $request->query('to', '');
-
-        $query = HoaDon::query()->toBase()
-            ->from('HOADON as hd')
-            ->leftJoin('KHACHHANG as kh', 'hd.MAKH', '=', 'kh.MAKH')
-            ->leftJoin('NHANVIEN as nv', 'hd.MANV', '=', 'nv.MANV')
-            ->select('hd.*', 'kh.TENKH', 'kh.SDT_KH', 'nv.TENNV')
-            ->selectSub('SELECT COUNT(*) FROM CHITIETHOADON WHERE MAHD = hd.MAHD', 'so_sp')
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('hd.MAHD', 'like', "%{$search}%")
-                ->orWhere('kh.TENKH', 'like', "%{$search}%")
-                ->orWhere('hd.TEN_NGUOINHAN', 'like', "%{$search}%")))
-            ->when($trangthai !== '', fn ($q) => $q->where('hd.TRANGTHAI', $trangthai))
-            ->when($from !== '', fn ($q) => $q->whereDate('hd.NGAYLAP', '>=', $from))
-            ->when($to !== '', fn ($q) => $q->whereDate('hd.NGAYLAP', '<=', $to))
-            ->orderByDesc('hd.NGAYLAP')
-            ->orderBy('hd.MAHD');
-
-        $perPage = 12;
-        $trang = $this->phanTrang($query, $perPage);
-        $thangNay = fn () => HoaDon::query()->whereMonth('NGAYLAP', now()->month)->whereYear('NGAYLAP', now()->year);
+        $duLieu = $this->duLieuDanhSachDon($request);
 
         return view('banhang.donhang', [
-            'donhang' => $trang['rows'],
-            'total' => $trang['total'],
-            'pages' => $trang['pages'],
-            'page' => $trang['page'],
-            'perPage' => $perPage,
-            'search' => $search,
-            'trangthai' => $trangthai,
-            'from' => $from,
-            'to' => $to,
-            'kpiCho' => ['c' => HoaDon::query()->where('TRANGTHAI', 'ChoXacNhan')->count()],
-            'kpiGiao' => ['c' => HoaDon::query()->where('TRANGTHAI', 'DangGiao')->count()],
-            'kpiHT' => ['c' => $thangNay()->where('TRANGTHAI', 'HoanThanh')->count()],
-            'kpiDT' => ['t' => $thangNay()->whereIn('TRANGTHAI', ['DaGiao', 'HoanThanh'])->sum('TONGTIEN_HD')],
-            'validTransitions' => HoaDon::BUOC_TIEP_THEO,
-            'stMap' => [
-                'ChoXacNhan' => ['var(--orange)', 'Chờ Xác Nhận'],
-                'DaXacNhan' => ['var(--blue)', 'Đã Xác Nhận'],
-                'DangGiao' => ['var(--purple)', 'Đang Giao'],
-                'DaGiao' => ['var(--cyan)', 'Đã Giao'],
-                'HoanThanh' => ['var(--green)', 'Hoàn Thành'],
-                'DaHuy' => ['var(--red)', 'Đã Hủy'],
-            ],
+            ...$duLieu,
+            'dem' => $this->hangDem($duLieu['statMap'], ['ChoXacNhan', 'DaXacNhan', 'DangGiao', 'DaGiao', 'HoanThanh', 'DaHuy']),
+            'actionLabel' => HoaDon::NHAN_BUOC_TIEP_THEO,
         ]);
     }
 
@@ -72,6 +33,18 @@ class DonHangController extends Controller
     public function show(HoaDon $hoaDon): View
     {
         return view('banhang.chi-tiet-don', ['hd' => $hoaDon->napChiTiet()]);
+    }
+
+    /**
+     * Ghi nhận đơn đã thanh toán (khách chuyển khoản / trả tại quầy).
+     */
+    public function thanhToan(HoaDon $hoaDon): RedirectResponse
+    {
+        if (! $hoaDon->xacNhanThanhToan()) {
+            return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không có khoản chờ thanh toán.")->with('loai', 'info');
+        }
+
+        return back()->with('thong_bao', "Đã ghi nhận thanh toán đơn {$hoaDon->MAHD}.");
     }
 
     /**
@@ -97,7 +70,8 @@ class DonHangController extends Controller
 
         return back()->with('thong_bao', "Đã hủy đơn hàng {$hoaDon->MAHD}.")->with('loai', 'info');
     }
-        public function inHoaDon(HoaDon $hoaDon)
+
+    public function inHoaDon(HoaDon $hoaDon): View
     {
         return view('banhang.in-hoa-don', ['hd' => $hoaDon->napChiTiet()]);
     }

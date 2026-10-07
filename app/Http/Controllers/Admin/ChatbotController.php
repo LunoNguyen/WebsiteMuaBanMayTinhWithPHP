@@ -32,12 +32,15 @@ class ChatbotController extends Controller
             ->orderByDesc('pc.THOIGIAN_BD')
             ->orderByDesc('pc.MAPHIEN');
 
-        $trang = $this->phanTrang($query, 10);
+        $perPage = 10;
+        $trang = $this->phanTrang($query, $perPage);
 
         $currentPhien = $selectedPhien > 0 ? $phienQuery()->where('pc.MAPHIEN', $selectedPhien)->first() : null;
 
         return view('admin.chatbot', [
             'phienList' => $trang['rows'],
+            'total' => $trang['total'],
+            'perPage' => $perPage,
             'pages' => $trang['pages'],
             'page' => $trang['page'],
             'search' => $search,

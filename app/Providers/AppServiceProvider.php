@@ -2,12 +2,11 @@
 
 namespace App\Providers;
 
-use App\Models\HoaDon;
 use App\Models\LoaiSanPham;
-use App\Models\PhieuNhapHang;
 use App\Services\GioHangService;
 use App\Services\MinioStorage;
 use App\Services\YeuCauDatHang;
+use App\Support\MenuQuanTri;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Queue\Events\Looping;
 use Illuminate\Support\Facades\Queue;
@@ -49,19 +48,11 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Số đếm trên sidebar của từng khu vực
-        View::composer('partials.admin.sidebar', function (BladeView $view): void {
-            $view->with('soDonChoXacNhan', HoaDon::query()->where('TRANGTHAI', 'ChoXacNhan')->count());
+        // Sidebar chung của khu quản trị: menu theo vai trò kèm số việc đang chờ
+        View::composer('partials.quan-tri.sidebar', function (BladeView $view): void {
+            $vaiTro = request()->user()->vaiTro();
+            $view->with(['vaiTro' => $vaiTro, 'menu' => MenuQuanTri::cho($vaiTro)]);
         });
-
-        View::composer('partials.kho.sidebar', function (BladeView $view): void {
-            $view->with([
-                'soPhieuChoKiemDem' => PhieuNhapHang::query()->whereIn('TRANGTHAI', ['ChoDuyet', 'DaDuyet'])->count(),
-                'soDonChoXuatKho' => HoaDon::query()->where('TRANGTHAI', 'DaXacNhan')->count(),
-            ]);
-        });
-
-        // Cửa hàng: danh mục trên thanh menu / chân trang và số lượng trong giỏ
         View::composer(['partials.shop.header', 'partials.shop.footer'], function (BladeView $view): void {
             $view->with('danhMucNav', once(fn () => LoaiSanPham::query()
                 ->whereHas('sanPhams', fn ($q) => $q->where('TRANGTHAI', '!=', 'NgungBan'))
@@ -72,10 +63,6 @@ class AppServiceProvider extends ServiceProvider
             $view->with('soLuongGio', $taiKhoan?->LOAI_TAIKHOAN === 'KhachHang'
                 ? once(fn () => app(GioHangService::class)->soLuong($taiKhoan))
                 : 0);
-        });
-
-        View::composer('partials.banhang.sidebar', function (BladeView $view): void {
-            $view->with('soDonChoXacNhan', HoaDon::query()->where('TRANGTHAI', 'ChoXacNhan')->count());
         });
     }
 }

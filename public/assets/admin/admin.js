@@ -160,3 +160,43 @@ document.head.appendChild(style);
 document.addEventListener('rt:vung-moi', function () {
   if (typeof animateCounters === 'function') animateCounters();
 });
+
+// Select tự dựng (component x-qt.chon): mở / đóng, chọn bằng chuột hoặc phím, chọn xong gửi form
+(function () {
+  function dong(tru) {
+    document.querySelectorAll('[data-qt-select][data-open]').forEach(function (s) {
+      if (s === tru) return;
+      s.removeAttribute('data-open');
+      s.querySelector(':scope > button').setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.addEventListener('click', function (e) {
+    var hop = e.target.closest('[data-qt-select]');
+    var nutMo = e.target.closest('[data-qt-select] > button');
+    var muc = e.target.closest('[data-qt-select] [role="option"]');
+    dong(hop);
+    if (nutMo) {
+      var mo = hop.toggleAttribute('data-open');
+      nutMo.setAttribute('aria-expanded', mo ? 'true' : 'false');
+      if (mo) (hop.querySelector('[aria-selected="true"]') || hop.querySelector('[role="option"]')).focus();
+      return;
+    }
+    if (muc) {
+      hop.querySelector('input[type=hidden]').value = muc.dataset.value;
+      hop.querySelector('[data-qt-nhan]').textContent = muc.textContent;
+      hop.querySelectorAll('[role="option"]').forEach(function (o) { o.setAttribute('aria-selected', o === muc ? 'true' : 'false'); });
+      dong();
+      var form = hop.closest('form');
+      if (form) form.submit();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    var hop = e.target.closest('[data-qt-select]');
+    if (e.key === 'Escape') { dong(); if (hop) hop.querySelector(':scope > button').focus(); return; }
+    if (!hop || !hop.hasAttribute('data-open') || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+    e.preventDefault();
+    var ds = Array.from(hop.querySelectorAll('[role="option"]'));
+    var i = ds.indexOf(document.activeElement);
+    ds[(i + (e.key === 'ArrowDown' ? 1 : -1) + ds.length) % ds.length].focus();
+  });
+})();

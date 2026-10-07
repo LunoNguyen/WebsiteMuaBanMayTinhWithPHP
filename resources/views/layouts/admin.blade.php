@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="description" content="Hệ thống quản trị bán máy tính - {{ $title ?? 'Admin' }}">
-    <title>{{ $title ?? 'Admin' }} | NEXUS Admin</title>
+    <meta name="description" content="Hệ thống quản trị bán máy tính - {{ $title ?? 'Quản trị' }}">
+    <title>{{ $title ?? 'Quản trị' }} | NEXUS Quản trị</title>
 
     @include('partials.theme-head')
 
@@ -21,10 +21,10 @@
 </head>
 <body>
 <div style="display:flex;min-height:100vh">
-    @include('partials.admin.sidebar')
+    @include('partials.quan-tri.sidebar')
 
     <div class="main-wrapper">
-        @include('partials.admin.topbar', ['breadcrumb' => $breadcrumb ?? [$title ?? 'Trang chủ']])
+        @include('partials.quan-tri.topbar', ['breadcrumb' => $breadcrumb ?? [$title ?? 'Trang chủ']])
 
         <main class="page-content">
             @yield('content')

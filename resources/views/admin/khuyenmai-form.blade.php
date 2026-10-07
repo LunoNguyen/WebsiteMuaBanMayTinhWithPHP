@@ -6,11 +6,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.khuyenmai') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Khuyến mãi</a>
             <h1>{{ $laSua ? 'Sửa khuyến mãi' : 'Tạo khuyến mãi' }}</h1>
             <p>{{ $laSua ? $km->MAKM.' · đã dùng '.formatNum($km->DA_SUDUNG).($km->SOLUONG_MA ? '/'.formatNum($km->SOLUONG_MA) : '').' lượt' : 'Mỗi khách chỉ dùng mỗi mã một lần, mỗi đơn chỉ một mã.' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.khuyenmai') }}" class="btn btn-outline">← Danh sách</a>
         </div>
     </div>
 

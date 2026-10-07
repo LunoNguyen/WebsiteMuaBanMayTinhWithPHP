@@ -7,11 +7,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.khachhang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Khách hàng</a>
             <h1>{{ $kh->TENKH ?? $kh->MAKH }}</h1>
             <p>{{ $kh->MAKH }}{{ $kh->SDT_KH ? ' · '.$kh->SDT_KH : '' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.khachhang') }}" class="btn btn-outline">← Danh sách</a>
             @unless ($kh->taiKhoan)
                 <a href="{{ route('admin.taikhoan.create', ['makh' => $kh->MAKH]) }}" class="btn btn-outline">Tạo tài khoản</a>
             @endunless

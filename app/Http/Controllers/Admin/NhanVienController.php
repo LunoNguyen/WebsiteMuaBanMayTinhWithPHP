@@ -22,30 +22,38 @@ class NhanVienController extends Controller
         $search = trim((string) $request->query('q', ''));
         $macv = (string) $request->query('macv', '');
 
-        $query = NhanVien::query()->toBase()
+        $trangthai = (string) $request->query('trangthai', '');
+
+        $coSo = NhanVien::query()->toBase()
             ->from('NHANVIEN as nv')
-            ->leftJoin('CHUCVU as cv', 'nv.MACV', '=', 'cv.MACV')
-            ->select('nv.*', 'cv.TENCV')
-            ->selectSub('SELECT COUNT(*) FROM HOADON WHERE MANV = nv.MANV', 'so_hd')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('nv.TENNV', 'like', "%{$search}%")
                 ->orWhere('nv.MANV', 'like', "%{$search}%")
                 ->orWhere('nv.EMAIL_NV', 'like', "%{$search}%")))
-            ->when($macv !== '', fn ($q) => $q->where('nv.MACV', $macv))
+            ->when($macv !== '', fn ($q) => $q->where('nv.MACV', $macv));
+
+        $query = (clone $coSo)
+            ->leftJoin('CHUCVU as cv', 'nv.MACV', '=', 'cv.MACV')
+            ->select('nv.*', 'cv.TENCV')
+            ->selectSub('SELECT COUNT(*) FROM HOADON WHERE MANV = nv.MANV', 'so_hd')
+            ->when($trangthai !== '', fn ($q) => $q->where('nv.TRANGTHAI', (int) $trangthai))
             ->orderByDesc('nv.NGAYVAOLAM')
             ->orderBy('nv.MANV');
 
-        $trang = $this->phanTrang($query, 10);
+        $perPage = 10;
+        $trang = $this->phanTrang($query, $perPage);
 
         return view('admin.nhanvien', [
             'nhanvien' => $trang['rows'],
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
+            'perPage' => $perPage,
             'search' => $search,
             'macv' => $macv,
-            'chucvuList' => $this->mang(ChucVu::query()->toBase()->orderBy('MACV')->get()),
-            'avatarColors' => ['#3a56e4', '#15803d', '#6d28d9', '#b45309', '#0e7490', '#be185d', '#c81e1e'],
+            'trangthai' => $trangthai,
+            'dem' => $this->hangDemTheoCot($coSo, 'nv.TRANGTHAI', ['1' => 'Đang làm việc', '0' => 'Đã nghỉ']),
+            'chucvuList' => ChucVu::query()->orderBy('MACV')->pluck('TENCV', 'MACV')->all(),
         ]);
     }
 

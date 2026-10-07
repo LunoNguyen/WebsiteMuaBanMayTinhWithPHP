@@ -4,11 +4,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ $laSua ? route('admin.nhaphang.show', $pn->MAPNH) : route('admin.nhaphang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Nhập hàng</a>
             <h1>{{ $laSua ? 'Sửa phiếu '.$pn->MAPNH : 'Tạo phiếu nhập' }}</h1>
             <p>Tồn kho chỉ được cộng khi kho bấm "Hoàn tất nhập kho".</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ $laSua ? route('admin.nhaphang.show', $pn->MAPNH) : route('admin.nhaphang') }}" class="btn btn-outline">← Quay lại</a>
         </div>
     </div>
 

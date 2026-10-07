@@ -24,13 +24,10 @@ class TaiKhoanController extends Controller
         $loaifil = (string) $request->query('loai', '');
         $ttfil = (string) $request->query('trangthai', '');
 
-        $query = TaiKhoan::query()->toBase()
+        $coSo = TaiKhoan::query()->toBase()
             ->from('TAIKHOAN as tk')
             ->leftJoin('KHACHHANG as kh', 'tk.MAKH', '=', 'kh.MAKH')
             ->leftJoin('NHANVIEN as nv', 'tk.MANV', '=', 'nv.MANV')
-            ->leftJoin('CHUCVU as cv', 'nv.MACV', '=', 'cv.MACV')
-            ->select('tk.MATK', 'tk.MANV', 'tk.MAKH', 'tk.EMAIL_TK', 'tk.LOAI_TAIKHOAN', 'tk.TRANGTHAI', 'tk.NGAYTAO', 'tk.NGAY_CAPNHAT',
-                'kh.TENKH', 'kh.SDT_KH', 'nv.TENNV', 'cv.TENCV')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('tk.MATK', 'like', "%{$search}%")
                 ->orWhere('tk.MANV', $search)
@@ -38,24 +35,32 @@ class TaiKhoanController extends Controller
                 ->orWhere('tk.EMAIL_TK', 'like', "%{$search}%")
                 ->orWhere('kh.TENKH', 'like', "%{$search}%")
                 ->orWhere('nv.TENNV', 'like', "%{$search}%")))
+            ->when($ttfil !== '', fn ($q) => $q->where('tk.TRANGTHAI', $ttfil));
+
+        $query = (clone $coSo)
+            ->leftJoin('CHUCVU as cv', 'nv.MACV', '=', 'cv.MACV')
+            ->select('tk.MATK', 'tk.MANV', 'tk.MAKH', 'tk.EMAIL_TK', 'tk.LOAI_TAIKHOAN', 'tk.TRANGTHAI', 'tk.NGAYTAO', 'tk.NGAY_CAPNHAT',
+                'kh.TENKH', 'kh.SDT_KH', 'nv.TENNV', 'cv.TENCV')
             ->when($loaifil !== '', fn ($q) => $q->where('tk.LOAI_TAIKHOAN', $loaifil))
-            ->when($ttfil !== '', fn ($q) => $q->where('tk.TRANGTHAI', $ttfil))
             ->orderByDesc('tk.NGAYTAO')
             ->orderBy('tk.MATK');
 
-        $trang = $this->phanTrang($query, 12);
+        $perPage = 12;
+        $trang = $this->phanTrang($query, $perPage);
+        $loaiNhan = ['Admin' => 'Quản trị', 'NhanVien' => 'Nhân viên', 'KhachHang' => 'Khách hàng'];
 
         return view('admin.taikhoan', [
             'taikhoan' => $trang['rows'],
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
+            'perPage' => $perPage,
             'search' => $search,
+            'dem' => $this->hangDemTheoCot($coSo, 'tk.LOAI_TAIKHOAN', $loaiNhan),
             'loaifil' => $loaifil,
             'ttfil' => $ttfil,
-            'typeMap' => TaiKhoan::query()->toBase()->selectRaw('LOAI_TAIKHOAN, COUNT(*) AS cnt')->groupBy('LOAI_TAIKHOAN')->pluck('cnt', 'LOAI_TAIKHOAN')->all(),
             'loaiIcon' => ['Admin' => 'star', 'NhanVien' => 'briefcase', 'KhachHang' => 'user'],
-            'loaiNhan' => ['Admin' => 'Quản trị', 'NhanVien' => 'Nhân viên', 'KhachHang' => 'Khách hàng'],
+            'loaiNhan' => $loaiNhan,
             'loaiColor' => ['Admin' => 'var(--orange)', 'NhanVien' => 'var(--blue)', 'KhachHang' => 'var(--green)'],
             'ttColor' => ['HoatDong' => 'var(--green)', 'KhoaTamThoi' => 'var(--orange)', 'KhoaVinhVien' => 'var(--red)'],
             'ttLabel' => ['HoatDong' => 'Hoạt động', 'KhoaTamThoi' => 'Khoá tạm', 'KhoaVinhVien' => 'Khoá vĩnh viễn'],

@@ -1,128 +1,76 @@
-@extends('layouts.admin', ['title' => 'Quản lý Tài khoản', 'breadcrumb' => ['Quản lý', 'Tài khoản']])
+@extends('layouts.admin', ['title' => 'Tài khoản', 'breadcrumb' => ['Hệ thống', 'Tài khoản']])
 
 @section('content')
-
-
-      <div class="page-header">
+    <div class="page-header">
         <div class="page-header-left">
-          <h1>Quản lý Tài khoản</h1>
-          <p>Tổng <strong style="color:var(--blue-light)">{{ formatNum($total) }}</strong> tài khoản trong hệ thống</p>
+            <h1>Tài khoản</h1>
+            <p>{{ formatNum($dem[0][2]) }} tài khoản đăng nhập của quản trị, nhân viên và khách hàng</p>
         </div>
         <div class="page-header-right">
-          <a href="{{ route('admin.taikhoan.create') }}" class="btn btn-primary">＋ Tạo tài khoản</a>
+            <a href="{{ route('admin.taikhoan.create') }}" class="btn btn-primary">{!! icon('plus', 16) !!} Tạo tài khoản</a>
         </div>
-      </div>
+    </div>
 
-      @include('partials.thong-bao')
+    @include('partials.thong-bao')
 
-      <!-- Type stats chips -->
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        @foreach (['Admin','NhanVien','KhachHang'] as $lt)
-        <a href="?loai={{ $lt }}" style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;{{ $loaifil===$lt?'border-color:var(--blue);background:var(--blue-glow)':'' }}">
-          <span style="display:inline-flex">{!! icon($loaiIcon[$lt], 14) !!}</span>
-          <span style="font-size:13px;color:var(--text-secondary)">{{ $loaiNhan[$lt] }}</span>
-          <strong style="font-size:15px;color:var(--text-primary);margin-left:4px">{{ $typeMap[$lt] ?? 0 }}</strong>
-        </a>
-        @endforeach
-        @if ($loaifil || $ttfil)<a href="{{ route('admin.taikhoan') }}" class="btn btn-sm btn-outline">Xóa lọc</a>@endif
-      </div>
+    <x-qt.dem :muc="$dem" ten="loai" :dang="$loaifil" />
 
-      <!-- Filter -->
-      <div class="filter-bar">
-        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
-          <div class="search-box" style="min-width:260px">
-            <span class="si">{!! icon('search') !!}</span>
-            <input type="text" name="q" value="{{ $search }}" placeholder="Tìm mã TK, email, tên..." />
-          </div>
-          <select name="trangthai" class="form-control" style="width:160px">
-            <option value="">Tất cả trạng thái</option>
-            <option value="HoatDong"     {{ $ttfil==='HoatDong'?'selected':'' }}>Hoạt động</option>
-            <option value="KhoaTamThoi"  {{ $ttfil==='KhoaTamThoi'?'selected':'' }}>Khoá tạm</option>
-            <option value="KhoaVinhVien" {{ $ttfil==='KhoaVinhVien'?'selected':'' }}>Khoá vĩnh viễn</option>
-          </select>
-          <input type="hidden" name="loai" value="{{ $loaifil }}" />
-          <button type="submit" class="btn btn-primary">Lọc</button>
-          <a href="{{ route('admin.taikhoan') }}" class="btn btn-outline">↩ Reset</a>
+    <div class="card">
+        <form method="GET" class="qt-toolbar">
+            @if ($loaifil !== '')
+                <input type="hidden" name="loai" value="{{ $loaifil }}">
+            @endif
+            <x-qt.tim :value="$search" placeholder="Tìm mã, email hoặc tên người dùng" />
+            <x-qt.chon name="trangthai" :value="$ttfil" :options="['' => 'Mọi trạng thái'] + $ttLabel" />
         </form>
-      </div>
 
-      <!-- Table -->
-      <div class="card">
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Tài khoản</th>
-                <th>Loại</th>
-                <th>Người dùng</th>
-                <th>Trạng thái</th>
-                <th>Ngày tạo</th>
-                <th>Cập nhật</th>
-                <th>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach ($taikhoan as $tk) @php $loai = $tk['LOAI_TAIKHOAN']; $icon = $loaiIcon[$loai] ?? 'user'; $color = $loaiColor[$loai] ?? 'var(--text-muted)'; $name = $tk['TENKH'] ?? $tk['TENNV'] ?? 'Không xác định'; @endphp
-              <tr>
-                <td>
-                  <div style="font-family:monospace;font-weight:700;font-size:13px;color:var(--blue-light)">{{ $tk['MATK'] }}</div>
-                  <div style="font-size:12px;color:var(--text-muted)">{!! icon('mail') !!} {{ $tk['EMAIL_TK'] }}</div>
-                </td>
-                <td>
-                  <span class="tag-loai" style="background:color-mix(in srgb,{{ $color }} 12%,transparent);color:{{ $color }};border:1px solid color-mix(in srgb,{{ $color }} 30%,transparent)">
-                    {!! icon($icon, 13) !!} {{ $loaiNhan[$loai] ?? $loai }}
-                  </span>
-                </td>
-                <td>
-                  <div style="font-size:13px;font-weight:600">{{ $name }}</div>
-                  @if ($tk['TENCV'])
-                  <div style="font-size:11px;color:var(--text-muted)">{{ $tk['TENCV'] }}</div>
-                  @elseif ($tk['SDT_KH'])
-                  <div style="font-size:11px;color:var(--text-muted)">{!! icon('phone') !!} {{ $tk['SDT_KH'] }}</div>
-                  @endif
-                </td>
-                <td>
-                  @php $ttC = $ttColor[$tk['TRANGTHAI']] ?? 'var(--text-secondary)'; @endphp
-                  <span style="background:color-mix(in srgb,{{ $ttC }} 12%,transparent);color:{{ $ttC }};border:1px solid color-mix(in srgb,{{ $ttC }} 30%,transparent);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
-                    {{ $ttLabel[$tk['TRANGTHAI']] ?? $tk['TRANGTHAI'] }}
-                  </span>
-                </td>
-                <td style="font-size:12px;color:var(--text-secondary)">{{ date('d/m/Y H:i', strtotime($tk['NGAYTAO'])) }}</td>
-                <td style="font-size:12px;color:var(--text-muted)">{{ $tk['NGAY_CAPNHAT'] ? date('d/m/Y H:i', strtotime($tk['NGAY_CAPNHAT'])) : '—' }}</td>
-                <td>
-                  <div style="display:flex;gap:6px">
-                    <a href="{{ route('admin.taikhoan.edit', $tk['MATK']) }}" class="btn-icon" title="Sửa">{!! icon('pencil', 15) !!}</a>
-                    @if ($tk['LOAI_TAIKHOAN'] !== 'Admin')
-                    <x-nut-hanh-dong :action="route('admin.taikhoan.trang-thai', $tk['MATK'])" method="PATCH"
-                       confirm="Thay đổi trạng thái tài khoản?"
-                       class="btn-icon" :title="$tk['TRANGTHAI'] === 'HoatDong' ? 'Khoá' : 'Mở khoá'"
-                       style="border-color:{{ $tk['TRANGTHAI'] === 'HoatDong' ? 'color-mix(in srgb,var(--red) 30%,transparent)' : 'color-mix(in srgb,var(--green) 30%,transparent)' }}">
-                      {!! $tk['TRANGTHAI'] === 'HoatDong' ? icon('lock', 15) : icon('unlock', 15) !!}
-                    </x-nut-hanh-dong>
-                    @endif
-                    @if ($tk['MATK'] !== auth()->id())
-                    <x-nut-hanh-dong :action="route('admin.taikhoan.destroy', $tk['MATK'])" method="DELETE" class="btn-icon" title="Xoá"
-                       :confirm="'Xoá tài khoản '.$tk['EMAIL_TK'].'? Tài khoản đã có đơn hàng thì chỉ khoá được.'"
-                       style="border-color:color-mix(in srgb,var(--red) 30%,transparent)">{!! icon('trash', 15) !!}</x-nut-hanh-dong>
-                    @endif
-                  </div>
-                </td>
-              </tr>
-              @endforeach
-              @if (empty($taikhoan))
-              <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">{!! icon('key', 15) !!}</div><p>Không tìm thấy tài khoản nào</p></div></td></tr>
-              @endif
-            </tbody>
-          </table>
-        </div>
-        @if ($pages > 1)
-        <div class="pagination">
-          @if ($page>1)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page-1])) }}" class="page-link">‹</a>@endif
-          @for ($p=max(1,$page-2);$p<=min($pages,$page+2);$p++)
-            <a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$p])) }}" class="page-link {{ $p===$page?'active':'' }}">{{ $p }}</a>
-          @endfor
-          @if ($page<$pages)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page+1])) }}" class="page-link">›</a>@endif
-        </div>
+        @if (empty($taikhoan))
+            <div class="qt-empty">
+                {!! icon('key', 40) !!}
+                <h3>Không có tài khoản nào khớp điều kiện lọc</h3>
+                <a href="{{ route('admin.taikhoan') }}" class="btn btn-outline">Xoá bộ lọc</a>
+            </div>
+        @else
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Tài khoản</th><th>Loại</th><th>Người dùng</th><th>Trạng thái</th><th>Ngày tạo</th><th>Cập nhật</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($taikhoan as $tk)
+                            @php
+                                $loai = $tk['LOAI_TAIKHOAN'];
+                                $mauLoai = $loaiColor[$loai] ?? 'var(--text-muted)';
+                            @endphp
+                            <tr>
+                                <td><span class="qt-ma">{{ $tk['MATK'] }}</span><span class="qt-sub">{{ $tk['EMAIL_TK'] }}</span></td>
+                                <td><span class="tag-loai" style="--c:{{ $mauLoai }}">{!! icon($loaiIcon[$loai] ?? 'user', 13) !!} {{ $loaiNhan[$loai] ?? $loai }}</span></td>
+                                <td>{{ $tk['TENKH'] ?? $tk['TENNV'] ?? '—' }}<span class="qt-sub">{{ $tk['TENCV'] ?? $tk['SDT_KH'] ?? '' }}</span></td>
+                                <td><span class="badge-tt" style="--c:{{ $ttColor[$tk['TRANGTHAI']] ?? 'var(--text-secondary)' }}">{{ $ttLabel[$tk['TRANGTHAI']] ?? $tk['TRANGTHAI'] }}</span></td>
+                                <td>{{ date('d/m/Y H:i', strtotime($tk['NGAYTAO'])) }}</td>
+                                <td>{{ $tk['NGAY_CAPNHAT'] ? date('d/m/Y H:i', strtotime($tk['NGAY_CAPNHAT'])) : '—' }}</td>
+                                <td>
+                                    <div class="qt-actions">
+                                        <a href="{{ route('admin.taikhoan.edit', $tk['MATK']) }}" class="btn-icon" title="Sửa" aria-label="Sửa {{ $tk['EMAIL_TK'] }}">{!! icon('pencil', 15) !!}</a>
+                                        @if ($loai !== 'Admin')
+                                            <x-nut-hanh-dong :action="route('admin.taikhoan.trang-thai', $tk['MATK'])" method="PATCH" class="btn-icon"
+                                                confirm="Thay đổi trạng thái tài khoản?"
+                                                :title="$tk['TRANGTHAI'] === 'HoatDong' ? 'Khoá' : 'Mở khoá'" :aria-label="$tk['TRANGTHAI'] === 'HoatDong' ? 'Khoá' : 'Mở khoá'">
+                                                {!! $tk['TRANGTHAI'] === 'HoatDong' ? icon('lock', 15) : icon('unlock', 15) !!}
+                                            </x-nut-hanh-dong>
+                                        @endif
+                                        @if ($tk['MATK'] !== auth()->id())
+                                            <x-nut-hanh-dong :action="route('admin.taikhoan.destroy', $tk['MATK'])" method="DELETE" class="btn-icon" title="Xoá" aria-label="Xoá {{ $tk['EMAIL_TK'] }}"
+                                                :confirm="'Xoá tài khoản '.$tk['EMAIL_TK'].'? Tài khoản đã có đơn hàng thì chỉ khoá được.'">{!! icon('trash', 15) !!}</x-nut-hanh-dong>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <x-qt.phan-trang :page="$page" :pages="$pages" :total="$total" :per-page="$perPage" don-vi="tài khoản" />
         @endif
-      </div>
+    </div>
 @endsection

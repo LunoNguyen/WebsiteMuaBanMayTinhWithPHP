@@ -1,12 +1,7 @@
-@extends('layouts.kho', ['title' => 'Tạo phiếu nhập kho'])
+@extends('layouts.admin', ['title' => 'Tạo phiếu nhập', 'breadcrumb' => ['Kho', 'Nhập hàng', 'Tạo phiếu']])
 
 @push('styles')
-@include('partials.kho.style-trang')
 <style>
-/* Chuẩn font Inter toàn trang */
-body, input, select, textarea, button, table {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
 .k-form-wrap {
   display: flex;
   flex-direction: column;
@@ -15,15 +10,15 @@ body, input, select, textarea, button, table {
   width: 100%;
 }
 .k-card {
-  background: var(--wc);
-  border: 1px solid var(--wb);
-  border-radius: var(--wr);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
   padding: 18px 20px;
 }
 .k-card-h {
   font-size: 14px;
   font-weight: 700;
-  color: var(--wt);
+  color: var(--text-primary);
   margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -42,18 +37,19 @@ body, input, select, textarea, button, table {
 .k-fg label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--wm);
+  color: var(--text-muted);
 }
 .k-fg .req {
   color: var(--red);
 }
 .k-input, .k-select, .k-textarea {
-  background: var(--wc2);
-  border: 1px solid var(--wb);
+  font: inherit;
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 9px 12px;
   font-size: 13px;
-  color: var(--wt);
+  color: var(--text-primary);
   outline: none;
   transition: border-color .15s;
 }
@@ -62,7 +58,7 @@ body, input, select, textarea, button, table {
 }
 .k-tbl-wrap {
   overflow-x: auto;
-  border: 1px solid var(--wb);
+  border: 1px solid var(--border);
   border-radius: 8px;
 }
 .k-tbl {
@@ -73,17 +69,17 @@ body, input, select, textarea, button, table {
   padding: 10px 12px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--wm);
-  background: var(--wc2);
-  border-bottom: 1px solid var(--wb);
+  color: var(--text-muted);
+  background: var(--bg-card-hover);
+  border-bottom: 1px solid var(--border);
   text-align: left;
   white-space: nowrap;
 }
 .k-tbl td {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--wb);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
-  background: var(--wc);
+  background: var(--bg-card);
 }
 .k-tbl tr:last-child td {
   border-bottom: none;
@@ -92,8 +88,8 @@ body, input, select, textarea, button, table {
   margin-left: auto;
   width: 320px;
   padding: 14px 16px;
-  background: var(--wc2);
-  border: 1px solid var(--wb);
+  background: var(--bg-card-hover);
+  border: 1px solid var(--border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -103,13 +99,13 @@ body, input, select, textarea, button, table {
 .k-sum-r {
   display: flex;
   justify-content: space-between;
-  color: var(--wm);
+  color: var(--text-muted);
 }
 .k-sum-r strong {
-  color: var(--wt);
+  color: var(--text-primary);
 }
 .k-sum-r.total {
-  border-top: 1px solid var(--wb);
+  border-top: 1px solid var(--border);
   padding-top: 10px;
   font-size: 14.5px;
   font-weight: 800;
@@ -135,7 +131,7 @@ body, input, select, textarea, button, table {
 }
 .date-hint {
   font-size: 10.5px;
-  color: var(--wm);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 /* Panel nhập thông tin mới (NCC / SP) */
@@ -186,40 +182,17 @@ body, input, select, textarea, button, table {
 @endpush
 
 @section('content')
-<div class="wsh">
-@include('partials.kho.sidebar')
-
-<div class="wmn">
-  <!-- TopBar chuẩn giao diện Kho -->
-  <div class="kho-topbar">
-    <button type="button" class="w-menu-btn" onclick="toggleKhoSidebar()" aria-label="Mở menu">{!! icon('menu', 18) !!}</button>
-    <span style="display:flex;color:var(--wm)">{!! icon('package', 18) !!}</span>
-    <h2>Tạo phiếu nhập kho</h2>
-    <div class="kto-user">
-      <x-theme-toggle />
-      <div style="text-align:right">
-        <div style="font-size:12px;font-weight:700;color:var(--wt)">{{ auth()->user()->tenHienThi() }}</div>
-        <div style="font-size:10px;color:var(--wm)">Nhân viên Kho &bull; {{ auth()->user()->MANV ?? '—' }}</div>
-      </div>
-      <div class="kto-av">{{ mb_strtoupper(mb_substr(auth()->user()->tenHienThi(), 0, 2)) }}</div>
-    </div>
-  </div>
-
-  <!-- Content chính -->
-  <div class="wct">
-    <div class="k-form-wrap">
-      <div class="wph">
-        <div>
-          <h1>Lập phiếu nhập kho mới</h1>
-          <p>Tạo phiếu nhập hàng từ nhà cung cấp &middot; Tồn kho tự động tăng khi kho bấm "Hoàn tất nhập kho"</p>
+<div class="k-form-wrap">
+      <div class="page-header">
+        <div class="page-header-left">
+          <a href="{{ route('kho.nhaphang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Nhập hàng</a>
+          <h1>Tạo phiếu nhập</h1>
+          <p>Tồn kho chỉ tăng khi kho bấm "Hoàn tất nhập kho" trên phiếu.</p>
         </div>
-        <a href="{{ route('kho.nhaphang') }}" class="wbn wb-out">← Quay lại danh sách phiếu</a>
       </div>
 
-      @if (isset($errors) && $errors->any())
-        <div style="padding:12px 16px;border-radius:8px;background:rgba(200,30,30,.12);border:1px solid rgba(200,30,30,.3);color:var(--red);font-size:13px;font-weight:600">
-          ⚠ Có lỗi xảy ra: {{ $errors->first() }}
-        </div>
+      @if ($errors->any())
+        <div class="alert alert-danger">{!! icon('x') !!} {{ $errors->first() }}</div>
       @endif
 
       <form method="POST" action="{{ route('kho.nhaphang.store') }}" id="formPhieuKho">
@@ -264,7 +237,7 @@ body, input, select, textarea, button, table {
                     <input type="email" name="ncc_moi_email" class="k-input" placeholder="email@ncc.com" value="{{ old('ncc_moi_email') }}" style="font-size:12px">
                   </div>
                 </div>
-                <div style="font-size:11px;color:var(--wm)">⚑ NCC sẽ được tạo tự động khi bạn lưu phiếu.</div>
+                <div style="font-size:11px;color:var(--text-muted)">⚑ NCC sẽ được tạo tự động khi bạn lưu phiếu.</div>
               </div>
             </div>
 
@@ -310,8 +283,8 @@ body, input, select, textarea, button, table {
           <div class="k-card-h">
             <span>2. Danh sách mặt hàng nhập kho</span>
             <div style="display:flex;gap:8px">
-              <button type="button" class="wbn wb-pri" id="btnMoModalKho">{!! icon('package', 15) !!} ＋ Chọn nhiều mặt hàng cùng lúc</button>
-              <button type="button" class="wbn wb-out" id="btnThemDongKho">＋ Thêm 1 dòng</button>
+              <button type="button" class="btn btn-primary" id="btnMoModalKho">{!! icon('package', 15) !!} Chọn nhiều mặt hàng</button>
+              <button type="button" class="btn btn-outline" id="btnThemDongKho">{!! icon('plus', 15) !!} Thêm dòng</button>
             </div>
           </div>
 
@@ -387,7 +360,7 @@ body, input, select, textarea, button, table {
                           <label>Giá bán dự kiến (₫)</label>
                           <input type="number" name="dong[{{ $i }}][DONGIA_BAN_MOI]" class="k-input inp-sp-giaban" value="{{ $d['DONGIA_BAN_MOI'] ?? '' }}" min="0" step="1000" placeholder="0" style="font-size:12px">
                         </div>
-                        <div style="font-size:11px;color:var(--wm)">⚑ Tự động lưu vào danh mục SP khi tạo phiếu nhập (tồn ban đầu = 0).</div>
+                        <div style="font-size:11px;color:var(--text-muted)">⚑ Tự động lưu vào danh mục SP khi tạo phiếu nhập (tồn ban đầu = 0).</div>
                       </div>
                     </td>
                     <td>
@@ -397,7 +370,7 @@ body, input, select, textarea, button, table {
                       <input type="number" name="dong[{{ $i }}][DONGIA_NHAP]" value="{{ $d['DONGIA_NHAP'] ?? '' }}" min="0" step="1000" class="k-input inp-dongia-nhap" placeholder="0" required style="width:100%" data-tinh>
                       <div class="dongia-hint" style="font-size:11px;color:var(--blue);font-weight:600;margin-top:3px;min-height:16px"></div>
                     </td>
-                    <td data-thanh-tien style="font-weight:700;color:var(--wt);white-space:nowrap">—</td>
+                    <td data-thanh-tien style="font-weight:700;color:var(--text-primary);white-space:nowrap">—</td>
                     <td>
                       <input type="text" name="dong[{{ $i }}][GHI_CHU]" value="{{ $d['GHI_CHU'] ?? '' }}" maxlength="200" class="k-input" placeholder="Ghi chú dòng" style="width:100%">
                     </td>
@@ -419,42 +392,39 @@ body, input, select, textarea, button, table {
           </div>
 
           <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px">
-            <a href="{{ route('kho.nhaphang') }}" class="wbn wb-out">Huỷ</a>
-            <button type="submit" class="wbn wb-suc" style="padding:10px 20px;font-size:13px;border-radius:8px">
+            <a href="{{ route('kho.nhaphang') }}" class="btn btn-outline">Huỷ</a>
+            <button type="submit" class="btn btn-primary" >
               {!! icon('check', 15) !!} Tạo phiếu nhập kho
             </button>
           </div>
         </div>
       </form>
     </div>
-  </div>
-</div>
-</div>
 
 <!-- Modal Chọn nhiều mặt hàng cùng lúc cho Kho -->
 <div id="modalChonNhieuKho" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);align-items:center;justify-content:center;padding:15px">
-  <div style="background:var(--wc);border:1px solid var(--wb);width:960px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.5)">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--wb)">
-      <h3 style="margin:0;font-size:15px;color:var(--wt);display:flex;align-items:center;gap:8px">{!! icon('package', 18) !!} Chọn nhiều mặt hàng nhập kho</h3>
-      <button type="button" id="btnDongModalKho" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--wm);line-height:1">&times;</button>
+  <div style="background:var(--bg-card);border:1px solid var(--border);width:960px;max-width:96vw;max-height:90vh;display:flex;flex-direction:column;border-radius:12px;overflow:hidden;box-shadow:0 16px 40px rgba(0,0,0,0.5)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border)">
+      <h3 style="margin:0;font-size:15px;color:var(--text-primary);display:flex;align-items:center;gap:8px">{!! icon('package', 18) !!} Chọn nhiều mặt hàng nhập kho</h3>
+      <button type="button" id="btnDongModalKho" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-muted);line-height:1">&times;</button>
     </div>
-    <div style="padding:12px 20px;background:var(--wc2);border-bottom:1px solid var(--wb);display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+    <div style="padding:12px 20px;background:var(--bg-card-hover);border-bottom:1px solid var(--border);display:flex;gap:12px;flex-wrap:wrap;align-items:center">
       <div style="flex:1;min-width:240px">
         <input type="text" id="timKiemSpKho" placeholder="Tìm kiếm theo mã SKU, tên sản phẩm..." class="k-input" style="width:100%">
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <label style="font-size:12px;white-space:nowrap;margin:0;color:var(--wm)">SL nhập chung:</label>
+        <label style="font-size:12px;white-space:nowrap;margin:0;color:var(--text-muted)">SL nhập chung:</label>
         <input type="number" id="slMacDinhKho" value="10" min="1" class="k-input" style="width:80px">
       </div>
       <div style="display:flex;gap:6px">
-        <button type="button" class="wbn wb-out" id="btnChonTatCaKho" style="padding:6px 11px;font-size:12px">Chọn tất cả</button>
-        <button type="button" class="wbn wb-out" id="btnBoChonTatCaKho" style="padding:6px 11px;font-size:12px">Bỏ chọn</button>
+        <button type="button" class="btn btn-outline" id="btnChonTatCaKho" style="padding:6px 11px;font-size:12px">Chọn tất cả</button>
+        <button type="button" class="btn btn-outline" id="btnBoChonTatCaKho" style="padding:6px 11px;font-size:12px">Bỏ chọn</button>
       </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:0">
       <table class="k-tbl" style="margin:0">
         <thead>
-          <tr style="position:sticky;top:0;background:var(--wc);z-index:2;border-bottom:2px solid var(--wb)">
+          <tr style="position:sticky;top:0;background:var(--bg-card);z-index:2;border-bottom:2px solid var(--border)">
             <th style="width:40px;text-align:center"><input type="checkbox" id="chkHeaderKho"></th>
             <th style="width:100px">Mã SP</th>
             <th>Tên sản phẩm</th>
@@ -473,17 +443,17 @@ body, input, select, textarea, button, table {
                 <input type="checkbox" class="chk-sp-kho" value="{{ $sp->MASP }}">
               </td>
               <td><span style="font-family:monospace;font-weight:700;color:var(--blue)">{{ $sp->MASP }}</span></td>
-              <td style="font-weight:600;color:var(--wt)">
+              <td style="font-weight:600;color:var(--text-primary)">
                 {{ $sp->TENSP }}
                 <span class="badge-da-co" style="display:none;font-size:11px;font-weight:600;padding:2px 7px;border-radius:6px;background:rgba(58,86,228,.15);color:var(--blue);margin-left:6px">✓ Đã có trong phiếu</span>
               </td>
-              <td style="font-size:12px;color:var(--wm)">{{ $sp->loaiSanPham?->TENLOAI ?? '—' }}</td>
+              <td style="font-size:12px;color:var(--text-muted)">{{ $sp->loaiSanPham?->TENLOAI ?? '—' }}</td>
               <td style="text-align:center">
                 <span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;background:{{ $sp->SOLUONGTON <= 10 ? 'rgba(200,30,30,.15)' : 'rgba(58,86,228,.15)' }};color:{{ $sp->SOLUONGTON <= 10 ? 'var(--red)' : 'var(--blue)' }}">
                   {{ $sp->SOLUONGTON }}
                 </span>
               </td>
-              <td style="text-align:right;font-size:12.5px;color:var(--wm)">{{ number_format($sp->DONGIA_SP, 0, ',', '.') }} ₫</td>
+              <td style="text-align:right;font-size:12.5px;color:var(--text-muted)">{{ number_format($sp->DONGIA_SP, 0, ',', '.') }} ₫</td>
               <td>
                 <input type="number" class="k-input inp-sl-kho" min="1" value="10" style="padding:4px 6px;font-size:12px;width:100%">
               </td>
@@ -495,11 +465,11 @@ body, input, select, textarea, button, table {
         </tbody>
       </table>
     </div>
-    <div style="padding:14px 20px;border-top:1px solid var(--wb);background:var(--wc);display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:13px;color:var(--wm)">Đã chọn: <strong id="demChonKho" style="color:var(--blue)">0</strong> sản phẩm</span>
+    <div style="padding:14px 20px;border-top:1px solid var(--border);background:var(--bg-card);display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:13px;color:var(--text-muted)">Đã chọn: <strong id="demChonKho" style="color:var(--blue)">0</strong> sản phẩm</span>
       <div style="display:flex;gap:10px">
-        <button type="button" class="wbn wb-out" id="btnHuyModalKho">Đóng</button>
-        <button type="button" class="wbn wb-pri" id="btnXacNhanKho">{!! icon('check', 14) !!} Thêm vào phiếu nhập</button>
+        <button type="button" class="btn btn-outline" id="btnHuyModalKho">Đóng</button>
+        <button type="button" class="btn btn-primary" id="btnXacNhanKho">{!! icon('check', 14) !!} Thêm vào phiếu nhập</button>
       </div>
     </div>
   </div>

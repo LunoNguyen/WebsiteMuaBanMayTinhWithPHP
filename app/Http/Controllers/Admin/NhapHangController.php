@@ -51,45 +51,47 @@ class NhapHangController extends Controller
         $trangthai = (string) $request->query('trangthai', '');
         $mancc = (string) $request->query('mancc', '');
 
-        $query = PhieuNhapHang::query()->toBase()
+        $tttt = (string) $request->query('tttt', '');
+
+        $coSo = PhieuNhapHang::query()->toBase()
             ->from('PHIEUNHAPHANG as pnh')
             ->leftJoin('NHACUNGCAP as ncc', 'pnh.MANCC', '=', 'ncc.MANCC')
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
+                ->where('pnh.MAPNH', 'like', "%{$search}%")
+                ->orWhere('ncc.TENNCC', 'like', "%{$search}%")))
+            ->when($mancc !== '', fn ($q) => $q->where('pnh.MANCC', $mancc))
+            ->when($tttt !== '', fn ($q) => $q->where('pnh.TRANGTHAI_THANHTOAN', $tttt));
+
+        $query = (clone $coSo)
             ->leftJoin('NHANVIEN as nv', 'pnh.MANV', '=', 'nv.MANV')
             ->select('pnh.*', 'ncc.TENNCC', 'nv.TENNV')
             ->selectSub('SELECT SUM(SOLUONG) FROM CT_PHIEUNHAPHANG WHERE MAPNH = pnh.MAPNH', 'tong_sl')
             ->selectSub('SELECT COUNT(*) FROM CT_PHIEUNHAPHANG WHERE MAPNH = pnh.MAPNH', 'so_san_pham')
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
-                ->where('pnh.MAPNH', 'like', "%{$search}%")
-                ->orWhere('ncc.TENNCC', 'like', "%{$search}%")))
             ->when($trangthai !== '', fn ($q) => $q->where('pnh.TRANGTHAI', $trangthai))
-            ->when($mancc !== '', fn ($q) => $q->where('pnh.MANCC', $mancc))
             ->orderByDesc('pnh.NGAYTAO')
             ->orderBy('pnh.MAPNH');
 
-        $trang = $this->phanTrang($query, 10);
-
-        $statsTT = array_merge(
-            ['ChuaThanhToan' => 0, 'DaThanhToan' => 0, 'HoanTien' => 0],
-            PhieuNhapHang::query()->toBase()->selectRaw('TRANGTHAI_THANHTOAN, COUNT(*) AS cnt')
-                ->groupBy('TRANGTHAI_THANHTOAN')->pluck('cnt', 'TRANGTHAI_THANHTOAN')->all(),
-        );
+        $perPage = 10;
+        $trang = $this->phanTrang($query, $perPage);
 
         return view('admin.nhaphang', [
             'phieunhap' => $trang['rows'],
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
+            'perPage' => $perPage,
             'search' => $search,
             'trangthai' => $trangthai,
             'mancc' => $mancc,
-            'nccList' => $this->mang(NhaCungCap::query()->toBase()->orderBy('TENNCC')->get()),
-            'statsTT' => $statsTT,
-            'tongNhapThang' => ['tong' => PhieuNhapHang::query()
-                ->whereMonth('NGAYTAO', now()->month)->whereYear('NGAYTAO', now()->year)->sum('TONGCONG_PNH')],
+            'tttt' => $tttt,
+            'dem' => $this->hangDemTheoCot($coSo, 'pnh.TRANGTHAI', array_map(fn (array $tt): string => $tt[1], self::TRANG_THAI)),
+            'nccList' => NhaCungCap::query()->orderBy('TENNCC')->pluck('TENNCC', 'MANCC')->all(),
+            'tongNhapThang' => PhieuNhapHang::query()
+                ->whereMonth('NGAYTAO', now()->month)->whereYear('NGAYTAO', now()->year)->where('TRANGTHAI', '!=', 'DaHuy')->sum('TONGCONG_PNH'),
             'statusMap' => self::TRANG_THAI,
             'ttMap' => [
-                'ChuaThanhToan' => ['var(--orange)', 'Chưa TT'],
-                'DaThanhToan' => ['var(--green)', 'Đã TT'],
+                'ChuaThanhToan' => ['var(--orange)', 'Chưa thanh toán'],
+                'DaThanhToan' => ['var(--green)', 'Đã thanh toán'],
                 'HoanTien' => ['var(--text-secondary)', 'Hoàn tiền'],
             ],
         ]);

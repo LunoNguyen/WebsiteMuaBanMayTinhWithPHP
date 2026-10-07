@@ -1,41 +1,21 @@
-@extends('layouts.admin', ['title' => 'Lịch sử Chatbot', 'breadcrumb' => ['Hệ thống', 'Chatbot']])
+@extends('layouts.admin', ['title' => 'Lịch sử chatbot', 'breadcrumb' => ['Hệ thống', 'Chatbot']])
 
 @section('content')
 
 
-      <div class="page-header">
+    <div class="page-header">
         <div class="page-header-left">
-          <h1>Lịch sử Chatbot</h1>
-          <p>Xem lại các cuộc hội thoại của khách hàng với chatbot AI</p>
+            <h1>Lịch sử chatbot</h1>
+            <p>{{ formatNum($statsTotal['cnt']) }} phiên · {{ formatNum($statsToday['cnt']) }} hôm nay · {{ formatNum($statsActive['cnt']) }} đang chat</p>
         </div>
-      </div>
-
-      <!-- Stats -->
-      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:28px">{!! icon('message') !!}</span>
-          <div><div style="font-size:12px;color:var(--text-muted)">Tổng phiên chat</div><div style="font-size:20px;font-weight:700">{{ $statsTotal['cnt'] ?? 0 }}</div></div>
-        </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:28px">{!! icon('calendar') !!}</span>
-          <div><div style="font-size:12px;color:var(--text-muted)">Hôm nay</div><div style="font-size:20px;font-weight:700">{{ $statsToday['cnt'] ?? 0 }}</div></div>
-        </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:12px">
-          <span style="font-size:28px">{!! icon('dot') !!}</span>
-          <div><div style="font-size:12px;color:var(--text-muted)">Đang chat</div><div style="font-size:20px;font-weight:700;color:var(--green)">{{ $statsActive['cnt'] ?? 0 }}</div></div>
-        </div>
-      </div>
+    </div>
 
       <div style="display:grid;grid-template-columns:{{ $selectedPhien ? '360px 1fr' : '1fr' }};gap:20px">
         <!-- Danh sách phiên -->
         <div class="card">
-          <div class="card-header">
-            <h3>Danh sách phiên chat</h3>
-            <form method="GET" style="display:flex;gap:6px">
-              <input type="text" name="q" value="{{ $search }}" placeholder="Tìm khách..." class="form-control" style="width:160px;padding:6px 10px" />
-              <button type="submit" class="btn btn-sm btn-primary">{!! icon('search') !!}</button>
-            </form>
-          </div>
+          <form method="GET" class="qt-toolbar">
+            <x-qt.tim :value="$search" placeholder="Tìm tên hoặc email khách" />
+          </form>
           <div style="padding:0">
             @foreach ($phienList as $phien) @php $isActive = $phien['TRANGTHAI'] === 'DangChat'; $isSelected = $phien['MAPHIEN'] == $selectedPhien; @endphp
             <a href="?maphien={{ $phien['MAPHIEN'] }}{{ $search ? '&q='.urlencode($search) : '' }}"
@@ -66,14 +46,8 @@
             <div class="empty-state"><div class="empty-icon">{!! icon('bot') !!}</div><p>Chưa có phiên chat nào</p></div>
             @endif
           </div>
-          @if ($pages > 1)
-          <div class="pagination" style="padding:10px 16px">
-            @if ($page>1)<a href="?page={{ $page-1 }}&q={{ urlencode($search) }}" class="page-link">‹</a>@endif
-            @for ($p=max(1,$page-2);$p<=min($pages,$page+2);$p++)
-              <a href="?page={{ $p }}&q={{ urlencode($search) }}" class="page-link {{ $p===$page?'active':'' }}">{{ $p }}</a>
-            @endfor
-            @if ($page<$pages)<a href="?page={{ $page+1 }}&q={{ urlencode($search) }}" class="page-link">›</a>@endif
-          </div>
+          @if ($total > 0)
+            <x-qt.phan-trang :page="$page" :pages="$pages" :total="$total" :per-page="$perPage" don-vi="phiên" />
           @endif
         </div>
 
@@ -97,8 +71,8 @@
                 {{ $isBot ? '🤖' : '👤' }}
               </div>
               <div style="max-width:70%">
-                <div style="background:{{ $isBot?'var(--bg-card)':'rgba(58,86,228,0.15)' }};border:1px solid {{ $isBot?'var(--border)':'rgba(58,86,228,0.3)' }};border-radius:{{ $isBot?'4px 12px 12px 12px':'12px 4px 12px 12px' }};padding:10px 14px;font-size:13px;color:var(--text-primary);line-height:1.5">
-                  {{ nl2br(e($msg['NOI_DUNG'])) }}
+                <div style="background:{{ $isBot?'var(--bg-card)':'rgba(58,86,228,0.15)' }};border:1px solid {{ $isBot?'var(--border)':'rgba(58,86,228,0.3)' }};border-radius:{{ $isBot?'16px 16px 16px 6px':'16px 16px 6px 16px' }};padding:9px 13px;font-size:13px;color:var(--text-primary);line-height:1.5">
+                  {!! nl2br(e($msg['NOI_DUNG'])) !!}
                 </div>
                 <div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:{{ $isBot?'left':'right' }}">
                   {{ date('H:i', strtotime($msg['THOIGIAN'])) }}

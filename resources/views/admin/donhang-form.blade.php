@@ -5,11 +5,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.donhang') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Đơn hàng</a>
             <h1>Tạo đơn tại quầy</h1>
             <p>Tồn kho bị trừ ngay khi tạo đơn. Mỗi đơn dùng tối đa một mã, mỗi khách dùng mỗi mã một lần.</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.donhang') }}" class="btn btn-outline">← Danh sách</a>
         </div>
     </div>
 

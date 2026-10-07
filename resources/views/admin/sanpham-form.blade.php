@@ -4,11 +4,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.sanpham') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Sản phẩm</a>
             <h1>{{ $laSua ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h1>
             <p>{{ $laSua ? $sp->MASP.' · '.$sp->TENSP : 'Mã sản phẩm được tạo tự động khi lưu.' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.sanpham') }}" class="btn btn-outline">← Danh sách</a>
         </div>
     </div>
 

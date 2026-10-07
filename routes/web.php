@@ -173,9 +173,9 @@ Route::middleware(['auth', 'vaitro:NhanVienBan,Admin'])->prefix('ban-hang')->nam
     Route::get('/don-hang/{hoaDon}', [BanHang\DonHangController::class, 'show'])->name('donhang.show');
     Route::patch('/don-hang/{hoaDon}/buoc-tiep-theo', [BanHang\DonHangController::class, 'buocTiepTheo'])->name('donhang.buoc-tiep-theo');
     Route::patch('/don-hang/{hoaDon}/huy', [BanHang\DonHangController::class, 'huy'])->name('donhang.huy');
+    Route::patch('/don-hang/{hoaDon}/thanh-toan', [BanHang\DonHangController::class, 'thanhToan'])->name('donhang.thanh-toan');
 
     Route::get('/khach-hang', [BanHang\KhachHangController::class, 'index'])->name('khachhang');
     Route::get('/khach-hang/{khachHang}', [BanHang\KhachHangController::class, 'show'])->name('khachhang.show');
     Route::get('/don-hang/{hoaDon}/in', [BanHang\DonHangController::class, 'inHoaDon'])->name('donhang.in');
 });
-

@@ -4,11 +4,11 @@
 @section('content')
     <div class="page-header">
         <div class="page-header-left">
+            <a href="{{ route('admin.nhanvien') }}" class="qt-back">{!! icon('arrow-left', 14) !!} Nhân viên</a>
             <h1>{{ $laSua ? 'Sửa nhân viên' : 'Thêm nhân viên' }}</h1>
             <p>{{ $laSua ? $nv->MANV.' · '.$nv->TENNV : 'Mã nhân viên được tạo tự động khi lưu.' }}</p>
         </div>
         <div class="page-header-right">
-            <a href="{{ route('admin.nhanvien') }}" class="btn btn-outline">← Danh sách</a>
         </div>
     </div>
 

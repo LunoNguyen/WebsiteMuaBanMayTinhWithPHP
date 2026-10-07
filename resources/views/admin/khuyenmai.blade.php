@@ -1,161 +1,96 @@
-@extends('layouts.admin', ['title' => 'Voucher & Khuyến mãi', 'breadcrumb' => ['Quản lý', 'Khuyến mãi']])
+@extends('layouts.admin', ['title' => 'Khuyến mãi', 'breadcrumb' => ['Bán hàng', 'Khuyến mãi']])
 
 @section('content')
-
-
-      <div class="page-header">
+    @php
+        $mauTrangThai = ['HoatDong' => ['var(--green)', 'Hoạt động'], 'TamDung' => ['var(--orange)', 'Tạm dừng'], 'HetHan' => ['var(--text-muted)', 'Hết hạn']];
+    @endphp
+    <div class="page-header">
         <div class="page-header-left">
-          <h1>Voucher &amp; Khuyến mãi</h1>
-          <p>Quản lý mã giảm giá và chương trình khuyến mãi</p>
+            <h1>Khuyến mãi</h1>
+            <p>{{ formatNum($dem[1][2]) }} mã đang hoạt động trên {{ formatNum($dem[0][2]) }} chương trình</p>
         </div>
         <div class="page-header-right">
-          <a href="{{ route('admin.khuyenmai.create') }}" class="btn btn-primary">＋ Tạo khuyến mãi</a>
+            <a href="{{ route('admin.khuyenmai.create') }}" class="btn btn-primary">{!! icon('plus', 16) !!} Tạo khuyến mãi</a>
         </div>
-      </div>
+    </div>
 
-      @include('partials.thong-bao')
+    @include('partials.thong-bao')
 
-      <!-- Quick stats -->
-      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-        @foreach ([
-          ['HoatDong','🟢','Hoạt động'],
-          ['TamDung', '🟡','Tạm dừng'],
-          ['HetHan',  '⚫','Hết hạn'],
-        ] as [$key,$icon,$label])
-        <a href="?trangthai={{ $key }}" style="display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);text-decoration:none;{{ $trangthai===$key?'border-color:var(--blue);background:var(--blue-glow)':'' }}">
-          <span>{{ $icon }}</span>
-          <span style="font-size:13px;color:var(--text-secondary)">{{ $label }}</span>
-          <strong style="font-size:15px;color:var(--text-primary);margin-left:4px">{{ $statKMMap[$key] ?? 0 }}</strong>
-        </a>
-        @endforeach
-        @if ($trangthai)<a href="{{ route('admin.khuyenmai') }}" class="btn btn-sm btn-outline">Xóa lọc</a>@endif
-      </div>
+    <x-qt.dem :muc="$dem" :dang="$trangthai" />
 
-      <!-- Filter -->
-      <div class="filter-bar">
-        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;width:100%">
-          <div class="search-box" style="min-width:250px">
-            <span class="si">{!! icon('search') !!}</span>
-            <input type="text" name="q" value="{{ $search }}" placeholder="Tìm tên, mã voucher..." />
-          </div>
-          <select name="loaikm" class="form-control" style="width:180px">
-            <option value="">Tất cả loại</option>
-            <option value="PhanTram"     {{ $loaikm==='PhanTram'?'selected':'' }}>Phần trăm (%)</option>
-            <option value="SoTienCoDinh" {{ $loaikm==='SoTienCoDinh'?'selected':'' }}>Số tiền cố định</option>
-          </select>
-          <input type="hidden" name="trangthai" value="{{ $trangthai }}" />
-          <button type="submit" class="btn btn-primary">Lọc</button>
-          <a href="{{ route('admin.khuyenmai') }}" class="btn btn-outline">↩ Reset</a>
-        </form>
-      </div>
-
-      <!-- Voucher Grid -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px">
-        @foreach ($khuyenmai as $km) @php $isActive = $km['TRANGTHAI'] === 'HoatDong'; $isExpired = $km['TRANGTHAI'] === 'HetHan'; $pct = $km['SOLUONG_MA'] ? min(100, round($km['DA_SUDUNG'] / $km['SOLUONG_MA'] * 100)) : null; $accentColor = $isActive ? '#15803d' : ($isExpired ? '#707070' : '#b45309'); @endphp
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:var(--transition);{{ $isExpired?'background:var(--bg-main)':'' }}"
-             onmouseenter="this.style.borderColor='{{ $accentColor }}44'"
-             onmouseleave="this.style.borderColor='var(--border)'">
-
-
-          <div style="padding:16px">
-            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
-              <!-- Icon -->
-              <div style="width:44px;height:44px;border-radius:10px;background:color-mix(in srgb,{{ $accentColor }} 12%,transparent);border:1px solid color-mix(in srgb,{{ $accentColor }} 30%,transparent);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
-                {{ $km['LOAI_KM'] === 'PhanTram' ? '🏷️' : '💵' }}
-              </div>
-
-              <div style="flex:1;min-width:0">
-                <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px">{{ $km['TENKM'] }}</div>
-                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-                  <code style="background:var(--bg-main);border:1px solid var(--border);padding:2px 8px;border-radius:6px;font-size:12px;color:var(--blue-light);">
-                    {{ $km['MA_CODE'] ?? '—' }}
-                  </code>
-                  {!! statusBadge($km['TRANGTHAI'], 'khuyenmai') !!}
-                </div>
-              </div>
-
-              <!-- Value -->
-              <div style="text-align:right;flex-shrink:0">
-                <div style="font-size:20px;font-weight:800;color:{{ $accentColor }}">
-                  @if ($km['LOAI_KM']==='PhanTram')
-                    -{{ $km['GIATRI_KM'] }}%
-                  @else
-                    -{{ formatVND($km['GIATRI_KM']) }}
-                  @endif
-                </div>
-                @if ($km['SOTIENTOIDA_KM'] && $km['LOAI_KM']==='PhanTram')
-                <div style="font-size:11px;color:var(--text-muted)">tối đa {{ formatVND($km['SOTIENTOIDA_KM']) }}</div>
-                @endif
-              </div>
-            </div>
-
-            <!-- Info grid -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-muted);margin-bottom:12px">
-              <div>
-                <div>Bắt đầu</div>
-                <div style="color:var(--text-secondary);font-weight:500">{{ $km['NGAYBD'] ? date('d/m/Y',strtotime($km['NGAYBD'])) : '—' }}</div>
-              </div>
-              <div>
-                <div>Kết thúc</div>
-                <div style="color:{{ (!$isExpired && $km['NGAYKT'] && strtotime($km['NGAYKT']) < strtotime('+3 days')) ? 'var(--red)' : 'var(--text-secondary)' }};font-weight:500">
-                  {{ $km['NGAYKT'] ? date('d/m/Y',strtotime($km['NGAYKT'])) : '∞' }}
-                </div>
-              </div>
-              <div>
-                <div>Đơn tối thiểu</div>
-                <div style="color:var(--text-secondary);font-weight:500">{{ $km['SOTIENTOITHIEU_NHANKM'] > 0 ? formatVND($km['SOTIENTOITHIEU_NHANKM']) : 'Không' }}</div>
-              </div>
-              <div>
-                <div>Sản phẩm áp dụng</div>
-                <div style="color:var(--text-secondary);font-weight:500">{{ $km['so_sp_ap_dung'] > 0 ? $km['so_sp_ap_dung'].' SP' : 'Tất cả' }}</div>
-              </div>
-            </div>
-
-            <!-- Progress bar (nếu có giới hạn lượt) -->
-            @if ($km['SOLUONG_MA'])
-            <div style="margin-bottom:12px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px">
-                <span>Đã dùng: {{ $km['DA_SUDUNG'] }}/{{ $km['SOLUONG_MA'] }} lượt</span>
-                <span>{{ $pct }}%</span>
-              </div>
-              <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
-                <div style="height:100%;width:{{ $pct }}%;background:{{ $pct > 80 ? 'var(--red)' : ($pct > 50 ? 'var(--orange)' : 'var(--blue)') }};border-radius:3px;transition:width 0.5s ease"></div>
-              </div>
-            </div>
-            @else
-            <div style="font-size:12px;color:var(--green);margin-bottom:12px">Không giới hạn lượt dùng &bull; Đã dùng: {{ $km['DA_SUDUNG'] }} lần</div>
+    <div class="card">
+        <form method="GET" class="qt-toolbar">
+            @if ($trangthai !== '')
+                <input type="hidden" name="trangthai" value="{{ $trangthai }}">
             @endif
-
-            <!-- Actions -->
-            <div style="display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--border)">
-              <x-nut-hanh-dong :action="route('admin.khuyenmai.trang-thai', $km['MAKM'])" method="PATCH"
-                 confirm="Thay đổi trạng thái khuyến mãi?"
-                 class="btn btn-sm {{ $isActive ? 'btn-outline' : 'btn-success' }}">
-                {!! $isActive ? icon('pause', 14).' Tạm dừng' : icon('play', 14).' Kích hoạt' !!}
-              </x-nut-hanh-dong>
-              <a href="{{ route('admin.khuyenmai.edit', $km['MAKM']) }}" class="btn btn-sm btn-outline">Sửa</a>
-              <x-nut-hanh-dong :action="route('admin.khuyenmai.destroy', $km['MAKM'])" method="DELETE"
-                 :confirm="'Xóa khuyến mãi '.$km['TENKM'].'?'"
-                 class="btn btn-sm btn-outline" title="Xóa" style="border-color:color-mix(in srgb,var(--red) 30%,transparent);color:var(--red)">{!! icon('trash', 14) !!}</x-nut-hanh-dong>
-            </div>
-          </div>
-        </div>
-        @endforeach
+            <x-qt.tim :value="$search" placeholder="Tìm tên hoặc mã voucher" />
+            <x-qt.chon name="loaikm" :value="$loaikm" :options="['' => 'Mọi loại giảm', 'PhanTram' => 'Giảm theo %', 'SoTienCoDinh' => 'Giảm số tiền']" />
+        </form>
 
         @if (empty($khuyenmai))
-        <div style="grid-column:1/-1">
-          <div class="empty-state"><div class="empty-icon">{!! icon('tag') !!}</div><p>Không tìm thấy khuyến mãi nào</p></div>
-        </div>
+            <div class="qt-empty">
+                {!! icon('tag', 40) !!}
+                <h3>Không có khuyến mãi nào khớp điều kiện lọc</h3>
+                <a href="{{ route('admin.khuyenmai') }}" class="btn btn-outline">Xoá bộ lọc</a>
+            </div>
+        @else
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Chương trình</th><th class="num">Mức giảm</th><th class="num">Đơn tối thiểu</th><th>Thời gian</th><th>Lượt dùng</th><th>Trạng thái</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($khuyenmai as $km)
+                            @php
+                                [$mau, $nhan] = $mauTrangThai[$km['TRANGTHAI']] ?? ['var(--text-secondary)', $km['TRANGTHAI']];
+                                $phanTram = $km['SOLUONG_MA'] ? min(100, (int) round($km['DA_SUDUNG'] / $km['SOLUONG_MA'] * 100)) : null;
+                                $sapHet = $km['TRANGTHAI'] !== 'HetHan' && $km['NGAYKT'] && strtotime($km['NGAYKT']) < strtotime('+3 days');
+                            @endphp
+                            <tr>
+                                <td>
+                                    <a href="{{ route('admin.khuyenmai.edit', $km['MAKM']) }}" style="color:var(--text-primary);font-weight:600">{{ $km['TENKM'] }}</a>
+                                    <span class="qt-sub"><span class="qt-ma">{{ $km['MA_CODE'] ?? $km['MAKM'] }}</span> · {{ $km['so_sp_ap_dung'] > 0 ? $km['so_sp_ap_dung'].' sản phẩm' : 'mọi sản phẩm' }}</span>
+                                </td>
+                                <td class="num">
+                                    <strong>{{ $km['LOAI_KM'] === 'PhanTram' ? '−'.(float) $km['GIATRI_KM'].'%' : '−'.formatVND($km['GIATRI_KM']) }}</strong>
+                                    @if ($km['LOAI_KM'] === 'PhanTram' && $km['SOTIENTOIDA_KM'])
+                                        <span class="qt-sub">tối đa {{ formatVND($km['SOTIENTOIDA_KM']) }}</span>
+                                    @endif
+                                </td>
+                                <td class="num">{{ $km['SOTIENTOITHIEU_NHANKM'] > 0 ? formatVND($km['SOTIENTOITHIEU_NHANKM']) : '—' }}</td>
+                                <td>
+                                    {{ $km['NGAYBD'] ? date('d/m/Y', strtotime($km['NGAYBD'])) : '—' }} – {{ $km['NGAYKT'] ? date('d/m/Y', strtotime($km['NGAYKT'])) : 'không hạn' }}
+                                    @if ($sapHet)
+                                        <span class="qt-late">Sắp hết hạn</span>
+                                    @endif
+                                </td>
+                                <td style="min-width:130px">
+                                    @if ($phanTram !== null)
+                                        {{ formatNum($km['DA_SUDUNG']) }} / {{ formatNum($km['SOLUONG_MA']) }}
+                                        <div class="qt-meter"><span style="width:{{ $phanTram }}%"></span></div>
+                                    @else
+                                        {{ formatNum($km['DA_SUDUNG']) }}<span class="qt-sub">không giới hạn</span>
+                                    @endif
+                                </td>
+                                <td><span class="badge-tt" style="--c:{{ $mau }}">{{ $nhan }}</span></td>
+                                <td>
+                                    <div class="qt-actions">
+                                        <a href="{{ route('admin.khuyenmai.edit', $km['MAKM']) }}" class="btn-icon" title="Sửa" aria-label="Sửa {{ $km['TENKM'] }}">{!! icon('pencil', 15) !!}</a>
+                                        <x-nut-hanh-dong :action="route('admin.khuyenmai.trang-thai', $km['MAKM'])" method="PATCH" class="btn-icon"
+                                            confirm="Thay đổi trạng thái khuyến mãi?"
+                                            :title="$km['TRANGTHAI'] === 'HoatDong' ? 'Tạm dừng' : 'Kích hoạt'" :aria-label="$km['TRANGTHAI'] === 'HoatDong' ? 'Tạm dừng' : 'Kích hoạt'">
+                                            {!! $km['TRANGTHAI'] === 'HoatDong' ? icon('pause', 15) : icon('play', 15) !!}
+                                        </x-nut-hanh-dong>
+                                        <x-nut-hanh-dong :action="route('admin.khuyenmai.destroy', $km['MAKM'])" method="DELETE" class="btn-icon" title="Xoá" aria-label="Xoá {{ $km['TENKM'] }}"
+                                            :confirm="'Xoá khuyến mãi '.$km['TENKM'].'?'">{!! icon('trash', 15) !!}</x-nut-hanh-dong>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <x-qt.phan-trang :page="$page" :pages="$pages" :total="$total" :per-page="$perPage" don-vi="chương trình" />
         @endif
-      </div>
-
-      @if ($pages > 1)
-      <div class="pagination" style="margin-top:16px">
-        @if ($page>1)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page-1])) }}" class="page-link">‹</a>@endif
-        @for ($p=max(1,$page-2);$p<=min($pages,$page+2);$p++)
-          <a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$p])) }}" class="page-link {{ $p===$page?'active':'' }}">{{ $p }}</a>
-        @endfor
-        @if ($page<$pages)<a href="?{{ http_build_query(array_merge(request()->query(),['page'=>$page+1])) }}" class="page-link">›</a>@endif
-      </div>
-      @endif
+    </div>
 @endsection

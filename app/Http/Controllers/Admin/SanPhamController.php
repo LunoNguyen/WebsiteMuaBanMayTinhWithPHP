@@ -39,24 +39,27 @@ class SanPhamController extends Controller
         $trangthai = (string) $request->query('trangthai', '');
         $filter = (string) $request->query('filter', '');
 
-        $query = SanPham::query()->toBase()
+        $coSo = SanPham::query()->toBase()
             ->from('SANPHAM as sp')
-            ->leftJoin('LOAISANPHAM as lsp', 'sp.MALOAI', '=', 'lsp.MALOAI')
-            ->leftJoin('NHASANXUA as nsx', 'sp.MANSX', '=', 'nsx.MANSX')
-            ->leftJoin('NHACUNGCAP as ncc', 'sp.MANCC', '=', 'ncc.MANCC')
-            ->select('sp.*', 'lsp.TENLOAI', 'nsx.TENNSX', 'ncc.TENNCC')
-            ->selectSub('SELECT URL_ANH FROM DANHSACHANH WHERE MASP = sp.MASP AND LA_ANH_CHINH = 1 LIMIT 1', 'ANH_CHINH')
             ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('sp.TENSP', 'like', "%{$search}%")
                 ->orWhere('sp.MASP', 'like', "%{$search}%")))
             ->when($maloai !== '', fn ($q) => $q->where('sp.MALOAI', $maloai))
             ->when($mansx !== '', fn ($q) => $q->where('sp.MANSX', $mansx))
+            ->when($filter === 'low_stock', fn ($q) => $q->where('sp.SOLUONGTON', '<=', 20));
+
+        $query = (clone $coSo)
+            ->leftJoin('LOAISANPHAM as lsp', 'sp.MALOAI', '=', 'lsp.MALOAI')
+            ->leftJoin('NHASANXUA as nsx', 'sp.MANSX', '=', 'nsx.MANSX')
+            ->leftJoin('NHACUNGCAP as ncc', 'sp.MANCC', '=', 'ncc.MANCC')
+            ->select('sp.*', 'lsp.TENLOAI', 'nsx.TENNSX', 'ncc.TENNCC')
+            ->selectSub('SELECT URL_ANH FROM DANHSACHANH WHERE MASP = sp.MASP AND LA_ANH_CHINH = 1 LIMIT 1', 'ANH_CHINH')
             ->when($trangthai !== '', fn ($q) => $q->where('sp.TRANGTHAI', $trangthai))
-            ->when($filter === 'low_stock', fn ($q) => $q->where('sp.SOLUONGTON', '<=', 20))
             ->orderByDesc('sp.NGAYTHEM')
             ->orderBy('sp.MASP');
 
-        $trang = $this->phanTrang($query, 10);
+        $perPage = 10;
+        $trang = $this->phanTrang($query, $perPage);
         $sanpham = array_map(fn (array $sp): array => $sp + ['ANH_URL' => $this->storage->url($sp['ANH_CHINH'])], $trang['rows']);
 
         return view('admin.sanpham', [
@@ -64,13 +67,15 @@ class SanPhamController extends Controller
             'total' => $trang['total'],
             'pages' => $trang['pages'],
             'page' => $trang['page'],
-            'offset' => $trang['offset'],
+            'perPage' => $perPage,
             'search' => $search,
+            'filter' => $filter,
+            'dem' => $this->hangDemTheoCot($coSo, 'sp.TRANGTHAI', ['DangBan' => 'Đang bán', 'HetHang' => 'Hết hàng', 'NgungBan' => 'Ngừng bán']),
             'maloai' => $maloai,
             'mansx' => $mansx,
             'trangthai' => $trangthai,
-            'loaiList' => $this->mang(LoaiSanPham::query()->toBase()->orderBy('TENLOAI')->get()),
-            'nsxList' => $this->mang(NhaSanXuat::query()->toBase()->orderBy('TENNSX')->get()),
+            'loaiList' => LoaiSanPham::query()->orderBy('TENLOAI')->pluck('TENLOAI', 'MALOAI')->all(),
+            'nsxList' => NhaSanXuat::query()->orderBy('TENNSX')->pluck('TENNSX', 'MANSX')->all(),
         ]);
     }
 
