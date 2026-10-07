@@ -203,6 +203,8 @@ PROMPT;
 
         foreach ($modelsToTry as $currentModel) {
             try {
+                $endpoint = "{$baseUrl}/models/{$currentModel}:generateContent?key={$apiKey}";
+
                 // Tự động tìm chứng chỉ SSL trên máy (hỗ trợ mọi đường dẫn Laragon)
                 $possibleCerts = array_filter([
                     ini_get('curl.cainfo') ?: null,
@@ -214,10 +216,22 @@ PROMPT;
 
                 $sslVerify = ! empty($possibleCerts) ? reset($possibleCerts) : (app()->isLocal() ? false : true);
 
-                $response = Http::timeout(15)
-                    ->withHeaders(['Content-Type' => 'application/json'])
-                    ->withOptions(['verify' => $sslVerify])
-                    ->post($endpoint, $payload);
+                try {
+                    $response = Http::timeout(15)
+                        ->withHeaders(['Content-Type' => 'application/json'])
+                        ->withOptions(['verify' => $sslVerify])
+                        ->post($endpoint, $payload);
+                } catch (\Throwable $httpEx) {
+                    // Nếu lỗi do SSL certificate trên Windows, tự động thử lại bỏ qua kiểm tra SSL
+                    if (str_contains($httpEx->getMessage(), 'cURL error 60') || str_contains($httpEx->getMessage(), 'SSL')) {
+                        $response = Http::timeout(15)
+                            ->withHeaders(['Content-Type' => 'application/json'])
+                            ->withOptions(['verify' => false])
+                            ->post($endpoint, $payload);
+                    } else {
+                        throw $httpEx;
+                    }
+                }
 
                 if ($response->successful()) {
                     $json = $response->json();
