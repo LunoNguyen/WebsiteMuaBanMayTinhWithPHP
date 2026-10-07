@@ -203,13 +203,21 @@ PROMPT;
 
         foreach ($modelsToTry as $currentModel) {
             try {
-                $endpoint = "{$baseUrl}/models/{$currentModel}:generateContent?key={$apiKey}";
-                $sslCert = 'D:/App/lagaron/laragon/etc/ssl/cacert.pem';
-                $httpClient = Http::timeout(15)->withHeaders(['Content-Type' => 'application/json']);
-                if (file_exists($sslCert)) {
-                    $httpClient = $httpClient->withOptions(['verify' => $sslCert]);
-                }
-                $response = $httpClient->post($endpoint, $payload);
+                // Tự động tìm chứng chỉ SSL trên máy (hỗ trợ mọi đường dẫn Laragon)
+                $possibleCerts = array_filter([
+                    ini_get('curl.cainfo') ?: null,
+                    ini_get('openssl.cafile') ?: null,
+                    'C:/laragon/etc/ssl/cacert.pem',
+                    'D:/laragon/etc/ssl/cacert.pem',
+                    'D:/App/lagaron/laragon/etc/ssl/cacert.pem',
+                ], fn ($p) => ! empty($p) && file_exists((string) $p));
+
+                $sslVerify = ! empty($possibleCerts) ? reset($possibleCerts) : (app()->isLocal() ? false : true);
+
+                $response = Http::timeout(15)
+                    ->withHeaders(['Content-Type' => 'application/json'])
+                    ->withOptions(['verify' => $sslVerify])
+                    ->post($endpoint, $payload);
 
                 if ($response->successful()) {
                     $json = $response->json();
