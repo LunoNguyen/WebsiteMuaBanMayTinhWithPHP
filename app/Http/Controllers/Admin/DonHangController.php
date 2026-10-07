@@ -130,6 +130,14 @@ class DonHangController extends Controller
     }
 
     /**
+     * In hóa đơn.
+     */
+    public function inHoaDon(HoaDon $hoaDon): View
+    {
+        return view('banhang.in-hoa-don', ['hd' => $hoaDon->napChiTiet()]);
+    }
+
+    /**
      * Huỷ đơn còn ở bước chờ / đã xác nhận.
      */
     public function huy(HoaDon $hoaDon): RedirectResponse

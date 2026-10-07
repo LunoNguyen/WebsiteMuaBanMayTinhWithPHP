@@ -97,4 +97,8 @@ class DonHangController extends Controller
 
         return back()->with('thong_bao', "Đã hủy đơn hàng {$hoaDon->MAHD}.")->with('loai', 'info');
     }
+        public function inHoaDon(HoaDon $hoaDon)
+    {
+        return view('banhang.in-hoa-don', ['hd' => $hoaDon->napChiTiet()]);
+    }
 }

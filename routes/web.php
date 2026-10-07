@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Cửa hàng: ai cũng xem được; mua hàng phải đăng nhập tài khoản khách hàng
+| Cá»­a hÃ ng: ai cÅ©ng xem Ä‘Æ°á»£c; mua hÃ ng pháº£i Ä‘Äƒng nháº­p tÃ i khoáº£n khÃ¡ch hÃ ng
 |--------------------------------------------------------------------------
 */
 
@@ -37,6 +37,7 @@ Route::middleware(['auth', 'vaitro:KhachHang'])->group(function () {
 
     Route::get('/don-hang-cua-toi', [Shop\DonHangController::class, 'index'])->name('donhang.index');
     Route::get('/don-hang-cua-toi/{hoaDon}', [Shop\DonHangController::class, 'show'])->name('donhang.show');
+    Route::get('/don-hang-cua-toi/{hoaDon}/in', [Shop\DonHangController::class, 'inHoaDon'])->name('donhang.in');
     Route::patch('/don-hang-cua-toi/{hoaDon}/huy', [Shop\DonHangController::class, 'huy'])->name('donhang.huy');
 
     Route::get('/tai-khoan', [Shop\TaiKhoanController::class, 'edit'])->name('taikhoan.edit');
@@ -46,7 +47,7 @@ Route::middleware(['auth', 'vaitro:KhachHang'])->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Đăng nhập, đăng ký
+| ÄÄƒng nháº­p, Ä‘Äƒng kÃ½
 |--------------------------------------------------------------------------
 */
 
@@ -61,7 +62,7 @@ Route::post('/dang-xuat', [DangNhapController::class, 'destroy'])->middleware('a
 
 /*
 |--------------------------------------------------------------------------
-| Quản trị
+| Quáº£n trá»‹
 |--------------------------------------------------------------------------
 */
 
@@ -117,6 +118,7 @@ Route::middleware(['auth', 'vaitro:Admin'])->prefix('admin')->name('admin.')->gr
     Route::get('/don-hang/them', [Admin\DonHangController::class, 'create'])->name('donhang.create');
     Route::post('/don-hang', [Admin\DonHangController::class, 'store'])->name('donhang.store');
     Route::get('/don-hang/{hoaDon}', [Admin\DonHangController::class, 'show'])->name('donhang.show');
+    Route::get('/don-hang/{hoaDon}/in', [Admin\DonHangController::class, 'inHoaDon'])->name('donhang.in');
     Route::patch('/don-hang/{hoaDon}/buoc-tiep-theo', [Admin\DonHangController::class, 'buocTiepTheo'])->name('donhang.buoc-tiep-theo');
     Route::patch('/don-hang/{hoaDon}/thanh-toan', [Admin\DonHangController::class, 'thanhToan'])->name('donhang.thanh-toan');
     Route::patch('/don-hang/{hoaDon}/huy', [Admin\DonHangController::class, 'huy'])->name('donhang.huy');
@@ -145,7 +147,7 @@ Route::middleware(['auth', 'vaitro:Admin'])->prefix('admin')->name('admin.')->gr
 
 /*
 |--------------------------------------------------------------------------
-| Kho (Admin cũng xem được)
+| Kho (Admin cÅ©ng xem Ä‘Æ°á»£c)
 |--------------------------------------------------------------------------
 */
 
@@ -162,7 +164,7 @@ Route::middleware(['auth', 'vaitro:NhanVienKho,Admin'])->prefix('kho')->name('kh
 
 /*
 |--------------------------------------------------------------------------
-| Bán hàng (Admin cũng xem được)
+| BÃ¡n hÃ ng (Admin cÅ©ng xem Ä‘Æ°á»£c)
 |--------------------------------------------------------------------------
 */
 
@@ -174,4 +176,6 @@ Route::middleware(['auth', 'vaitro:NhanVienBan,Admin'])->prefix('ban-hang')->nam
 
     Route::get('/khach-hang', [BanHang\KhachHangController::class, 'index'])->name('khachhang');
     Route::get('/khach-hang/{khachHang}', [BanHang\KhachHangController::class, 'show'])->name('khachhang.show');
+    Route::get('/don-hang/{hoaDon}/in', [BanHang\DonHangController::class, 'inHoaDon'])->name('donhang.in');
 });
+
