@@ -204,12 +204,34 @@ PROMPT;
         foreach ($modelsToTry as $currentModel) {
             try {
                 $endpoint = "{$baseUrl}/models/{$currentModel}:generateContent?key={$apiKey}";
-                $sslCert = 'D:/App/lagaron/laragon/etc/ssl/cacert.pem';
-                $httpClient = Http::timeout(15)->withHeaders(['Content-Type' => 'application/json']);
-                if (file_exists($sslCert)) {
-                    $httpClient = $httpClient->withOptions(['verify' => $sslCert]);
+
+                // Tự động tìm chứng chỉ SSL trên máy (hỗ trợ mọi đường dẫn Laragon)
+                $possibleCerts = array_filter([
+                    ini_get('curl.cainfo') ?: null,
+                    ini_get('openssl.cafile') ?: null,
+                    'C:/laragon/etc/ssl/cacert.pem',
+                    'D:/laragon/etc/ssl/cacert.pem',
+                    'D:/App/lagaron/laragon/etc/ssl/cacert.pem',
+                ], fn ($p) => ! empty($p) && file_exists((string) $p));
+
+                $sslVerify = ! empty($possibleCerts) ? reset($possibleCerts) : (app()->isLocal() ? false : true);
+
+                try {
+                    $response = Http::timeout(15)
+                        ->withHeaders(['Content-Type' => 'application/json'])
+                        ->withOptions(['verify' => $sslVerify])
+                        ->post($endpoint, $payload);
+                } catch (\Throwable $httpEx) {
+                    // Nếu lỗi do SSL certificate trên Windows, tự động thử lại bỏ qua kiểm tra SSL
+                    if (str_contains($httpEx->getMessage(), 'cURL error 60') || str_contains($httpEx->getMessage(), 'SSL')) {
+                        $response = Http::timeout(15)
+                            ->withHeaders(['Content-Type' => 'application/json'])
+                            ->withOptions(['verify' => false])
+                            ->post($endpoint, $payload);
+                    } else {
+                        throw $httpEx;
+                    }
                 }
-                $response = $httpClient->post($endpoint, $payload);
 
                 if ($response->successful()) {
                     $json = $response->json();
