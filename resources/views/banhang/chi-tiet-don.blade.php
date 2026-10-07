@@ -37,6 +37,10 @@
           <p>{!! statusBadge($hd->TRANGTHAI) !!}</p>
         </div>
         <div class="ct-actions">
+          <a href="{{ route('banhang.donhang.in', $hd->MAHD) }}" target="_blank" class="btn btn-out">🖨️ In Hóa Đơn</a>
+          @if ($hd->thanhToan && $hd->thanhToan->TRANGTHAI === 'ChoThanhToan' && $hd->TRANGTHAI !== 'DaHuy')
+            <x-nut-hanh-dong :action="route('banhang.donhang.thanh-toan', $hd->MAHD)" method="PATCH" class="btn btn-pri" style="background-color: var(--green); border-color: var(--green);">Xác nhận thanh toán</x-nut-hanh-dong>
+          @endif
           <a href="{{ route('banhang.donhang') }}" class="btn btn-out">← Danh sách</a>
           @if (in_array($hd->TRANGTHAI, \App\Models\HoaDon::HUY_DUOC, true))
             <x-nut-hanh-dong :action="route('banhang.donhang.huy', $hd->MAHD)" method="PATCH" class="btn btn-sm-red"

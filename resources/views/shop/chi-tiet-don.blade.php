@@ -26,6 +26,7 @@
                         <span class="s-hint">Đặt lúc {{ $hd->NGAYLAP?->format('H:i d/m/Y') }}</span>
                     </div>
                     <div style="display:flex;gap:8px;align-items:center">
+                        <a href="{{ route('donhang.in', $hd->MAHD) }}" target="_blank" style="padding:4px 12px;border:1px solid #ccc;border-radius:20px;text-decoration:none;color:#555;font-size:14px;background:#f9f9f9">🖨️ In hóa đơn</a>
                         {!! statusBadge($hd->TRANGTHAI) !!}
                         @if ($hd->TRANGTHAI === 'ChoXacNhan')
                             <x-nut-hanh-dong :action="route('donhang.huy', $hd->MAHD)" method="PATCH" class="btn btn-danger btn-sm"

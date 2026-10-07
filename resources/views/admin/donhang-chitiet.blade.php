@@ -14,6 +14,7 @@
             <p>{!! statusBadge($hd->TRANGTHAI) !!}</p>
         </div>
         <div class="page-header-right">
+            <a href="{{ route('admin.donhang.in', $hd->MAHD) }}" target="_blank" class="btn btn-outline">🖨️ In Hóa Đơn</a>
             <a href="{{ route('admin.donhang') }}" class="btn btn-outline">← Danh sách</a>
             @if (in_array($hd->TRANGTHAI, \App\Models\HoaDon::HUY_DUOC, true))
                 <x-nut-hanh-dong :action="route('admin.donhang.huy', $hd->MAHD)" method="PATCH" class="btn btn-outline" style="color:var(--red)"
