@@ -60,19 +60,51 @@ class KhuyenMaiService
             throw ValidationException::withMessages(['ma_code' => $loi]);
         }
 
+        $ketQua = $this->tinhGiam($khuyenMai, $dong);
+
+        if (is_string($ketQua)) {
+            throw ValidationException::withMessages(['ma_code' => $ketQua]);
+        }
+
+        return ['khuyenMai' => $khuyenMai, 'giam' => $ketQua];
+    }
+
+    /**
+     * Mã còn hiệu lực mà giỏ hàng này dùng được (có sản phẩm được áp dụng, đủ đơn tối thiểu), giảm nhiều nhất lên trước.
+     *
+     * @param  Collection<int, CtGioHang>  $dong
+     * @return list<array{khuyenMai: KhuyenMai, giam: float}>
+     */
+    public function dungDuocChoGio(Collection $dong, ?TaiKhoan $taiKhoan = null): array
+    {
+        return $this->dangApDung($taiKhoan)
+            ->load('sanPhams:MASP')
+            ->map(fn (KhuyenMai $khuyenMai): array => ['khuyenMai' => $khuyenMai, 'giam' => $this->tinhGiam($khuyenMai, $dong)])
+            ->filter(fn (array $muc): bool => is_float($muc['giam']) && $muc['giam'] > 0)
+            ->sortByDesc('giam')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Số tiền giảm của mã cho các dòng giỏ, hoặc câu báo lỗi khi giỏ không đủ điều kiện.
+     * Chỉ xét sản phẩm áp dụng và đơn tối thiểu; trạng thái, hạn dùng, số lượt kiểm tra ở nơi gọi.
+     *
+     * @param  Collection<int, CtGioHang>  $dong
+     */
+    private function tinhGiam(KhuyenMai $khuyenMai, Collection $dong): float|string
+    {
         // Mã gắn với sản phẩm cụ thể (CT_KHUYENMAI) chỉ tính trên các sản phẩm đó
         $apDungCho = $khuyenMai->sanPhams->pluck('MASP');
         $dongApDung = $apDungCho->isEmpty() ? $dong : $dong->whereIn('MASP', $apDungCho->all());
         $tienApDung = (float) $dongApDung->sum(fn (CtGioHang $ct): float => $ct->SOLUONG * (float) $ct->sanPham->DONGIA_SP);
 
         if ($tienApDung <= 0) {
-            throw ValidationException::withMessages(['ma_code' => 'Giỏ hàng không có sản phẩm được áp dụng mã này.']);
+            return 'Giỏ hàng không có sản phẩm được áp dụng mã này.';
         }
 
         if ($tienApDung < (float) $khuyenMai->SOTIENTOITHIEU_NHANKM) {
-            throw ValidationException::withMessages([
-                'ma_code' => 'Đơn hàng cần tối thiểu '.formatVND($khuyenMai->SOTIENTOITHIEU_NHANKM).' để dùng mã này.',
-            ]);
+            return 'Đơn hàng cần tối thiểu '.formatVND($khuyenMai->SOTIENTOITHIEU_NHANKM).' để dùng mã này.';
         }
 
         $giam = $khuyenMai->LOAI_KM === 'PhanTram'
@@ -83,7 +115,7 @@ class KhuyenMaiService
             $giam = min($giam, (float) $khuyenMai->SOTIENTOIDA_KM);
         }
 
-        return ['khuyenMai' => $khuyenMai, 'giam' => round(min($giam, $tienApDung))];
+        return (float) round(min($giam, $tienApDung));
     }
 
     /**

@@ -63,13 +63,13 @@
                     @if ($loi = session('loi_ma') ?? $errors->first('ma_code'))
                         <div class="s-err">{{ $loi }}</div>
                     @endif
-                    @if ($goiY->isNotEmpty())
+                    @if ($goiY !== [])
                         <div class="s-coupons">
-                            <div class="s-hint">Mã bạn có thể dùng (mỗi đơn một mã):</div>
-                            @foreach ($goiY->take(4) as $km)
+                            <div class="s-hint">Mã dùng được cho giỏ hàng này (mỗi đơn một mã):</div>
+                            @foreach (array_slice($goiY, 0, 4) as ['khuyenMai' => $km, 'giam' => $tietKiem])
                                 <div class="s-coupon-item">
                                     <span class="s-code">{{ $km->MA_CODE }}</span>
-                                    <span>{{ $km->TENKM }}</span>
+                                    <span>{{ $km->TENKM }} · <strong>giảm {{ formatVND($tietKiem) }}</strong></span>
                                     <small>{{ implode(' · ', $dieuKien($km)) }}</small>
                                 </div>
                             @endforeach

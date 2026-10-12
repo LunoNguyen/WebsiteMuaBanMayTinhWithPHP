@@ -22,6 +22,29 @@ class MuaHangTest extends TestCase
         GioHang::query()->where('MATK', $this->khach->MATK)->where('TRANGTHAI', 'DangMua')->delete();
     }
 
+    public function test_goi_y_ma_giam_gia_chi_hien_ma_dung_duoc_cho_gio(): void
+    {
+        $this->actingAs($this->khach);
+
+        // SP001 (Lenovo Legion) không thuộc danh sách sản phẩm của BLACKFRI50, nhưng nằm trong RICON
+        $this->post('/gio-hang/SP001');
+        $this->get('/gio-hang')->assertOk()->assertSee('RICON')->assertDontSee('BLACKFRI50');
+
+        // Thêm SP008 (Dell Precision) thì BLACKFRI50 dùng được
+        $this->post('/gio-hang/SP008');
+        $this->get('/gio-hang')->assertOk()->assertSee('BLACKFRI50')->assertSee('RICON');
+    }
+
+    public function test_khong_goi_y_ma_khi_chua_du_don_toi_thieu(): void
+    {
+        $this->actingAs($this->khach);
+        KhuyenMai::query()->where('MA_CODE', 'RICON')->update(['SOTIENTOITHIEU_NHANKM' => 500_000_000]);
+
+        $this->post('/gio-hang/SP001');
+
+        $this->get('/gio-hang')->assertOk()->assertDontSee('RICON')->assertDontSee('BLACKFRI50');
+    }
+
     public function test_khach_chua_dang_nhap_xem_duoc_san_pham_nhung_khong_mua_duoc(): void
     {
         $this->get('/')->assertOk()->assertSee('Danh mục sản phẩm');

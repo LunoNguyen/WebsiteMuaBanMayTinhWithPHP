@@ -46,7 +46,7 @@ class GioHangController extends Controller
             'khuyenMai' => $khuyenMai,
             'giam' => $giam,
             'tong' => $tamTinh - $giam,
-            'goiY' => $this->khuyenMai->dangApDung($request->user()),
+            'goiY' => $khuyenMai === null ? $this->khuyenMai->dungDuocChoGio($dong, $request->user()) : [],
             'dieuKien' => fn ($km): array => $this->khuyenMai->dieuKien($km),
         ]);
     }
