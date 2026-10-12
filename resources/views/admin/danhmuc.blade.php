@@ -26,6 +26,10 @@
             </div>
             <div class="card-body">
                 @foreach ($cauHinh['truong'] as $cot => $truong)
+                    @if (str_starts_with($cot, 'DIACHI'))
+                        <x-dia-chi :name="$cot" :label="$truong['nhan']" :value="$dangSua?->{$cot}" />
+                        @continue
+                    @endif
                     <x-truong :name="$cot" :label="$truong['nhan']" :value="$dangSua?->{$cot}"
                               :required="in_array('required', $truong['luat'], true)"
                               :type="$cot === 'MOTA_CV' ? 'textarea' : (str_starts_with($cot, 'EMAIL') ? 'email' : 'text')" />

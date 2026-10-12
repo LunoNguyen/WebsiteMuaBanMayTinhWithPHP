@@ -39,4 +39,19 @@ return [
         'scheme' => env('REVERB_PUBLIC_SCHEME') ?: null,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Danh mục địa giới hành chính
+    |--------------------------------------------------------------------------
+    |
+    | Tỉnh / thành phố và phường / xã (sau sáp nhập 2025, hai cấp) lấy từ
+    | provinces.open-api.vn, cache trên server để không gọi lại mỗi lần mở form.
+    |
+    */
+
+    'dia_chi' => [
+        'api' => env('DIA_CHI_API', 'https://provinces.open-api.vn/api/v2'),
+        'cache_giay' => (int) env('DIA_CHI_CACHE_GIAY', 60 * 60 * 24 * 7),
+    ],
+
 ];

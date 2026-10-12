@@ -43,11 +43,7 @@
                             @error('GIOITINH') <div class="s-err">{{ $message }}</div> @enderror
                         </div>
                     </div>
-                    <div class="s-field">
-                        <label for="diachi">Địa chỉ</label>
-                        <input class="s-input" id="diachi" name="DIACHI_KH" value="{{ old('DIACHI_KH', $khachHang->DIACHI_KH) }}" maxlength="200" autocomplete="street-address">
-                        @error('DIACHI_KH') <div class="s-err">{{ $message }}</div> @enderror
-                    </div>
+                    <x-dia-chi name="DIACHI_KH" :value="$khachHang->DIACHI_KH" kieu="shop" />
                     <div><button type="submit" class="btn btn-primary">Lưu thay đổi</button></div>
                 </form>
             </section>

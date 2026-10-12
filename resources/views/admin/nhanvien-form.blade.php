@@ -26,7 +26,7 @@
                 <x-truong name="SDT_NV" label="Số điện thoại" :value="$nv->SDT_NV" inputmode="tel" />
                 <x-truong name="EMAIL_NV" label="Email" type="email" :value="$nv->EMAIL_NV" maxlength="100" />
             </div>
-            <x-truong name="DIACHI_NV" label="Địa chỉ" :value="$nv->DIACHI_NV" maxlength="200" />
+            <x-dia-chi name="DIACHI_NV" :value="$nv->DIACHI_NV" />
             <div class="form-row">
                 <x-truong name="NGAYVAOLAM" label="Ngày vào làm" type="date" :value="$nv->NGAYVAOLAM" :max="today()->format('Y-m-d')" />
                 <x-truong name="TRANGTHAI" label="Trạng thái" :value="(int) $nv->TRANGTHAI" required :options="[1 => 'Đang làm việc', 0 => 'Nghỉ việc']" />

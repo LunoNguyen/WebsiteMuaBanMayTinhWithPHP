@@ -19,7 +19,7 @@
                 <div class="card-body">
                     <x-truong name="TENNV" label="Họ tên" :value="$nv->TENNV" required maxlength="100" />
                     <x-truong name="SDT_NV" label="Số điện thoại" :value="$nv->SDT_NV" inputmode="tel" />
-                    <x-truong name="DIACHI_NV" label="Địa chỉ" :value="$nv->DIACHI_NV" maxlength="200" />
+                    <x-dia-chi name="DIACHI_NV" :value="$nv->DIACHI_NV" />
                     <dl class="dl">
                         <dt>Mã nhân viên</dt><dd>{{ $nv->MANV }}</dd>
                         <dt>Ngày vào làm</dt><dd>{{ $nv->NGAYVAOLAM?->format('d/m/Y') ?? '—' }}</dd>

@@ -29,13 +29,7 @@ class DashboardController extends Controller
     {
         $doanhThu = HoaDon::query()->whereIn('TRANGTHAI', self::DA_BAN);
 
-        $dtThang = $this->mang(HoaDon::query()->toBase()
-            ->selectRaw("DATE_FORMAT(NGAYLAP,'%m/%Y') AS thang_label, YEAR(NGAYLAP) AS nam, MONTH(NGAYLAP) AS thang, SUM(TONGTIEN_HD) AS doanhthu, COUNT(*) AS so_don")
-            ->whereIn('TRANGTHAI', self::DA_BAN)
-            ->where('NGAYLAP', '>=', now()->subMonths(6)->startOfDay())
-            ->groupByRaw("YEAR(NGAYLAP), MONTH(NGAYLAP), DATE_FORMAT(NGAYLAP,'%m/%Y')")
-            ->orderByRaw('YEAR(NGAYLAP), MONTH(NGAYLAP)')
-            ->get());
+        $dtThang = HoaDon::doanhThuTheoThang(6);
 
         $coSua = $this->mang(ChiTietHoaDon::query()->toBase()
             ->from('CHITIETHOADON as cthd')

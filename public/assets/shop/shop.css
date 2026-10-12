@@ -350,3 +350,23 @@ main { padding: 20px 0 48px; }
   .s-detail { padding: 16px; }
   .s-orders .hide-sm { display: none; }
 }
+
+/* Ô địa chỉ (x-dia-chi): tỉnh + phường cạnh nhau, số nhà bên dưới */
+.dia-chi-chon { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.dia-chi-chon[hidden] { display: none; }
+.dc-combo { position: relative; }
+.dc-combo .dc-input { padding-right: 34px; text-overflow: ellipsis; }
+.dc-combo .dc-input:disabled { opacity: .6; cursor: not-allowed; }
+.dc-mui { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: flex; color: var(--text-muted); pointer-events: none; transition: transform .15s ease; }
+.dc-combo:has(.dc-input[aria-expanded="true"]) .dc-mui { transform: translateY(-50%) rotate(180deg); }
+.dc-ds { position: absolute; z-index: 60; top: calc(100% + 4px); left: 0; right: 0; max-height: 264px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow);
+  transform-origin: top; animation: dc-mo .12s ease-out; }
+.dc-ds li { padding: 8px 10px; border-radius: 6px; font-size: 14px; line-height: 1.35; color: var(--text-primary); cursor: pointer; }
+.dc-ds li.dc-dang { background: var(--bg-hover); }
+.dc-ds li[aria-selected="true"] { color: var(--blue); font-weight: 600; }
+.dc-ds li.dc-trong { color: var(--text-muted); cursor: default; font-size: 13px; }
+@keyframes dc-mo { from { opacity: 0; transform: translateY(-4px) scaleY(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .dc-ds, .dc-mui { animation: none; transition: none; } }
+.dia-chi [data-dia-chi-ghi-chu] { margin-top: 6px; color: var(--orange); }
+@media (max-width: 560px) { .dia-chi-chon { grid-template-columns: 1fr; } }

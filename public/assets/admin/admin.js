@@ -200,3 +200,19 @@ document.addEventListener('rt:vung-moi', function () {
     ds[(i + (e.key === 'ArrowDown' ? 1 : -1) + ds.length) % ds.length].focus();
   });
 })();
+
+// Menu tài khoản trên topbar: bấm để mở / đóng, bấm ra ngoài hoặc Esc để đóng
+document.querySelectorAll('[data-tb-menu]').forEach(function (menu) {
+  const nut = menu.querySelector('.topbar-profile');
+  const pop = menu.querySelector('.tb-pop');
+  const dat = function (mo) {
+    pop.hidden = !mo;
+    nut.setAttribute('aria-expanded', mo ? 'true' : 'false');
+    if (mo) pop.querySelector('[role=menuitem]')?.focus();
+  };
+  nut.addEventListener('click', function () { dat(pop.hidden); });
+  document.addEventListener('click', function (e) { if (!menu.contains(e.target)) dat(false); });
+  menu.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !pop.hidden) { dat(false); nut.focus(); }
+  });
+});

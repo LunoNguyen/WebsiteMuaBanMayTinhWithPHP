@@ -71,7 +71,7 @@
                     <x-truong name="PHUONG_THUC_GH" label="Hình thức nhận hàng" :value="$giaoHang" required data-giao
                               :options="['TaiQuay' => 'Nhận tại cửa hàng', 'GiaoHang' => 'Giao tận nơi']" />
                     <div data-dia-chi @if ($giaoHang === 'TaiQuay') hidden @endif>
-                        <x-truong name="DIACHI_GIAOHANG" label="Địa chỉ giao hàng" maxlength="300" />
+                        <x-dia-chi name="DIACHI_GIAOHANG" label="Địa chỉ giao hàng" :maxlength="300" id="oDiaChiGiao" />
                     </div>
                 </div>
             </div>
@@ -145,7 +145,7 @@
     if (!kh) return;
     document.querySelector('[name="TEN_NGUOINHAN"]').value = kh.ten || '';
     document.querySelector('[name="SDT_NGUOINHAN"]').value = kh.sdt || '';
-    document.querySelector('[name="DIACHI_GIAOHANG"]').value = kh.diachi || '';
+    document.querySelector('[name="DIACHI_GIAOHANG"]').closest('[data-dia-chi]').dispatchEvent(new CustomEvent('dia-chi:dat', { detail: kh.diachi || '' }));
   });
   document.querySelector('[data-giao]').addEventListener('change', function () {
     document.querySelector('[data-dia-chi]').hidden = this.value !== 'GiaoHang';

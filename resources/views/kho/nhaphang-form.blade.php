@@ -228,10 +228,7 @@
                   </div>
                 </div>
                 <div class="k-grid-2">
-                  <div class="k-fg">
-                    <label>Địa chỉ</label>
-                    <input type="text" name="ncc_moi_diachi" class="k-input" placeholder="Địa chỉ NCC" value="{{ old('ncc_moi_diachi') }}" style="font-size:12px">
-                  </div>
+                  <x-dia-chi name="ncc_moi_diachi" class="k-fg" style="grid-column:1/-1" />
                   <div class="k-fg">
                     <label>Email</label>
                     <input type="email" name="ncc_moi_email" class="k-input" placeholder="email@ncc.com" value="{{ old('ncc_moi_email') }}" style="font-size:12px">

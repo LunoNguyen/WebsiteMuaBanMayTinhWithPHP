@@ -3,16 +3,26 @@
 namespace Tests;
 
 use App\Models\TaiKhoan;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 /**
- * Test chạy trên database riêng ql_banmt_test (dữ liệu mẫu từ qlbanmt.sql);
+ * Test chạy trên database riêng ql_banmt_test, dựng lại từ migration + DatabaseSeeder ở lần chạy đầu;
  * mọi thay đổi trong một test được rollback khi test kết thúc.
  */
 abstract class TestCase extends BaseTestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
+
+    /**
+     * Nạp dữ liệu mẫu (DatabaseSeeder) sau khi migrate.
+     */
+    protected bool $seed = true;
+
+    /**
+     * Xoá cả view khi dựng lại database.
+     */
+    protected bool $dropViews = true;
 
     protected const MAT_KHAU_TEST = 'matkhau-test-123';
 

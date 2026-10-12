@@ -28,7 +28,7 @@
             </div>
             <div class="form-row">
                 <x-truong name="GIOITINH" label="Giới tính" :value="$kh->GIOITINH === null ? null : (int) $kh->GIOITINH" :options="[1 => 'Nam', 0 => 'Nữ']" />
-                <x-truong name="DIACHI_KH" label="Địa chỉ" :value="$kh->DIACHI_KH" maxlength="200" />
+                <x-dia-chi name="DIACHI_KH" :value="$kh->DIACHI_KH" />
             </div>
         </div>
         <div class="form-actions">

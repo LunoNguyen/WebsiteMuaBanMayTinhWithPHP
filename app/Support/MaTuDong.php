@@ -15,11 +15,14 @@ class MaTuDong
      */
     public static function tiepTheo(string $bang, string $cot, string $tienTo, int $doDai = 3): string
     {
-        $lonNhat = (int) DB::table($bang)
-            ->where($cot, 'regexp', '^'.preg_quote($tienTo).'[0-9]+$')
+        // Lọc "tiền tố + toàn chữ số" bằng PHP (SQLite không có REGEXP) rồi lấy số lớn nhất
+        $lonNhat = DB::table($bang)
+            ->where($cot, 'like', $tienTo.'%')
             ->lockForUpdate()
-            ->selectRaw("MAX(CAST(SUBSTRING({$cot}, ?) AS UNSIGNED)) AS so", [strlen($tienTo) + 1])
-            ->value('so');
+            ->pluck($cot)
+            ->filter(fn (string $ma): bool => preg_match('/^'.preg_quote($tienTo, '/').'[0-9]+$/', $ma) === 1)
+            ->map(fn (string $ma): int => (int) substr($ma, strlen($tienTo)))
+            ->max() ?? 0;
 
         return $tienTo.str_pad((string) ($lonNhat + 1), $doDai, '0', STR_PAD_LEFT);
     }

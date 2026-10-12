@@ -157,6 +157,33 @@ class HoaDon extends Model
     }
 
     /**
+     * Doanh thu các đơn đã bán (đã giao, hoàn thành) theo từng tháng trong $soThang tháng gần nhất, tháng cũ trước.
+     * Gom nhóm bằng PHP thay cho DATE_FORMAT / YEAR / MONTH để chạy được trên cả MySQL lẫn SQLite.
+     *
+     * @return list<array{thang_label: string, nam: int, thang: int, doanhthu: float, so_don: int, trung_binh: float, tong_giam: float}>
+     */
+    public static function doanhThuTheoThang(int $soThang): array
+    {
+        return self::query()
+            ->whereIn('TRANGTHAI', ['DaGiao', 'HoanThanh'])
+            ->where('NGAYLAP', '>=', now()->subMonths($soThang)->startOfDay())
+            ->orderBy('NGAYLAP')
+            ->get(['NGAYLAP', 'TONGTIEN_HD', 'TONGTIEN_GIAM'])
+            ->groupBy(fn (self $hd): string => $hd->NGAYLAP->format('Y-m'))
+            ->map(fn ($nhom): array => [
+                'thang_label' => $nhom->first()->NGAYLAP->format('m/Y'),
+                'nam' => (int) $nhom->first()->NGAYLAP->format('Y'),
+                'thang' => (int) $nhom->first()->NGAYLAP->format('n'),
+                'doanhthu' => (float) $nhom->sum('TONGTIEN_HD'),
+                'so_don' => $nhom->count(),
+                'trung_binh' => (float) $nhom->avg('TONGTIEN_HD'),
+                'tong_giam' => (float) $nhom->sum('TONGTIEN_GIAM'),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

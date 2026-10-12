@@ -24,14 +24,7 @@ class BaoCaoController extends Controller
      */
     public function index(): View
     {
-        $dtThang = $this->mang(HoaDon::query()->toBase()
-            ->selectRaw("DATE_FORMAT(NGAYLAP,'%m/%Y') AS thang_label, YEAR(NGAYLAP) AS nam, MONTH(NGAYLAP) AS thang,
-                SUM(TONGTIEN_HD) AS doanhthu, COUNT(*) AS so_don, AVG(TONGTIEN_HD) AS trung_binh, SUM(TONGTIEN_GIAM) AS tong_giam")
-            ->whereIn('TRANGTHAI', self::DA_BAN)
-            ->where('NGAYLAP', '>=', now()->subMonths(12)->startOfDay())
-            ->groupByRaw("YEAR(NGAYLAP), MONTH(NGAYLAP), DATE_FORMAT(NGAYLAP,'%m/%Y')")
-            ->orderByRaw('YEAR(NGAYLAP), MONTH(NGAYLAP)')
-            ->get());
+        $dtThang = HoaDon::doanhThuTheoThang(12);
 
         $topSP = $this->mang(ChiTietHoaDon::query()->toBase()
             ->from('CHITIETHOADON as ct')

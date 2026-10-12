@@ -38,10 +38,25 @@
         <a href="{{ route('admin.danhmuc') }}" class="topbar-btn" title="Danh mục">{!! icon('settings', 18) !!}</a>
         @endif
 
-        <div class="topbar-profile" @if ($laAdmin) onclick="window.location='{{ route('admin.hoso') }}'" @endif>
-            <div class="av">{{ mb_strtoupper(mb_substr(auth()->user()->tenHienThi(), 0, 2)) }}</div>
-            <span>{{ auth()->user()->tenHienThi() }}</span>
-            @if ($laAdmin)<span style="color:var(--text-muted);display:flex">{!! icon('chevron', 14) !!}</span>@endif
+        <div class="tb-menu" data-tb-menu>
+            <button type="button" class="topbar-profile" aria-haspopup="menu" aria-expanded="false" aria-controls="tbMenuTaiKhoan">
+                <span class="av">{{ mb_strtoupper(mb_substr(auth()->user()->tenHienThi(), 0, 2)) }}</span>
+                <span>{{ auth()->user()->tenHienThi() }}</span>
+                <span class="tb-mui" aria-hidden="true">{!! icon('chevron', 14) !!}</span>
+            </button>
+            <div class="tb-pop" id="tbMenuTaiKhoan" role="menu" hidden>
+                <div class="tb-pop-dau">
+                    <strong>{{ auth()->user()->tenHienThi() }}</strong>
+                    <span>{{ auth()->user()->EMAIL_TK }}</span>
+                </div>
+                @if ($laAdmin)
+                    <a href="{{ route('admin.hoso') }}" role="menuitem">{!! icon('user', 16) !!} Hồ sơ của tôi</a>
+                @endif
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" role="menuitem" class="tb-pop-thoat">{!! icon('logout', 16) !!} Đăng xuất</button>
+                </form>
+            </div>
         </div>
     </div>
 </header>

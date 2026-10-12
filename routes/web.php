@@ -5,6 +5,7 @@ use App\Http\Controllers\AnhController;
 use App\Http\Controllers\Auth\DangKyController;
 use App\Http\Controllers\Auth\DangNhapController;
 use App\Http\Controllers\BanHang;
+use App\Http\Controllers\DiaChiController;
 use App\Http\Controllers\Kho;
 use App\Http\Controllers\Shop;
 use Illuminate\Support\Facades\Route;
@@ -59,6 +60,12 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('/dang-xuat', [DangNhapController::class, 'destroy'])->middleware('auth')->name('logout');
+
+// Danh mục tỉnh / phường cho ô chọn địa chỉ (x-dia-chi)
+Route::middleware(['auth', 'throttle:120,1'])->prefix('dia-chi')->name('diachi.')->group(function () {
+    Route::get('/tinh', [DiaChiController::class, 'tinhThanh'])->name('tinh');
+    Route::get('/tinh/{maTinh}/phuong', [DiaChiController::class, 'phuongXa'])->whereNumber('maTinh')->name('phuong');
+});
 
 /*
 |--------------------------------------------------------------------------

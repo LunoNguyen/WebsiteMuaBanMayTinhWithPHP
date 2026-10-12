@@ -41,11 +41,8 @@
                         </div>
                     </div>
 
-                    <div class="s-field" id="oDiaChi" @if ($giaoHang === 'TaiQuay') hidden @endif>
-                        <label for="diachi">Địa chỉ giao hàng <span class="req">*</span></label>
-                        <input class="s-input" id="diachi" name="DIACHI_GIAOHANG" value="{{ old('DIACHI_GIAOHANG', $khachHang?->DIACHI_KH) }}" maxlength="300" autocomplete="street-address">
-                        @error('DIACHI_GIAOHANG') <div class="s-err">{{ $message }}</div> @enderror
-                    </div>
+                    <x-dia-chi name="DIACHI_GIAOHANG" label="Địa chỉ giao hàng" :value="$khachHang?->DIACHI_KH" :maxlength="300"
+                               kieu="shop" required id="diachi" :hidden="$giaoHang === 'TaiQuay'" data-o-dia-chi />
 
                     <div class="s-field">
                         <label for="ghichu">Ghi chú</label>
@@ -103,13 +100,16 @@
             nut.textContent = 'Đang gửi đơn...';
         });
 
-        document.querySelectorAll('[data-giao-hang]').forEach(function (r) {
-            r.addEventListener('change', function () {
-                var tanNoi = document.querySelector('[data-giao-hang]:checked').value === 'GiaoHang';
-                document.getElementById('oDiaChi').hidden = !tanNoi;
-                document.getElementById('diachi').required = tanNoi;
+        // Nhận tại cửa hàng thì ẩn ô địa chỉ và bỏ bắt buộc (ô ẩn mà vẫn bắt buộc thì trình duyệt chặn gửi form)
+        var oDiaChi = document.querySelector('[data-o-dia-chi]');
+        function capNhatDiaChi() {
+            var tanNoi = document.querySelector('[data-giao-hang]:checked').value === 'GiaoHang';
+            oDiaChi.hidden = !tanNoi;
+            oDiaChi.querySelectorAll('.dc-input, [data-dia-chi-duong]').forEach(function (o) {
+                o.required = tanNoi && !o.closest('[hidden]');
             });
-        });
-        document.getElementById('diachi').required = !document.getElementById('oDiaChi').hidden;
+        }
+        document.querySelectorAll('[data-giao-hang]').forEach(function (r) { r.addEventListener('change', capNhatDiaChi); });
+        capNhatDiaChi();
     </script>
 @endpush
