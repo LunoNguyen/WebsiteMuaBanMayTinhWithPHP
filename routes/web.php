@@ -186,3 +186,11 @@ Route::middleware(['auth', 'vaitro:NhanVienBan,Admin'])->prefix('ban-hang')->nam
     Route::get('/khach-hang/{khachHang}', [BanHang\KhachHangController::class, 'show'])->name('khachhang.show');
     Route::get('/don-hang/{hoaDon}/in', [BanHang\DonHangController::class, 'inHoaDon'])->name('donhang.in');
 });
+/*
+|--------------------------------------------------------------------------
+| Webhook SePay (Thanh toán tự động qua mã VietQR MBBank)
+|--------------------------------------------------------------------------
+*/
+Route::post('/api/webhook/sepay', [\App\Http\Controllers\SepayWebhookController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class]);
+    

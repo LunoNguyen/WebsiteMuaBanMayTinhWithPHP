@@ -80,6 +80,8 @@
                             <dt>Phương thức</dt><dd>{{ \App\Http\Controllers\Shop\ThanhToanController::PHUONG_THUC[$tt->PHUONG_THUC] ?? $tt->PHUONG_THUC }}</dd>
                             <dt>Số tiền</dt><dd>{{ formatVND($tt->SOTIEN) }}</dd>
                             @if ($tt->NOI_DUNG_CK)<dt>Nội dung CK</dt><dd><code>{{ $tt->NOI_DUNG_CK }}</code></dd>@endif
+                            @if ($tt->MA_GIAODICH)<dt>Mã GD</dt><dd><code>{{ $tt->MA_GIAODICH }}</code></dd>@endif
+                            @if ($tt->NGAN_HANG)<dt>Ngân hàng</dt><dd>{{ $tt->NGAN_HANG }}</dd>@endif
                             @if ($tt->NGAY_THANHTOAN)<dt>Ngày trả</dt><dd>{{ $tt->NGAY_THANHTOAN->format('d/m/Y H:i') }}</dd>@endif
                         </dl>
                     @else
