@@ -15,6 +15,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ThanhToan extends Model
 {
     /**
+     * Phương thức thanh toán hợp với hình thức nhận hàng: giao tận nơi trả khi nhận (COD),
+     * nhận tại cửa hàng trả tại cửa hàng (TienMat); chuyển khoản / QR dùng được cho cả hai.
+     *
+     * @return list<string>
+     */
+    public static function phuongThucHopLe(?string $hinhThucNhan): array
+    {
+        return [$hinhThucNhan === 'TaiQuay' ? 'TienMat' : 'COD', 'ChuyenKhoan', 'QR'];
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

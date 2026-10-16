@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\ThanhToan;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TaoDonHangRequest extends FormRequest
 {
@@ -42,7 +44,7 @@ class TaoDonHangRequest extends FormRequest
             'SDT_NGUOINHAN' => ['required', 'string', 'regex:/^[0-9 +.]{9,15}$/'],
             'PHUONG_THUC_GH' => ['required', 'in:GiaoHang,TaiQuay'],
             'DIACHI_GIAOHANG' => ['required_if:PHUONG_THUC_GH,GiaoHang', 'nullable', 'string', 'max:300'],
-            'PHUONG_THUC' => ['required', 'in:COD,ChuyenKhoan,QR'],
+            'PHUONG_THUC' => ['required', Rule::in(ThanhToan::phuongThucHopLe($this->input('PHUONG_THUC_GH')))],
             'GHI_CHU' => ['nullable', 'string', 'max:500'],
             'MA_CODE' => ['nullable', 'string', 'max:50'],
             'san_pham' => ['required', 'array', 'min:1', 'max:50'],

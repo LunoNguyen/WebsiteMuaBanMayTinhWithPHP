@@ -44,8 +44,8 @@ class SanPhamCapNhat implements ShouldBroadcastNow
             'ten' => $sp->TENSP,
             'gia' => (float) $sp->DONGIA_SP,
             'gia_text' => formatVND($sp->DONGIA_SP),
-            'ton' => (int) $sp->SOLUONGTON,
-            'ton_text' => $conHang ? 'Còn '.formatNum($sp->SOLUONGTON).' sản phẩm' : 'Tạm hết hàng',
+            'ton' => $sp->soLuongCoTheBan(),
+            'ton_text' => $conHang ? 'Còn '.formatNum($sp->soLuongCoTheBan()).' sản phẩm' : 'Tạm hết hàng',
             'con_hang' => $conHang,
             'trang_thai' => $sp->TRANGTHAI,
         ];

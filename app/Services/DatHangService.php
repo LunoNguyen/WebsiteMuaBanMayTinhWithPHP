@@ -108,7 +108,8 @@ class DatHangService
     }
 
     /**
-     * Phần chung: khoá sản phẩm, kiểm tra tồn kho, áp mã, ghi hoá đơn / chi tiết / khuyến mãi / thanh toán, trừ kho.
+     * Phần chung: khoá sản phẩm, kiểm tra số lượng còn bán, áp mã, ghi hoá đơn / chi tiết / khuyến mãi / thanh toán.
+     * Không trừ tồn kho ở đây: hàng chỉ rời kho (trừ SOLUONGTON) khi kho xuất đơn, xem HoaDon::chuyenBuocTiepTheo().
      * Phải gọi trong transaction.
      *
      * @param  Collection<int, CtGioHang>  $dong
@@ -117,19 +118,19 @@ class DatHangService
      */
     private function lapHoaDon(Collection $dong, array $thongTin, ?string $maCode, array $nguoiLap, ?TaiKhoan $taiKhoan, string $truongLoi, ?string $maKhachHang = null): HoaDon
     {
-        // Khoá sản phẩm để hai đơn cùng lúc không bán quá tồn kho
+        // Khoá sản phẩm để hai đơn cùng lúc không đặt quá số lượng còn bán (tồn kho trừ phần đang giữ cho đơn chưa xuất)
         $sanPhams = SanPham::query()->whereKey($dong->pluck('MASP')->unique()->values())->lockForUpdate()->get()->keyBy('MASP');
 
         foreach ($dong as $ct) {
             $sp = $sanPhams[$ct->MASP] ?? null;
 
-            if ($sp === null || $sp->TRANGTHAI !== 'DangBan' || $sp->SOLUONGTON < 1) {
+            if ($sp === null || $sp->TRANGTHAI !== 'DangBan' || $sp->soLuongCoTheBan() < 1) {
                 throw ValidationException::withMessages([$truongLoi => ($sp?->TENSP ?? $ct->MASP).' hiện không còn bán.']);
             }
 
-            if ($ct->SOLUONG > $sp->SOLUONGTON) {
+            if ($ct->SOLUONG > $sp->soLuongCoTheBan()) {
                 throw ValidationException::withMessages([
-                    $truongLoi => "{$sp->TENSP} chỉ còn {$sp->SOLUONGTON} sản phẩm, không đặt được {$ct->SOLUONG}.",
+                    $truongLoi => "{$sp->TENSP} chỉ còn {$sp->soLuongCoTheBan()} sản phẩm, không đặt được {$ct->SOLUONG}.",
                 ]);
             }
 
@@ -168,10 +169,6 @@ class DatHangService
                 'DONGIA_LUCAT' => $gia,
                 'THANHTIEN' => $gia * $ct->SOLUONG,
             ]);
-
-            // Trừ tồn kho ngay khi đặt; về 0 thì chuyển "hết hàng"
-            $conLai = $ct->sanPham->SOLUONGTON - $ct->SOLUONG;
-            $ct->sanPham->update(['SOLUONGTON' => $conLai] + ($conLai === 0 ? ['TRANGTHAI' => 'HetHang'] : []));
         }
 
         if ($khuyenMai !== null) {
@@ -183,10 +180,10 @@ class DatHangService
             'PHUONG_THUC' => $thongTin['PHUONG_THUC'],
             'TRANGTHAI' => 'ChoThanhToan',
             'SOTIEN' => $tamTinh - $giam,
-            'NOI_DUNG_CK' => $thongTin['PHUONG_THUC'] === 'COD' ? null : "TT {$hoaDon->MAHD}",
+            'NOI_DUNG_CK' => in_array($thongTin['PHUONG_THUC'], ['COD', 'TienMat'], true) ? null : "TT {$hoaDon->MAHD}",
         ]);
 
-        // Gửi sau khi transaction commit: báo đơn mới cho nhân viên, tồn kho mới cho trang sản phẩm
+        // Gửi sau khi transaction commit: báo đơn mới cho nhân viên, số lượng còn bán mới cho trang sản phẩm
         Realtime::donHang($hoaDon, laDonMoi: true);
         Realtime::sanPham($dong->pluck('MASP'));
 

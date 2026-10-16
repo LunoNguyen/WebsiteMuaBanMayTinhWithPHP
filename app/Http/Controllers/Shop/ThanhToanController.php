@@ -26,6 +26,7 @@ class ThanhToanController extends Controller
      */
     public const PHUONG_THUC = [
         'COD' => 'Thanh toán khi nhận hàng (COD)',
+        'TienMat' => 'Thanh toán tại cửa hàng',
         'ChuyenKhoan' => 'Chuyển khoản ngân hàng',
         'QR' => 'Quét mã QR',
     ];

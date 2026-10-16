@@ -33,8 +33,8 @@
                                     <select name="san_pham[{{ $i }}][MASP]" class="form-control @error("san_pham.$i.MASP") is-invalid @enderror" required>
                                         <option value="" data-gia="0" data-ton="0">— Chọn sản phẩm —</option>
                                         @foreach ($sanPhamList as $sp)
-                                            <option value="{{ $sp->MASP }}" data-gia="{{ (float) $sp->DONGIA_SP }}" data-ton="{{ $sp->SOLUONGTON }}" @selected(($d['MASP'] ?? null) === $sp->MASP)>
-                                                {{ $sp->TENSP }} (còn {{ $sp->SOLUONGTON }})
+                                            <option value="{{ $sp->MASP }}" data-gia="{{ (float) $sp->DONGIA_SP }}" data-ton="{{ $sp->soLuongCoTheBan() }}" @selected(($d['MASP'] ?? null) === $sp->MASP)>
+                                                {{ $sp->TENSP }} (còn {{ $sp->soLuongCoTheBan() }})
                                             </option>
                                         @endforeach
                                     </select>
@@ -70,8 +70,8 @@
                     </div>
                     <x-truong name="PHUONG_THUC_GH" label="Hình thức nhận hàng" :value="$giaoHang" required data-giao
                               :options="['TaiQuay' => 'Nhận tại cửa hàng', 'GiaoHang' => 'Giao tận nơi']" />
-                    <div data-dia-chi @if ($giaoHang === 'TaiQuay') hidden @endif>
-                        <x-dia-chi name="DIACHI_GIAOHANG" label="Địa chỉ giao hàng" :maxlength="300" id="oDiaChiGiao" />
+                    <div data-o-giao-hang @if ($giaoHang === 'TaiQuay') hidden @endif>
+                        <x-dia-chi name="DIACHI_GIAOHANG" label="Địa chỉ giao hàng" :maxlength="300" id="oDiaChiGiao" required />
                     </div>
                 </div>
             </div>
@@ -79,7 +79,7 @@
             <div class="card">
                 <div class="card-header"><h3>Thanh toán</h3></div>
                 <div class="card-body">
-                    <x-truong name="PHUONG_THUC" label="Phương thức" value="COD" required :options="$phuongThuc" />
+                    <x-truong name="PHUONG_THUC" label="Phương thức" :value="$giaoHang === 'TaiQuay' ? 'TienMat' : 'COD'" required :options="$phuongThuc" data-phuong-thuc />
                     <x-truong name="MA_CODE" label="Mã giảm giá" maxlength="50" style="text-transform:uppercase"
                               :hint="$maDangChay->isEmpty() ? 'Hiện không có mã nào còn hiệu lực.' : 'Mã đang chạy: '.$maDangChay->pluck('MA_CODE')->implode(', ')" />
                     <x-truong name="GHI_CHU" label="Ghi chú" type="textarea" rows="2" maxlength="500" />
@@ -147,9 +147,20 @@
     document.querySelector('[name="SDT_NGUOINHAN"]').value = kh.sdt || '';
     document.querySelector('[name="DIACHI_GIAOHANG"]').closest('[data-dia-chi]').dispatchEvent(new CustomEvent('dia-chi:dat', { detail: kh.diachi || '' }));
   });
-  document.querySelector('[data-giao]').addEventListener('change', function () {
-    document.querySelector('[data-dia-chi]').hidden = this.value !== 'GiaoHang';
-  });
+  // Giao tận nơi: hiện ô địa chỉ (bắt buộc), thanh toán COD. Nhận tại cửa hàng: thanh toán tại cửa hàng thay cho COD
+  var chonGiao = document.querySelector('[data-giao]');
+  var chonThanhToan = document.querySelector('[data-phuong-thuc]');
+  function capNhatGiaoHang() {
+    var tanNoi = chonGiao.value === 'GiaoHang';
+    var oDiaChi = document.querySelector('[data-o-giao-hang]');
+    oDiaChi.hidden = !tanNoi;
+    oDiaChi.querySelectorAll('.dc-input, [data-dia-chi-duong]').forEach(function (o) { o.required = tanNoi && !o.closest('[hidden]'); });
+    var an = tanNoi ? 'TienMat' : 'COD';
+    Array.from(chonThanhToan.options).forEach(function (o) { o.hidden = o.disabled = o.value === an; });
+    if (chonThanhToan.value === an) chonThanhToan.value = tanNoi ? 'COD' : 'TienMat';
+  }
+  chonGiao.addEventListener('change', capNhatGiaoHang);
+  capNhatGiaoHang();
   tinh();
 })();
 </script>

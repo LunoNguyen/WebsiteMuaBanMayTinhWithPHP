@@ -48,8 +48,8 @@ class DonHangController extends Controller
     {
         return view('admin.donhang-form', [
             'khachHangList' => KhachHang::query()->orderBy('TENKH')->get(['MAKH', 'TENKH', 'SDT_KH', 'DIACHI_KH']),
-            'sanPhamList' => SanPham::query()->where('TRANGTHAI', 'DangBan')->where('SOLUONGTON', '>', 0)
-                ->orderBy('TENSP')->get(['MASP', 'TENSP', 'DONGIA_SP', 'SOLUONGTON']),
+            'sanPhamList' => SanPham::query()->where('TRANGTHAI', 'DangBan')->coSoLuongDangGiu()->orderBy('TENSP')->get()
+                ->filter(fn (SanPham $sp): bool => $sp->soLuongCoTheBan() > 0)->values(),
             'maDangChay' => $khuyenMai->dangApDung(),
             'phuongThuc' => ThanhToanController::PHUONG_THUC,
             'dong' => old('san_pham', [['MASP' => null, 'SOLUONG' => 1]]),
@@ -75,9 +75,9 @@ class DonHangController extends Controller
     /**
      * Ghi nhận đơn đã thanh toán.
      */
-    public function thanhToan(HoaDon $hoaDon): RedirectResponse
+    public function thanhToan(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->xacNhanThanhToan()) {
+        if (! $hoaDon->xacNhanThanhToan($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không có khoản chờ thanh toán.")->with('loai', 'danger');
         }
 
@@ -87,9 +87,9 @@ class DonHangController extends Controller
     /**
      * Chuyển đơn sang bước kế tiếp của quy trình.
      */
-    public function buocTiepTheo(HoaDon $hoaDon): RedirectResponse
+    public function buocTiepTheo(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->chuyenBuocTiepTheo()) {
+        if (! $hoaDon->chuyenBuocTiepTheo($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn hàng {$hoaDon->MAHD} không thể chuyển tiếp.")->with('loai', 'danger');
         }
 
@@ -107,9 +107,9 @@ class DonHangController extends Controller
     /**
      * Huỷ đơn còn ở bước chờ / đã xác nhận.
      */
-    public function huy(HoaDon $hoaDon): RedirectResponse
+    public function huy(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->huy()) {
+        if (! $hoaDon->huy($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn hàng {$hoaDon->MAHD} không thể hủy ở trạng thái hiện tại.")->with('loai', 'danger');
         }
 

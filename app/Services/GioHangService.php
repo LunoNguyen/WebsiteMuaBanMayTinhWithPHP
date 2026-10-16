@@ -33,7 +33,7 @@ class GioHangService
     public function dong(TaiKhoan $taiKhoan): Collection
     {
         return $this->gioHang($taiKhoan)->chiTiets()
-            ->with(['sanPham.moTa', 'sanPham.nhaSanXuat', 'sanPham.anhs' => fn ($q) => $q->where('LA_ANH_CHINH', true)])
+            ->with(['sanPham' => fn ($q) => $q->coSoLuongDangGiu(), 'sanPham.moTa', 'sanPham.nhaSanXuat', 'sanPham.anhs' => fn ($q) => $q->where('LA_ANH_CHINH', true)])
             ->orderBy('MACTGH')
             ->get();
     }
@@ -103,16 +103,16 @@ class GioHangService
 
     private function kiemTraDangBan(SanPham $sanPham): void
     {
-        if ($sanPham->TRANGTHAI !== 'DangBan' || $sanPham->SOLUONGTON < 1) {
+        if ($sanPham->TRANGTHAI !== 'DangBan' || $sanPham->soLuongCoTheBan() < 1) {
             throw ValidationException::withMessages(['so_luong' => "{$sanPham->TENSP} hiện đã hết hàng."]);
         }
     }
 
     private function kiemTraTonKho(SanPham $sanPham, int $soLuong): void
     {
-        if ($soLuong > $sanPham->SOLUONGTON) {
+        if ($soLuong > $sanPham->soLuongCoTheBan()) {
             throw ValidationException::withMessages([
-                'so_luong' => "Chỉ còn {$sanPham->SOLUONGTON} sản phẩm {$sanPham->TENSP} trong kho.",
+                'so_luong' => "Chỉ còn {$sanPham->soLuongCoTheBan()} sản phẩm {$sanPham->TENSP} trong kho.",
             ]);
         }
     }

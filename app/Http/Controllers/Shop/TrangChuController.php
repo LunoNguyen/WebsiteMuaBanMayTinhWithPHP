@@ -17,7 +17,7 @@ class TrangChuController extends Controller
      */
     public function index(KhuyenMaiService $khuyenMai): View
     {
-        $sanPham = fn (): Builder => SanPham::query()->dangBan()->with(['moTa', 'nhaSanXuat', 'anhs']);
+        $sanPham = fn (): Builder => SanPham::query()->dangBan()->coSoLuongDangGiu()->with(['moTa', 'nhaSanXuat', 'anhs']);
 
         $banChay = $sanPham()
             ->withSum(['chiTietHoaDons as da_ban' => fn ($q) => $q->whereHas('hoaDon', fn ($h) => $h->whereIn('TRANGTHAI', ['DaGiao', 'HoanThanh']))], 'SOLUONG')

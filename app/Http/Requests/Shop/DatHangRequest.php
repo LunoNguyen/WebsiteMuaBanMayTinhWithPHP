@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Shop;
 
+use App\Models\ThanhToan;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DatHangRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class DatHangRequest extends FormRequest
             'SDT_NGUOINHAN' => ['required', 'string', 'regex:/^[0-9 +.]{9,15}$/'],
             'PHUONG_THUC_GH' => ['required', 'in:GiaoHang,TaiQuay'],
             'DIACHI_GIAOHANG' => ['required_if:PHUONG_THUC_GH,GiaoHang', 'nullable', 'string', 'max:300'],
-            'PHUONG_THUC' => ['required', 'in:COD,ChuyenKhoan,QR'],
+            'PHUONG_THUC' => ['required', Rule::in(ThanhToan::phuongThucHopLe($this->input('PHUONG_THUC_GH')))],
             'GHI_CHU' => ['nullable', 'string', 'max:500'],
             // Mã do form thanh toán sinh ra; gửi lại cùng mã (bấm hai lần, tải lại trang) không tạo đơn thứ hai
             'ma_yeu_cau' => ['nullable', 'uuid'],
@@ -42,7 +44,7 @@ class DatHangRequest extends FormRequest
             'SDT_NGUOINHAN.required' => 'Vui lòng nhập số điện thoại.',
             'SDT_NGUOINHAN.regex' => 'Số điện thoại không hợp lệ.',
             'DIACHI_GIAOHANG.required_if' => 'Vui lòng nhập địa chỉ giao hàng.',
-            'PHUONG_THUC.in' => 'Phương thức thanh toán không hợp lệ.',
+            'PHUONG_THUC.in' => 'Phương thức thanh toán không hợp với hình thức nhận hàng (COD chỉ dùng khi giao tận nơi, thanh toán tại cửa hàng khi nhận tại cửa hàng).',
         ];
     }
 }

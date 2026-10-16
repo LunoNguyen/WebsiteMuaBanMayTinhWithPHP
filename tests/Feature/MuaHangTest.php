@@ -121,7 +121,7 @@ class MuaHangTest extends TestCase
 
         $this->assertSame(1000000.0, (float) $hd->TONGTIEN_GIAM); // 10% của 56tr, giới hạn 1tr
         $this->assertSame(55000000.0, (float) $hd->TONGTIEN_HD);
-        $this->assertSame($ton - 2, (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON);
+        $this->assertSame($ton, (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON, 'Chưa xuất kho thì chưa trừ tồn');
         $this->assertSame(1, (int) $km->refresh()->DA_SUDUNG);
         $this->assertDatabaseHas('THANHTOAN', ['MAHD' => $hd->MAHD, 'PHUONG_THUC' => 'ChuyenKhoan', 'TRANGTHAI' => 'ChoThanhToan']);
 
@@ -137,26 +137,30 @@ class MuaHangTest extends TestCase
         $this->post('/gio-hang-ma-giam-gia', ['ma_code' => 'KHAITUONG10'])->assertSessionHasErrors('ma_code');
     }
 
-    public function test_huy_don_hoan_lai_ton_kho_va_khong_xem_don_nguoi_khac(): void
+    public function test_huy_don_nha_hang_dang_giu_va_khong_xem_don_nguoi_khac(): void
     {
-        $ton = (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON;
+        $sp = SanPham::query()->findOrFail('SP001');
+        $ton = (int) $sp->SOLUONGTON;
+        $conBan = $sp->soLuongCoTheBan();
 
         $this->actingAs($this->khach)->post('/gio-hang/SP001', ['so_luong' => 3]);
         $this->post('/thanh-toan', [
             'TEN_NGUOINHAN' => 'Khách',
             'SDT_NGUOINHAN' => '0901234567',
             'PHUONG_THUC_GH' => 'TaiQuay',
-            'PHUONG_THUC' => 'COD',
+            'PHUONG_THUC' => 'TienMat',
         ])->assertSessionHasNoErrors();
 
         $hd = HoaDon::query()->where('MATK', $this->khach->MATK)->latest('NGAYLAP')->latest('MAHD')->firstOrFail();
-        $this->assertSame($ton - 3, (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON);
+        $this->assertSame($ton, (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON);
+        $this->assertSame($conBan - 3, SanPham::query()->findOrFail('SP001')->soLuongCoTheBan());
 
         $this->actingAs($this->taiKhoan('TK_KH002'))->get("/don-hang-cua-toi/{$hd->MAHD}")->assertNotFound();
 
         $this->actingAs($this->khach)->patch("/don-hang-cua-toi/{$hd->MAHD}/huy");
         $this->assertSame('DaHuy', $hd->refresh()->TRANGTHAI);
         $this->assertSame($ton, (int) SanPham::query()->findOrFail('SP001')->SOLUONGTON);
+        $this->assertSame($conBan, SanPham::query()->findOrFail('SP001')->soLuongCoTheBan());
     }
 
     public function test_thanh_toan_giao_tan_noi_bat_buoc_dia_chi(): void

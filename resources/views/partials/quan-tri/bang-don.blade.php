@@ -5,7 +5,7 @@
           $rong (câu khi danh sách rỗng), $coLoc (đang lọc hay không).
 --}}
 @php
-    $ptTT = ['COD' => 'COD', 'ChuyenKhoan' => 'Chuyển khoản', 'QR' => 'QR', 'TienMat' => 'Tiền mặt'];
+    $ptTT = ['COD' => 'COD', 'ChuyenKhoan' => 'Chuyển khoản', 'QR' => 'QR', 'TienMat' => 'Tại cửa hàng'];
     $bayGio = now();
 @endphp
 @if (empty($donhang))

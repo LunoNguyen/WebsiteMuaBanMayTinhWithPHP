@@ -37,6 +37,7 @@ class SanPhamController extends Controller
 
         $sanPham = SanPham::query()
             ->dangBan()
+            ->coSoLuongDangGiu()
             ->with(['moTa', 'nhaSanXuat', 'anhs'])
             ->when($tuKhoa !== '', fn ($q) => $q->where(fn ($w) => $w
                 ->where('TENSP', 'like', "%{$tuKhoa}%")
@@ -79,7 +80,7 @@ class SanPhamController extends Controller
 
         return view('shop.chi-tiet', [
             'sp' => $sanPham,
-            'lienQuan' => SanPham::query()->dangBan()->with(['moTa', 'nhaSanXuat', 'anhs'])
+            'lienQuan' => SanPham::query()->dangBan()->coSoLuongDangGiu()->with(['moTa', 'nhaSanXuat', 'anhs'])
                 ->where('MALOAI', $sanPham->MALOAI)->whereKeyNot($sanPham->MASP)
                 ->orderByDesc('NGAYTHEM')->limit(5)->get(),
         ]);

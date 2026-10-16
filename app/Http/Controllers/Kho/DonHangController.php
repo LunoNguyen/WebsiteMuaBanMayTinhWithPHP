@@ -44,13 +44,13 @@ class DonHangController extends Controller
     /**
      * Xuất kho và bàn giao vận chuyển: đơn đã xác nhận chuyển sang đang giao.
      */
-    public function xuatKho(HoaDon $hoaDon): RedirectResponse
+    public function xuatKho(Request $request, HoaDon $hoaDon): RedirectResponse
     {
         if ($hoaDon->TRANGTHAI !== 'DaXacNhan') {
             return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không ở trạng thái chờ xuất kho.");
         }
 
-        $hoaDon->chuyenBuocTiepTheo();
+        $hoaDon->chuyenBuocTiepTheo($request->user()->MANV);
 
         return back()->with('thong_bao', "Đã xuất kho & bàn giao vận chuyển đơn {$hoaDon->MAHD}!");
     }

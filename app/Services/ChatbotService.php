@@ -313,13 +313,27 @@ PROMPT;
         $lines = [];
         foreach ($sanPhams as $sp) {
             $cauHinh = [];
-            if ($sp->moTa?->CPU) $cauHinh[] = 'CPU: ' . $sp->moTa->CPU;
-            if ($sp->moTa?->RAM) $cauHinh[] = 'RAM: ' . $sp->moTa->RAM;
-            if ($sp->moTa?->ROM) $cauHinh[] = 'Ổ cứng: ' . $sp->moTa->ROM;
-            if ($sp->moTa?->VGA) $cauHinh[] = 'Card: ' . $sp->moTa->VGA;
-            if ($sp->moTa?->MANHINH) $cauHinh[] = 'Màn hình: ' . $sp->moTa->MANHINH;
-            if ($sp->moTa?->PIN) $cauHinh[] = 'Pin: ' . $sp->moTa->PIN;
-            if ($sp->moTa?->KHAC) $cauHinh[] = 'Đặc điểm: ' . $sp->moTa->KHAC;
+            if ($sp->moTa?->CPU) {
+                $cauHinh[] = 'CPU: '.$sp->moTa->CPU;
+            }
+            if ($sp->moTa?->RAM) {
+                $cauHinh[] = 'RAM: '.$sp->moTa->RAM;
+            }
+            if ($sp->moTa?->ROM) {
+                $cauHinh[] = 'Ổ cứng: '.$sp->moTa->ROM;
+            }
+            if ($sp->moTa?->VGA) {
+                $cauHinh[] = 'Card: '.$sp->moTa->VGA;
+            }
+            if ($sp->moTa?->MANHINH) {
+                $cauHinh[] = 'Màn hình: '.$sp->moTa->MANHINH;
+            }
+            if ($sp->moTa?->PIN) {
+                $cauHinh[] = 'Pin: '.$sp->moTa->PIN;
+            }
+            if ($sp->moTa?->KHAC) {
+                $cauHinh[] = 'Đặc điểm: '.$sp->moTa->KHAC;
+            }
 
             $cauHinhStr = $cauHinh !== [] ? implode(', ', $cauHinh) : 'Tiêu chuẩn';
 
@@ -330,7 +344,7 @@ PROMPT;
                 $sp->loaiSanPham?->TENLOAI ?? 'Khác',
                 $sp->nhaSanXuat?->TENNSX ?? 'Chính hãng',
                 formatVND($sp->DONGIA_SP),
-                $sp->SOLUONGTON,
+                $sp->soLuongCoTheBan(),
                 $cauHinhStr,
                 route('sanpham.show', $sp->MASP)
             );
@@ -379,6 +393,7 @@ PROMPT;
         }
 
         $trangThai = self::TRANG_THAI_DON[$don->TRANGTHAI] ?? $don->TRANGTHAI;
+
         return sprintf(
             'Khách hàng %s (Email: %s) có đơn hàng gần nhất: %s, ngày đặt: %s, tổng tiền: %s, trạng thái: %s.',
             $taiKhoan->khachHang?->TENKH ?? 'Khách hàng',
@@ -412,7 +427,7 @@ PROMPT;
 
             return $tra($don === null
                 ? 'Dạ tài khoản của anh/chị hiện chưa có đơn hàng nào tại NEXUS ạ.'
-                : "Đơn hàng gần nhất của anh/chị là **{$don->MAHD}** (".formatVND($don->TONGTIEN_HD)."), hiện ".(self::TRANG_THAI_DON[$don->TRANGTHAI] ?? $don->TRANGTHAI).'.');
+                : "Đơn hàng gần nhất của anh/chị là **{$don->MAHD}** (".formatVND($don->TONGTIEN_HD).'), hiện '.(self::TRANG_THAI_DON[$don->TRANGTHAI] ?? $don->TRANGTHAI).'.');
         }
 
         if (preg_match('/(voucher|ma giam|khuyen mai|giam gia|uu dai|coupon)/', $cau)) {
@@ -439,6 +454,7 @@ PROMPT;
         $sanPham = $this->timSanPham($cau);
         if ($sanPham !== []) {
             $tenCacSp = collect($sanPham)->map(fn ($sp) => "[{$sp['ten']}]({$sp['url']}) - giá **{$sp['gia']}**")->implode("\n- ");
+
             return $tra("Dạ em tìm thấy các mẫu máy rất phù hợp với nhu cầu của anh/chị tại NEXUS:\n- {$tenCacSp}\n\nAnh/chị bấm vào link hoặc thẻ sản phẩm bên dưới để xem chi tiết cấu hình nhé!", $sanPham);
         }
 

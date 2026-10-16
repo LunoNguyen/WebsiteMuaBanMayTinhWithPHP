@@ -55,7 +55,7 @@
               @foreach ($dtPT as $pt) @php $color = $ptColors[$pt['PHUONG_THUC']] ?? '#4b5563'; @endphp
               <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
                 <div style="width:10px;height:10px;background:{{ $color }};border-radius:2px;flex-shrink:0"></div>
-                <span style="font-size:13px"><span style="display:inline-flex;vertical-align:-2px">{!! icon('wallet', 13) !!}</span> {{ $pt['PHUONG_THUC'] }}</span>
+                <span style="font-size:13px"><span style="display:inline-flex;vertical-align:-2px">{!! icon('wallet', 13) !!}</span> {{ \App\Http\Controllers\Shop\ThanhToanController::PHUONG_THUC[$pt['PHUONG_THUC']] ?? $pt['PHUONG_THUC'] }}</span>
                 <span style="margin-left:auto;font-size:13px;font-weight:700;color:var(--text-primary)">{{ formatVND($pt['tong']) }}</span>
                 <span style="font-size:11px;color:var(--text-muted)">{{ $pt['so_gd'] }} GD</span>
               </div>

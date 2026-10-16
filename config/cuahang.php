@@ -54,4 +54,20 @@ return [
         'cache_giay' => (int) env('DIA_CHI_CACHE_GIAY', 60 * 60 * 24 * 7),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Vị trí cửa hàng
+    |--------------------------------------------------------------------------
+    |
+    | Hiện ở footer: địa chỉ, bản đồ Google Maps nhúng (không cần API key) và
+    | link chỉ đường. "ban_do" là chuỗi tìm kiếm gửi cho Google Maps.
+    |
+    */
+
+    'vi_tri' => [
+        'ten' => env('CUAHANG_TEN_DIA_DIEM', 'Trường Đại học Công Thương TP.HCM'),
+        'dia_chi' => env('CUAHANG_DIA_CHI', '140 Lê Trọng Tấn, Phường Tây Thạnh, Thành phố Hồ Chí Minh'),
+        'ban_do' => env('CUAHANG_BAN_DO', 'Trường Đại học Công Thương TP.HCM, 140 Lê Trọng Tấn, Tây Thạnh, Hồ Chí Minh'),
+    ],
+
 ];

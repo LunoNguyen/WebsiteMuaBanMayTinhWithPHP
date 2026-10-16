@@ -38,9 +38,9 @@ class DonHangController extends Controller
     /**
      * Ghi nhận đơn đã thanh toán (khách chuyển khoản / trả tại quầy).
      */
-    public function thanhToan(HoaDon $hoaDon): RedirectResponse
+    public function thanhToan(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->xacNhanThanhToan()) {
+        if (! $hoaDon->xacNhanThanhToan($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không có khoản chờ thanh toán.")->with('loai', 'info');
         }
 
@@ -50,9 +50,9 @@ class DonHangController extends Controller
     /**
      * Chuyển đơn sang bước kế tiếp của quy trình.
      */
-    public function buocTiepTheo(HoaDon $hoaDon): RedirectResponse
+    public function buocTiepTheo(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->chuyenBuocTiepTheo()) {
+        if (! $hoaDon->chuyenBuocTiepTheo($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không thể chuyển tiếp.")->with('loai', 'info');
         }
 
@@ -62,9 +62,9 @@ class DonHangController extends Controller
     /**
      * Huỷ đơn còn ở bước chờ / đã xác nhận.
      */
-    public function huy(HoaDon $hoaDon): RedirectResponse
+    public function huy(Request $request, HoaDon $hoaDon): RedirectResponse
     {
-        if (! $hoaDon->huy()) {
+        if (! $hoaDon->huy($request->user()->MANV)) {
             return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không thể hủy ở trạng thái hiện tại.")->with('loai', 'info');
         }
 

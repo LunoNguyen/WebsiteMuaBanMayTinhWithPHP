@@ -94,46 +94,53 @@ class KhuyenMaiTonKhoTest extends TestCase
         $this->assertSame(2000000.0, (float) $hd->TONGTIEN_GIAM, '50% của 56tr bị chặn ở mức tối đa 2tr');
     }
 
-    public function test_dat_hang_tru_ton_kho_va_khong_dat_qua_ton(): void
+    public function test_dat_hang_chi_giu_hang_va_khong_dat_qua_so_con_ban(): void
     {
-        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 3, 'TRANGTHAI' => 'DangBan']);
+        // Phần đã giữ cho các đơn chưa xuất kho có sẵn trong dữ liệu mẫu (HD014 giữ 1 SP003)
+        $dangGiu = SanPham::query()->findOrFail('SP003')->soLuongDangGiu();
+        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => $dangGiu + 3, 'TRANGTHAI' => 'DangBan']);
 
         $this->post('/gio-hang/SP003', ['so_luong' => 4])->assertSessionHasErrors('so_luong');
         $this->post('/gio-hang/SP003', ['so_luong' => 3])->assertSessionHasNoErrors();
 
-        // Trong lúc khách chần chừ, tồn kho bị bán bớt: đặt hàng phải bị chặn, không trừ âm
-        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 2]);
+        // Trong lúc khách chần chừ, hàng bị bán bớt: đặt hàng phải bị chặn
+        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => $dangGiu + 2]);
         $this->post('/thanh-toan', $this->thongTin())->assertSessionHasErrors('gio_hang');
-        $this->assertSame(2, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON);
 
-        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 3]);
+        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => $dangGiu + 3]);
         $this->post('/thanh-toan', $this->thongTin())->assertSessionHasNoErrors();
 
+        // Đơn chưa xuất kho: tồn kho thực tế giữ nguyên, nhưng khách không đặt thêm được
         $sp = SanPham::query()->findOrFail('SP003');
-        $this->assertSame(0, (int) $sp->SOLUONGTON);
-        $this->assertSame('HetHang', $sp->TRANGTHAI);
+        $this->assertSame($dangGiu + 3, (int) $sp->SOLUONGTON);
+        $this->assertSame(0, $sp->soLuongCoTheBan());
+        $this->assertFalse($sp->conHang());
+        $this->assertSame('DangBan', $sp->TRANGTHAI);
     }
 
     public function test_tao_don_tai_quay_tru_kho_va_ap_luat_ma(): void
     {
         $this->ma('QUAY', ['LOAI_KM' => 'SoTienCoDinh', 'GIATRI_KM' => 300000, 'SOTIENTOIDA_KM' => 300000]);
-        $ton = (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON;
+        $sp = SanPham::query()->findOrFail('SP003');
+        $ton = (int) $sp->SOLUONGTON;
+        $conBan = $sp->soLuongCoTheBan();
         $this->actingAs($this->taiKhoan('TK_ADMIN1'));
 
         $don = fn (int $soLuong) => $this->post('/admin/don-hang', [
             'MAKH' => 'KH001', 'TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567',
-            'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'COD', 'MA_CODE' => 'quay',
+            'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'TienMat', 'MA_CODE' => 'quay',
             'san_pham' => [['MASP' => 'SP003', 'SOLUONG' => $soLuong]],
         ]);
 
-        $don($ton + 1)->assertSessionHasErrors('san_pham');
+        $don($conBan + 1)->assertSessionHasErrors('san_pham');
         $don(2)->assertSessionHasNoErrors();
 
         $hd = HoaDon::query()->where('MANV', 'NV001')->latest('NGAYLAP')->latest('MAHD')->firstOrFail();
         $this->assertSame('DaXacNhan', $hd->TRANGTHAI);
         $this->assertSame('KH001', $hd->MAKH);
         $this->assertSame(300000.0, (float) $hd->TONGTIEN_GIAM);
-        $this->assertSame($ton - 2, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON);
+        $this->assertSame($ton, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON, 'Chưa xuất kho thì chưa trừ tồn');
+        $this->assertSame($conBan - 2, SanPham::query()->findOrFail('SP003')->soLuongCoTheBan());
 
         // KH001 đã dùng mã QUAY tại quầy thì đặt online cũng không dùng lại được
         $this->actingAs($this->khach)->post('/gio-hang/SP003');
@@ -172,6 +179,6 @@ class KhuyenMaiTonKhoTest extends TestCase
      */
     private function thongTin(): array
     {
-        return ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'COD'];
+        return ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'TienMat'];
     }
 }

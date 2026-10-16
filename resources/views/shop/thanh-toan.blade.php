@@ -54,9 +54,13 @@
             <section class="s-card s-panel">
                 <h2>Phương thức thanh toán</h2>
                 <p>Với chuyển khoản / QR, thông tin tài khoản hiện ở trang đơn hàng sau khi đặt.</p>
+                @php($anPhuongThuc = $giaoHang === 'TaiQuay' ? 'COD' : 'TienMat')
+                @php($chonPhuongThuc = old('PHUONG_THUC', $giaoHang === 'TaiQuay' ? 'TienMat' : 'COD'))
                 <div class="s-choice">
                     @foreach ($phuongThuc as $ma => $nhan)
-                        <label><input type="radio" name="PHUONG_THUC" value="{{ $ma }}" @checked(old('PHUONG_THUC', 'COD') === $ma)> <span>{{ $nhan }}</span></label>
+                        <label data-pt="{{ $ma }}" @if ($ma === $anPhuongThuc) hidden @endif>
+                            <input type="radio" name="PHUONG_THUC" value="{{ $ma }}" @checked($chonPhuongThuc === $ma) @disabled($ma === $anPhuongThuc)> <span>{{ $nhan }}</span>
+                        </label>
                     @endforeach
                 </div>
                 @error('PHUONG_THUC') <div class="s-err">{{ $message }}</div> @enderror
@@ -100,7 +104,8 @@
             nut.textContent = 'Đang gửi đơn...';
         });
 
-        // Nhận tại cửa hàng thì ẩn ô địa chỉ và bỏ bắt buộc (ô ẩn mà vẫn bắt buộc thì trình duyệt chặn gửi form)
+        // Nhận tại cửa hàng thì ẩn ô địa chỉ và bỏ bắt buộc (ô ẩn mà vẫn bắt buộc thì trình duyệt chặn gửi form),
+        // và đổi COD thành "Thanh toán tại cửa hàng"
         var oDiaChi = document.querySelector('[data-o-dia-chi]');
         function capNhatDiaChi() {
             var tanNoi = document.querySelector('[data-giao-hang]:checked').value === 'GiaoHang';
@@ -108,6 +113,14 @@
             oDiaChi.querySelectorAll('.dc-input, [data-dia-chi-duong]').forEach(function (o) {
                 o.required = tanNoi && !o.closest('[hidden]');
             });
+            var an = tanNoi ? 'TienMat' : 'COD';
+            var thay = tanNoi ? 'COD' : 'TienMat';
+            document.querySelectorAll('[data-pt]').forEach(function (nhan) {
+                var o = nhan.querySelector('input');
+                nhan.hidden = o.disabled = nhan.dataset.pt === an;
+            });
+            var dangChon = document.querySelector('input[name=PHUONG_THUC]:checked');
+            if (!dangChon || dangChon.value === an) document.querySelector('[data-pt="' + thay + '"] input').checked = true;
         }
         document.querySelectorAll('[data-giao-hang]').forEach(function (r) { r.addEventListener('change', capNhatDiaChi); });
         capNhatDiaChi();

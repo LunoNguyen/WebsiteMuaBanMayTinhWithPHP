@@ -67,7 +67,15 @@
                         @if ($hd->DIACHI_GIAOHANG)<dt>Địa chỉ</dt><dd>{{ $hd->DIACHI_GIAOHANG }}</dd>@endif
                         @if ($hd->GHI_CHU)<dt>Ghi chú</dt><dd>{{ $hd->GHI_CHU }}</dd>@endif
                         <dt>Ngày đặt</dt><dd>{{ $hd->NGAYLAP?->format('d/m/Y H:i') }}</dd>
-                        <dt>Nhân viên</dt><dd>{{ $hd->nhanVien?->TENNV ?? ($hd->MATK ? 'Khách tự đặt online' : '—') }}</dd>
+                        <dt>Nhân viên xử lý</dt>
+                        <dd>
+                            @if ($hd->nhanVien)
+                                {{ $hd->nhanVien->TENNV }}
+                                <span class="ct-sub">{{ $hd->nhanVien->MANV }}@if ($hd->nhanVien->SDT_NV) · <a href="tel:{{ preg_replace('/[^0-9+]/', '', $hd->nhanVien->SDT_NV) }}">{{ $hd->nhanVien->SDT_NV }}</a>@endif</span>
+                            @else
+                                {{ $hd->MATK ? 'Chưa có nhân viên nhận đơn' : '—' }}
+                            @endif
+                        </dd>
                     </dl>
                 </div>
             </section>

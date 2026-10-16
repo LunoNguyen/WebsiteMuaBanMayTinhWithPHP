@@ -73,7 +73,12 @@
                                 <td>{{ $sp['TENLOAI'] ?? '—' }}</td>
                                 <td>{{ $sp['TENNSX'] ?? '—' }}</td>
                                 <td class="num"><strong>{{ formatVND($sp['DONGIA_SP']) }}</strong></td>
-                                <td class="num" @if ($ton <= 5) style="color:var(--red);font-weight:700" @elseif ($ton <= 20) style="color:var(--orange);font-weight:700" @endif>{{ formatNum($ton) }}</td>
+                                <td class="num">
+                                    <span @if ($ton <= 5) style="color:var(--red);font-weight:700" @elseif ($ton <= 20) style="color:var(--orange);font-weight:700" @endif>{{ formatNum($ton) }}</span>
+                                    @if ((int) $sp['dang_giu'] > 0)
+                                        <span class="qt-sub" title="Đã đặt nhưng chưa xuất kho">giữ {{ formatNum($sp['dang_giu']) }} cho đơn</span>
+                                    @endif
+                                </td>
                                 <td><span class="badge-tt" style="--c:{{ $mau }}">{{ $nhan }}</span></td>
                                 <td>{{ date('d/m/Y', strtotime($sp['NGAYTHEM'])) }}</td>
                                 <td>

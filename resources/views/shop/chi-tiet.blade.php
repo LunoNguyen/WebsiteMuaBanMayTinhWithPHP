@@ -48,7 +48,7 @@
             <div class="s-meta">
                 <span>Mã: <strong>{{ $sp->MASP }}</strong></span>
                 <span>Thương hiệu: <strong>{{ $sp->nhaSanXuat?->TENNSX }}</strong></span>
-                <span data-sp-ton>{{ $sp->conHang() ? 'Còn '.formatNum($sp->SOLUONGTON).' sản phẩm' : 'Tạm hết hàng' }}</span>
+                <span data-sp-ton>{{ $sp->conHang() ? 'Còn '.formatNum($sp->soLuongCoTheBan()).' sản phẩm' : 'Tạm hết hàng' }}</span>
             </div>
 
             <div class="s-big-price" data-sp-gia>{{ formatVND($sp->DONGIA_SP) }}</div>
@@ -67,7 +67,7 @@
                     @csrf
                     <div class="s-qty" data-qty>
                         <button type="button" data-minus aria-label="Bớt">−</button>
-                        <input type="number" name="so_luong" value="1" min="1" max="{{ max(1, min(99, $sp->SOLUONGTON)) }}" aria-label="Số lượng" data-sp-so-luong>
+                        <input type="number" name="so_luong" value="1" min="1" max="{{ max(1, min(99, $sp->soLuongCoTheBan())) }}" aria-label="Số lượng" data-sp-so-luong>
                         <button type="button" data-plus aria-label="Thêm">+</button>
                     </div>
                     <button type="submit" class="btn btn-outline btn-lg">{!! icon('cart', 18) !!} Thêm vào giỏ</button>

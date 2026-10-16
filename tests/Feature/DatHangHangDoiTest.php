@@ -60,7 +60,7 @@ class DatHangHangDoiTest extends TestCase
     public function test_gui_trung_ma_yeu_cau_chi_tao_mot_don(): void
     {
         $ma = (string) Str::uuid();
-        $ton = (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON;
+        $conBan = SanPham::query()->findOrFail('SP003')->soLuongCoTheBan();
         $soDon = HoaDon::query()->where('MATK', 'TK_KH001')->count();
 
         $this->post('/gio-hang/SP003', ['so_luong' => 1]);
@@ -71,7 +71,7 @@ class DatHangHangDoiTest extends TestCase
         $this->post('/thanh-toan', [...$this->thongTin(), 'ma_yeu_cau' => $ma])->assertRedirect();
 
         $this->assertSame($soDon + 1, HoaDon::query()->where('MATK', 'TK_KH001')->count());
-        $this->assertSame($ton - 1, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON);
+        $this->assertSame($conBan - 1, SanPham::query()->findOrFail('SP003')->soLuongCoTheBan(), 'Chỉ giữ hàng cho một đơn');
     }
 
     public function test_don_dung_voi_gio_luc_bam_dat_hang_hang_them_sau_van_o_lai_gio(): void
@@ -104,18 +104,20 @@ class DatHangHangDoiTest extends TestCase
         $this->coWorker();
         Queue::fake();
         $ma = (string) Str::uuid();
-        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 2, 'TRANGTHAI' => 'DangBan']);
+        $dangGiu = SanPham::query()->findOrFail('SP003')->soLuongDangGiu();
+        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => $dangGiu + 2, 'TRANGTHAI' => 'DangBan']);
 
         $this->post('/gio-hang/SP003', ['so_luong' => 2]);
         $this->post('/gio-hang-ma-giam-gia', ['ma_code' => 'GIUMA']);
         $this->post('/thanh-toan', [...$this->thongTin(), 'ma_yeu_cau' => $ma]);
 
         // Người khác mua mất trước khi worker tới lượt đơn này
-        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => 1]);
+        SanPham::query()->whereKey('SP003')->update(['SOLUONGTON' => $dangGiu + 1]);
         $this->chayWorker();
 
         $this->get("/thanh-toan/ket-qua/{$ma}")->assertRedirect('/gio-hang')->assertSessionHasErrors('gio_hang');
-        $this->assertSame(1, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON, 'Không trừ kho khi đơn lỗi');
+        $this->assertSame($dangGiu + 1, (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON, 'Không đổi tồn kho khi đơn lỗi');
+        $this->assertSame(1, SanPham::query()->findOrFail('SP003')->soLuongCoTheBan(), 'Đơn lỗi không giữ hàng');
         $this->assertSame('GIUMA', session('ma_giam_gia'), 'Đơn lỗi thì khách vẫn giữ mã giảm giá');
         $this->assertSame(0, (int) KhuyenMai::query()->findOrFail('TGIU')->DA_SUDUNG);
     }
@@ -187,6 +189,6 @@ class DatHangHangDoiTest extends TestCase
      */
     private function thongTin(): array
     {
-        return ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'COD'];
+        return ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'TienMat'];
     }
 }

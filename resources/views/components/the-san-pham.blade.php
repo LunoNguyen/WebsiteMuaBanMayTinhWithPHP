@@ -19,7 +19,7 @@
         </div>
     @endif
     <div class="p-price" data-sp-gia>{{ formatVND($sp->DONGIA_SP) }}</div>
-    <div @class(['p-stock', 'out' => ! $conHang]) data-sp-ton>{{ $conHang ? 'Còn '.formatNum($sp->SOLUONGTON).' sản phẩm' : 'Tạm hết hàng' }}</div>
+    <div @class(['p-stock', 'out' => ! $conHang]) data-sp-ton>{{ $conHang ? 'Còn '.formatNum($sp->soLuongCoTheBan()).' sản phẩm' : 'Tạm hết hàng' }}</div>
 
     {{-- Cả hai nút đều có sẵn, realtime bật / tắt khi tồn kho đổi --}}
     <button type="button" class="btn btn-outline btn-sm btn-block p-cta" disabled data-sp-het @if ($conHang) hidden @endif>Tạm hết hàng</button>

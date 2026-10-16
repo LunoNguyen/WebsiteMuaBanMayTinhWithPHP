@@ -32,7 +32,7 @@ class DonHangController extends Controller
     {
         abort_unless($hoaDon->MATK === $request->user()->MATK, 404);
 
-        $hoaDon->load(['chiTiets.sanPham.anhs', 'chiTiets.sanPham.nhaSanXuat', 'thanhToan']);
+        $hoaDon->load(['chiTiets.sanPham.anhs', 'chiTiets.sanPham.nhaSanXuat', 'thanhToan', 'nhanVien:MANV,TENNV,SDT_NV']);
 
         return view('shop.chi-tiet-don', ['hd' => $hoaDon]);
     }
@@ -40,9 +40,10 @@ class DonHangController extends Controller
     /**
      * KhÃ¡ch tá»± huá»· Ä‘Æ¡n khi Ä‘Æ¡n cÃ²n chá» xÃ¡c nháº­n.
      */
-    public function inHoaDon(Request $request, HoaDon $hoaDon): \Illuminate\View\View
+    public function inHoaDon(Request $request, HoaDon $hoaDon): View
     {
         abort_unless($hoaDon->MATK === $request->user()->MATK, 404);
+
         return view('banhang.in-hoa-don', ['hd' => $hoaDon->napChiTiet()]);
     }
 
@@ -57,4 +58,3 @@ class DonHangController extends Controller
         return back()->with('thong_bao', "ÄÃ£ huá»· Ä‘Æ¡n {$hoaDon->MAHD}.");
     }
 }
-

@@ -40,11 +40,57 @@ class SanPham extends Model
     }
 
     /**
-     * Còn bán và còn hàng.
+     * Đơn chưa xuất kho: hàng vẫn nằm trong kho (chưa trừ SOLUONGTON) nhưng đã được giữ cho khách.
+     *
+     * @var list<string>
+     */
+    public const GIU_HANG = ['ChoXacNhan', 'DaXacNhan'];
+
+    /**
+     * Số lượng đang giữ đã tính (không lưu vào attributes để save() không ghi cột không có thật).
+     */
+    private ?int $soLuongDangGiu = null;
+
+    /**
+     * Còn bán và còn hàng để bán (trừ phần đang giữ cho đơn chưa xuất kho).
      */
     public function conHang(): bool
     {
-        return $this->TRANGTHAI === 'DangBan' && $this->SOLUONGTON > 0;
+        return $this->TRANGTHAI === 'DangBan' && $this->soLuongCoTheBan() > 0;
+    }
+
+    /**
+     * Số lượng đang giữ cho các đơn chưa xuất kho. Dùng giá trị nạp sẵn (scope coSoLuongDangGiu) nếu có.
+     */
+    public function soLuongDangGiu(): int
+    {
+        if (array_key_exists('so_luong_dang_giu', $this->attributes)) {
+            return (int) $this->attributes['so_luong_dang_giu'];
+        }
+
+        return $this->soLuongDangGiu ??= (int) $this->chiTietHoaDons()
+            ->whereHas('hoaDon', fn (Builder $q) => $q->whereIn('TRANGTHAI', self::GIU_HANG))
+            ->sum('SOLUONG');
+    }
+
+    /**
+     * Số lượng khách còn đặt được: tồn kho thực tế trừ phần đang giữ.
+     */
+    public function soLuongCoTheBan(): int
+    {
+        return max(0, (int) $this->SOLUONGTON - $this->soLuongDangGiu());
+    }
+
+    /**
+     * Nạp sẵn số lượng đang giữ (so_luong_dang_giu) để danh sách không phải truy vấn từng sản phẩm.
+     *
+     * @param  Builder<SanPham>  $query
+     */
+    #[Scope]
+    protected function coSoLuongDangGiu(Builder $query): void
+    {
+        $query->withSum(['chiTietHoaDons as so_luong_dang_giu' => fn (Builder $q) => $q
+            ->whereHas('hoaDon', fn (Builder $h) => $h->whereIn('TRANGTHAI', self::GIU_HANG))], 'SOLUONG');
     }
 
     /**

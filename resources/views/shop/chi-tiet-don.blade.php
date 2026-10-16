@@ -5,7 +5,7 @@
     $viTri = array_search($hd->TRANGTHAI, array_keys($buoc), true);
     $tt = $hd->thanhToan;
     $nh = config('cuahang.ngan_hang');
-    $canChuyenKhoan = $tt && $tt->PHUONG_THUC !== 'COD' && $tt->TRANGTHAI === 'ChoThanhToan' && $hd->TRANGTHAI !== 'DaHuy';
+    $canChuyenKhoan = $tt && in_array($tt->PHUONG_THUC, ['ChuyenKhoan', 'QR'], true) && $tt->TRANGTHAI === 'ChoThanhToan' && $hd->TRANGTHAI !== 'DaHuy';
 @endphp
 
 @section('content')
@@ -82,6 +82,9 @@
                         @endif
                         @if ($hd->GHI_CHU)
                             <div>{!! icon('message', 16) !!} {{ $hd->GHI_CHU }}</div>
+                        @endif
+                        @if ($hd->nhanVien)
+                            <div>{!! icon('user', 16) !!} Nhân viên phụ trách: <strong>{{ $hd->nhanVien->TENNV }}</strong> ({{ $hd->nhanVien->MANV }})@if ($hd->nhanVien->SDT_NV) · <a href="tel:{{ preg_replace('/[^0-9+]/', '', $hd->nhanVien->SDT_NV) }}">{{ $hd->nhanVien->SDT_NV }}</a>@endif</div>
                         @endif
                     </div>
                 </section>

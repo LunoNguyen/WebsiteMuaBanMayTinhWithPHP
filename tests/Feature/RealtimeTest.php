@@ -22,7 +22,7 @@ class RealtimeTest extends TestCase
         GioHang::query()->where('MATK', 'TK_KH001')->where('TRANGTHAI', 'DangMua')->delete();
 
         $this->actingAs($khach)->post('/gio-hang/SP003', ['so_luong' => 2]);
-        $this->post('/thanh-toan', ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'COD'])
+        $this->post('/thanh-toan', ['TEN_NGUOINHAN' => 'Khách', 'SDT_NGUOINHAN' => '0901234567', 'PHUONG_THUC_GH' => 'TaiQuay', 'PHUONG_THUC' => 'TienMat'])
             ->assertSessionHasNoErrors();
 
         Event::assertDispatched(DonHangThayDoi::class, function (DonHangThayDoi $e): bool {
@@ -33,7 +33,7 @@ class RealtimeTest extends TestCase
                 && $e->broadcastWith()['trang_thai'] === 'ChoXacNhan';
         });
 
-        $ton = (int) SanPham::query()->findOrFail('SP003')->SOLUONGTON;
+        $ton = SanPham::query()->findOrFail('SP003')->soLuongCoTheBan();
         Event::assertDispatched(SanPhamCapNhat::class, fn (SanPhamCapNhat $e): bool => $e->sanPham->MASP === 'SP003'
             && $e->broadcastWith()['ton'] === $ton
             && array_map(fn ($c) => $c->name, $e->broadcastOn()) === ['cua-hang', 'private-quan-tri']);

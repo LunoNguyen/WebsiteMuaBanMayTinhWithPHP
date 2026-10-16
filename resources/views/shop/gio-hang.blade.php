@@ -25,8 +25,8 @@
                         <div>
                             <a href="{{ route('sanpham.show', $sp->MASP) }}" class="s-line-name">{{ $sp->TENSP }}</a>
                             <div class="s-line-sub">{{ $sp->nhaSanXuat?->TENNSX }} · Đơn giá {{ formatVND($sp->DONGIA_SP) }}</div>
-                            @if ($d->SOLUONG > $sp->SOLUONGTON)
-                                <div class="s-err">Chỉ còn {{ formatNum($sp->SOLUONGTON) }} sản phẩm trong kho.</div>
+                            @if ($d->SOLUONG > $sp->soLuongCoTheBan())
+                                <div class="s-err">Chỉ còn {{ formatNum($sp->soLuongCoTheBan()) }} sản phẩm trong kho.</div>
                             @endif
                         </div>
                         <form method="POST" action="{{ route('giohang.update', $d->MACTGH) }}">
@@ -34,7 +34,7 @@
                             @method('PATCH')
                             <div class="s-qty" data-qty data-auto-submit>
                                 <button type="button" data-minus aria-label="Bớt">−</button>
-                                <input type="number" name="so_luong" value="{{ $d->SOLUONG }}" min="1" max="{{ max(1, min(99, $sp->SOLUONGTON)) }}" aria-label="Số lượng">
+                                <input type="number" name="so_luong" value="{{ $d->SOLUONG }}" min="1" max="{{ max(1, min(99, $sp->soLuongCoTheBan())) }}" aria-label="Số lượng">
                                 <button type="button" data-plus aria-label="Thêm">+</button>
                             </div>
                         </form>

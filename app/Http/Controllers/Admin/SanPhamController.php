@@ -54,6 +54,11 @@ class SanPhamController extends Controller
             ->leftJoin('NHACUNGCAP as ncc', 'sp.MANCC', '=', 'ncc.MANCC')
             ->select('sp.*', 'lsp.TENLOAI', 'nsx.TENNSX', 'ncc.TENNCC')
             ->selectSub('SELECT URL_ANH FROM DANHSACHANH WHERE MASP = sp.MASP AND LA_ANH_CHINH = 1 LIMIT 1', 'ANH_CHINH')
+            ->selectSub(ChiTietHoaDon::query()->toBase()->from('CHITIETHOADON as giu')
+                ->join('HOADON as hd_giu', 'hd_giu.MAHD', '=', 'giu.MAHD')
+                ->whereColumn('giu.MASP', 'sp.MASP')
+                ->whereIn('hd_giu.TRANGTHAI', SanPham::GIU_HANG)
+                ->selectRaw('COALESCE(SUM(giu.SOLUONG), 0)'), 'dang_giu')
             ->when($trangthai !== '', fn ($q) => $q->where('sp.TRANGTHAI', $trangthai))
             ->orderByDesc('sp.NGAYTHEM')
             ->orderBy('sp.MASP');
