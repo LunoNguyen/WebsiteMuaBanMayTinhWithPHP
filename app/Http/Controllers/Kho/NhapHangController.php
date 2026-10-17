@@ -204,7 +204,7 @@ class NhapHangController extends Controller
 
             // --- Tạo SP mới cho từng dòng nếu cần ---
             $dongDaXuly = [];
-            foreach ($request->validated()['dong'] as $dong) {
+            foreach ($request->validated()['dong'] as $i => $dong) {
                 if ($dong['MASP'] === '__new__') {
                     $masp = MaTuDong::tiepTheo('SANPHAM', 'MASP', 'SP');
 
@@ -253,7 +253,7 @@ class NhapHangController extends Controller
                         ? (float) $dong['DONGIA_BAN_MOI']
                         : round($giaNhap * 1.2);
 
-                    SanPham::create([
+                    $sp = SanPham::create([
                         'MASP' => $masp,
                         'TENSP' => trim($dong['TENSP_MOI'] ?? '') ?: 'Sản phẩm mới',
                         'MALOAI' => $maloai,
@@ -265,6 +265,31 @@ class NhapHangController extends Controller
                         'TRANGTHAI' => 'DangBan',
                         'NGAYTHEM' => now(),
                     ]);
+
+                    // Lưu các ảnh được tải lên (ảnh đầu tiên là ảnh chính)
+                    $files = $request->file("dong.{$i}.ANH") ?? ($request->file('dong')[$i]['ANH'] ?? []);
+                    if ($files instanceof \Illuminate\Http\UploadedFile) {
+                        $files = [$files];
+                    }
+                    if (is_array($files) && count($files) > 0) {
+                        $storage = app(\App\Services\MinioStorage::class);
+                        $thuTu = 1;
+                        foreach ($files as $file) {
+                            if ($file instanceof \Illuminate\Http\UploadedFile && $file->isValid()) {
+                                $laChinh = ($thuTu === 1);
+                                $key = $storage->upload($file, 'sanpham/'.$masp);
+                                if ($key) {
+                                    \App\Models\DanhSachAnh::create([
+                                        'MASP' => $masp,
+                                        'URL_ANH' => $key,
+                                        'LA_ANH_CHINH' => $laChinh,
+                                        'THU_TU' => $thuTu++,
+                                    ]);
+                                }
+                            }
+                        }
+                    }
+
                     $dong['MASP'] = $masp;
                 }
                 $dongDaXuly[] = $dong;

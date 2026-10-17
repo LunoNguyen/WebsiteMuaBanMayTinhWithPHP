@@ -175,6 +175,34 @@
 .sp-new-panel.show { display: flex; }
 .sp-new-panel .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .sp-new-panel label { font-size: 11px; font-weight: 600; color: var(--blue); margin-bottom: 2px; display:block; }
+.anh-preview-item {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.anh-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.anh-preview-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(16, 185, 129, 0.95);
+  color: #fff;
+  font-size: 8.5px;
+  text-align: center;
+  font-weight: 700;
+  padding: 1px 0;
+  line-height: 1.2;
+}
 @media (max-width: 900px) {
   .k-grid-3 { grid-template-columns: 1fr; }
 }
@@ -195,7 +223,7 @@
         <div class="alert alert-danger">{!! icon('x') !!} {{ $errors->first() }}</div>
       @endif
 
-      <form method="POST" action="{{ route('kho.nhaphang.store') }}" id="formPhieuKho">
+      <form method="POST" action="{{ route('kho.nhaphang.store') }}" id="formPhieuKho" enctype="multipart/form-data">
         @csrf
 
         <!-- 1. Thông tin chung phiếu nhập -->
@@ -356,6 +384,11 @@
                         <div class="k-fg">
                           <label>Giá bán dự kiến (₫)</label>
                           <input type="number" name="dong[{{ $i }}][DONGIA_BAN_MOI]" class="k-input inp-sp-giaban" value="{{ $d['DONGIA_BAN_MOI'] ?? '' }}" min="0" step="1000" placeholder="0" style="font-size:12px">
+                        </div>
+                        <div class="k-fg">
+                          <label>Ảnh sản phẩm <span style="font-weight:normal;color:var(--text-muted)">(1 hoặc nhiều ảnh, ảnh đầu tiên là ảnh chính)</span></label>
+                          <input type="file" name="dong[{{ $i }}][ANH][]" class="k-input inp-sp-anh" multiple accept="image/*" style="font-size:12px;padding:4px 6px">
+                          <div class="anh-preview-box" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
                         </div>
                         <div style="font-size:11px;color:var(--text-muted)">⚑ Tự động lưu vào danh mục SP khi tạo phiếu nhập (tồn ban đầu = 0).</div>
                       </div>
@@ -625,6 +658,36 @@
       if (selNsx.value === '__new__') inpNsx.style.display = '';
     }
 
+    // Xử lý xem trước ảnh sản phẩm mới
+    var fileInp = tr.querySelector('.inp-sp-anh');
+    var previewBox = tr.querySelector('.anh-preview-box');
+    if (fileInp && previewBox) {
+      fileInp.addEventListener('change', function () {
+        previewBox.innerHTML = '';
+        var files = Array.from(this.files || []);
+        files.forEach(function (file, index) {
+          if (!file.type || !file.type.startsWith('image/')) return;
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            var item = document.createElement('div');
+            item.className = 'anh-preview-item';
+            item.title = file.name + (index === 0 ? ' (Ảnh chính)' : '');
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            item.appendChild(img);
+            if (index === 0) {
+              var badge = document.createElement('div');
+              badge.className = 'anh-preview-badge';
+              badge.textContent = '★ Ảnh chính';
+              item.appendChild(badge);
+            }
+            previewBox.appendChild(item);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+    }
+
     capNhatGoiYGia(tr);
   }
 
@@ -676,6 +739,11 @@
     if (inpLoai) { inpLoai.style.display = 'none'; inpLoai.value = ''; }
     var inpNsx = tr.querySelector('.inp-nsx-moi');
     if (inpNsx) { inpNsx.style.display = 'none'; inpNsx.value = ''; }
+
+    var pBox = tr.querySelector('.anh-preview-box');
+    if (pBox) pBox.innerHTML = '';
+    var fInp = tr.querySelector('.inp-sp-anh');
+    if (fInp) fInp.value = '';
 
     soDong++;
     body.appendChild(tr);

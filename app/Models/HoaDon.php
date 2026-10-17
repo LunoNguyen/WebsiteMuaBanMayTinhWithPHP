@@ -138,6 +138,30 @@ class HoaDon extends Model
     }
 
     /**
+     * Lấy danh sách các phiếu nhập hàng chưa thanh toán cho NCC liên quan đến các sản phẩm trong đơn.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
+     */
+    public function pnhChuaThanhToanNCC(): \Illuminate\Support\Collection
+    {
+        $dsMasp = $this->chiTiets()->pluck('MASP')->filter()->unique()->all();
+        if (empty($dsMasp)) {
+            return collect();
+        }
+
+        return DB::table('CT_PHIEUNHAPHANG as ct')
+            ->join('PHIEUNHAPHANG as pnh', 'ct.MAPNH', '=', 'pnh.MAPNH')
+            ->join('SANPHAM as sp', 'ct.MASP', '=', 'sp.MASP')
+            ->leftJoin('NHACUNGCAP as ncc', 'pnh.MANCC', '=', 'ncc.MANCC')
+            ->whereIn('ct.MASP', $dsMasp)
+            ->where('pnh.TRANGTHAI_THANHTOAN', '!=', 'DaThanhToan')
+            ->where('pnh.TRANGTHAI', '!=', 'DaHuy')
+            ->select('pnh.MAPNH', 'pnh.TRANGTHAI_THANHTOAN', 'pnh.NGAY_DATMUA', 'ct.MASP', 'sp.TENSP', 'ncc.TENNCC', 'ncc.MANCC')
+            ->distinct()
+            ->get();
+    }
+
+    /**
      * Ghi nhận khách đã trả tiền (chuyển khoản / QR, hoặc COD thu tại quầy).
      */
     public function xacNhanThanhToan(): bool

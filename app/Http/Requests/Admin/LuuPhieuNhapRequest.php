@@ -131,6 +131,8 @@ class LuuPhieuNhapRequest extends FormRequest
             'dong.*.MANSX_MOI'          => ['nullable', 'string', 'max:50'],
             'dong.*.TENNSX_TU_NHAP'     => ['nullable', 'string', 'max:100'],
             'dong.*.DONGIA_BAN_MOI'     => ['nullable', 'numeric', 'min:0'],
+            'dong.*.ANH'                => ['nullable', 'array'],
+            'dong.*.ANH.*'              => ['nullable', 'file', 'image', 'max:5120'],
         ];
     }
 
