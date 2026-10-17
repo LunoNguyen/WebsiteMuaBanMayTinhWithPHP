@@ -132,11 +132,12 @@ main { padding: 20px 0 48px; }
 .s-cat strong { display: block; font-size: 13px; font-weight: 600; }
 .s-cat span { font-size: 12px; color: var(--text-muted); }
 
-.s-promos { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-.s-promo { display: flex; gap: 14px; align-items: center; padding: 16px; border-style: dashed; }
-.s-promo-val { font-size: 22px; font-weight: 800; color: var(--red); min-width: 74px; text-align: center; }
+.s-promos { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.s-promo { display: flex; gap: 14px; align-items: center; padding: 16px; border-style: dashed; min-width: 0; }
+.s-promo-val { font-size: 18px; font-weight: 800; color: var(--red); text-align: center; line-height: 1.25; flex-shrink: 0; white-space: nowrap; letter-spacing: -0.3px; }
+.s-promo > div:not(.s-promo-val) { flex: 1; min-width: 0; }
 .s-promo strong { display: block; font-size: 14px; }
-.s-promo span { font-size: 12px; color: var(--text-muted); }
+.s-promo span { display: block; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .s-code { display: inline-flex; margin-top: 6px; padding: 2px 8px; border-radius: 6px; background: var(--bg-main); border: 1px solid var(--border-light); font-family: ui-monospace, monospace; font-size: 12px; font-weight: 600; color: var(--text-primary); }
 
 .s-brands { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
@@ -349,6 +350,11 @@ main { padding: 20px 0 48px; }
   .s-footer-grid { grid-template-columns: 1fr; }
   .s-detail { padding: 16px; }
   .s-orders .hide-sm { display: none; }
+  .s-promos { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .s-promo { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .s-promo-val { text-align: left; }
 }
 
 /* Ô địa chỉ (x-dia-chi): tỉnh + phường cạnh nhau, số nhà bên dưới */
