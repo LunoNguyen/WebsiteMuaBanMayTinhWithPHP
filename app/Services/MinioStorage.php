@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services;
-
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Client\Response;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
@@ -14,6 +14,8 @@ use Throwable;
  */
 class MinioStorage
 {
+    private const TAM_NGUNG = 'minio:tam-ngung';
+private const TAM_NGUNG_GIAY = 60;
     public function __construct(
         private string $endpoint,
         private string $accessKey,
@@ -130,6 +132,9 @@ class MinioStorage
      */
     private function request(string $method, string $key = '', string $body = '', array $headers = []): ?Response
     {
+        if (Cache::has(self::TAM_NGUNG)) {
+                return null;
+            }
         $path = '/'.$this->bucket.($key !== '' ? '/'.$this->encodeKey($key) : '');
         $now = gmdate('Ymd\THis\Z');
         $date = substr($now, 0, 8);
@@ -158,12 +163,14 @@ class MinioStorage
         unset($headers['host'], $headers['content-type']);
 
         try {
+            
             return Http::withHeaders($headers)
                 ->withBody($body, $contentType)
-                ->connectTimeout(3)
-                ->timeout(30)
+                ->connectTimeout(1)
+                ->timeout(10)
                 ->send($method, $this->endpoint.$path);
         } catch (Throwable $exception) {
+            Cache::put(self::TAM_NGUNG, true, self::TAM_NGUNG_GIAY);
             Log::warning('MinIO không kết nối được', ['error' => $exception->getMessage()]);
 
             return null;

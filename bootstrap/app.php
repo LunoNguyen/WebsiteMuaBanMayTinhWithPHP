@@ -22,6 +22,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Chạy sau Cloudflare Tunnel / proxy: tin header X-Forwarded-* để link sinh ra đúng https và đúng tên miền
         $middleware->trustProxies(at: '*');
 
+        // Bỏ qua kiểm tra CSRF cho Webhook thanh toán SePay
+        $middleware->validateCsrfTokens(except: [
+            'api/webhook/*',
+        ]);
+
         // Cookie "theme" do JavaScript ghi (sáng / tối) nên không mã hoá
         $middleware->encryptCookies(except: ['theme']);
 

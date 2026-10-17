@@ -94,6 +94,49 @@
                     @if ($tt)
                         <p>{{ \App\Http\Controllers\Shop\ThanhToanController::PHUONG_THUC[$tt->PHUONG_THUC] ?? $tt->PHUONG_THUC }}</p>
                         {!! statusBadge($tt->TRANGTHAI, 'thanhtoan') !!}
+                        @if ($tt->TRANGTHAI === 'DaThanhToan')
+                            <div style="margin-top:14px;padding:14px 16px;border-radius:12px;background:color-mix(in srgb,var(--green) 7%,var(--bg-card));border:1px solid color-mix(in srgb,var(--green) 25%,transparent)">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                                    <span style="width:32px;height:32px;border-radius:50%;background:color-mix(in srgb,var(--green) 20%,transparent);color:var(--green);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                                        {!! icon('check', 18) !!}
+                                    </span>
+                                    <div>
+                                        <strong style="color:var(--green);font-size:14px;display:block">Đã thanh toán thành công</strong>
+                                        <span style="font-size:12px;color:var(--text-muted)">Xác thực tự động qua VietQR</span>
+                                    </div>
+                                </div>
+
+                                <div style="border-top:1px dashed color-mix(in srgb,var(--green) 25%,transparent);padding-top:10px;display:grid;gap:8px;font-size:13px">
+                                    @if ($tt->MA_GIAODICH)
+                                        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                                            <span style="color:var(--text-secondary)">Mã giao dịch</span>
+                                            <span class="s-code" style="margin:0;font-size:12px;font-weight:700;color:var(--blue);letter-spacing:0.5px">
+                                                {{ $tt->MA_GIAODICH }}
+                                            </span>
+                                        </div>
+                                    @endif
+
+                                    <div style="display:flex;justify-content:space-between;align-items:center">
+                                        <span style="color:var(--text-secondary)">Số tiền</span>
+                                        <strong style="color:var(--green);font-size:14px">{{ formatVND($tt->SOTIEN ?? $hd->TONGTIEN_HD) }}</strong>
+                                    </div>
+
+                                    @if ($tt->NGAN_HANG)
+                                        <div style="display:flex;justify-content:space-between;align-items:center">
+                                            <span style="color:var(--text-secondary)">Ngân hàng</span>
+                                            <strong>{{ $tt->NGAN_HANG }}</strong>
+                                        </div>
+                                    @endif
+
+                                    @if ($tt->NGAY_THANHTOAN)
+                                        <div style="display:flex;justify-content:space-between;align-items:center">
+                                            <span style="color:var(--text-secondary)">Thời gian</span>
+                                            <span style="color:var(--text-muted);font-size:12px">{{ $tt->NGAY_THANHTOAN->format('H:i:s d/m/Y') }}</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                         @if ($canChuyenKhoan)
                             <div class="s-bank">
                                 @if ($tt->PHUONG_THUC === 'QR')
