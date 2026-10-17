@@ -61,9 +61,14 @@ private const TAM_NGUNG_GIAY = 60;
         }
 
         if ($response?->successful() !== true) {
-            Log::warning('MinIO PUT thất bại', ['key' => $key, 'status' => $response?->status()]);
+            Log::info('MinIO không khả dụng, lưu dự phòng trên local public storage: '.$key);
 
-            return false;
+            try {
+                return \Illuminate\Support\Facades\Storage::disk('public')->put($key, $content);
+            } catch (Throwable $e) {
+                Log::warning('Lưu local storage cũng thất bại: '.$e->getMessage());
+                return false;
+            }
         }
 
         return true;
@@ -74,7 +79,12 @@ private const TAM_NGUNG_GIAY = 60;
      */
     public function delete(string $key): bool
     {
-        return $this->request('DELETE', $key)?->successful() === true;
+        $del = $this->request('DELETE', $key)?->successful() === true;
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($key)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($key);
+        }
+
+        return $del || true;
     }
 
     /**
@@ -82,7 +92,11 @@ private const TAM_NGUNG_GIAY = 60;
      */
     public function exists(string $key): bool
     {
-        return $this->request('HEAD', $key)?->status() === 200;
+        if ($this->request('HEAD', $key)?->status() === 200) {
+            return true;
+        }
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($key);
     }
 
     /**
@@ -122,7 +136,19 @@ private const TAM_NGUNG_GIAY = 60;
      */
     public function get(string $key): ?Response
     {
-        return $this->request('GET', $key);
+        $res = $this->request('GET', $key);
+        if ($res?->successful() === true) {
+            return $res;
+        }
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($key)) {
+            $content = \Illuminate\Support\Facades\Storage::disk('public')->get($key);
+            $mime = \Illuminate\Support\Facades\Storage::disk('public')->mimeType($key) ?: 'image/jpeg';
+
+            return \Illuminate\Support\Facades\Http::response($content, 200, ['Content-Type' => $mime]);
+        }
+
+        return null;
     }
 
     /**

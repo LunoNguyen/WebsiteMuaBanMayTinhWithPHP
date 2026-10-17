@@ -47,7 +47,18 @@ class DonHangController extends Controller
     public function xuatKho(Request $request, HoaDon $hoaDon): RedirectResponse
     {
         if ($hoaDon->TRANGTHAI !== 'DaXacNhan') {
-            return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không ở trạng thái chờ xuất kho.");
+            return back()->with('thong_bao', "Đơn {$hoaDon->MAHD} không ở trạng thái chờ xuất kho.")->with('loai', 'danger');
+        }
+
+        // Kiểm tra thanh toán đơn nhập kho cho nhà cung cấp: CHẶN HOÀN TOÀN nếu chưa thanh toán
+        $chuaThanhToan = $hoaDon->pnhChuaThanhToanNCC();
+        if ($chuaThanhToan->isNotEmpty()) {
+            $dsPnh = $chuaThanhToan->pluck('MAPNH')->unique()->implode(', ');
+            $dsSp = $chuaThanhToan->map(fn ($p) => "{$p->MASP} ({$p->TENSP}) - Phiếu nhập {$p->MAPNH}")->unique()->implode('; ');
+
+            return back()
+                ->with('loai', 'danger')
+                ->with('thong_bao', "CHẶN XUẤT KHO: Đơn hàng có mặt hàng thuộc phiếu nhập NCC chưa thanh toán [{$dsPnh}]! Chi tiết: {$dsSp}. Vui lòng thanh toán cho NCC trước khi xuất kho!");
         }
 
         $hoaDon->chuyenBuocTiepTheo($request->user()->MANV);

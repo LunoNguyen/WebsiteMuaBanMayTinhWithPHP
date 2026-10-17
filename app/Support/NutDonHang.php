@@ -34,8 +34,12 @@ class NutDonHang
                 $nut[] = [HoaDon::NHAN_BUOC_TIEP_THEO[$hd->TRANGTHAI], route("{$khu}.donhang.buoc-tiep-theo", $hd->MAHD), 'chinh', 'PATCH', null, 'check'];
             }
         } elseif ($hd->TRANGTHAI === 'DaXacNhan') {
-            $nut[] = ['Xuất kho & bàn giao', route('kho.donhang.xuat-kho', $hd->MAHD), 'chinh', 'PATCH',
-                "Xác nhận xuất kho đơn {$hd->MAHD}?", 'truck'];
+            if ($hd->pnhChuaThanhToanNCC()->isNotEmpty()) {
+                $nut[] = ['🚫 Chặn xuất (Chưa thanh toán NCC)', '#', 'huy', 'GET', null, null];
+            } else {
+                $nut[] = ['Xuất kho & bàn giao', route('kho.donhang.xuat-kho', $hd->MAHD), 'chinh', 'PATCH',
+                    "Xác nhận xuất kho đơn {$hd->MAHD}?", 'truck'];
+            }
         }
 
         return $nut;
