@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\XacNhanDonHangMail;
 use App\Models\CtGioHang;
 use App\Models\HoaDon;
 use App\Models\KhuyenMai;
@@ -9,7 +10,10 @@ use App\Models\SanPham;
 use App\Models\TaiKhoan;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Lập hoá đơn: kiểm tra tồn kho, áp tối đa một mã khuyến mãi, tạo chi tiết và thanh toán, trừ tồn kho.
@@ -48,7 +52,7 @@ class DatHangService
             throw ValidationException::withMessages(['gio_hang' => 'Giỏ hàng đang trống.']);
         }
 
-        return DB::transaction(function () use ($taiKhoan, $sanPham, $thongTin, $maCode): HoaDon {
+        $hoaDon = DB::transaction(function () use ($taiKhoan, $sanPham, $thongTin, $maCode): HoaDon {
             $hoaDon = $this->lapHoaDon($this->taoDong($sanPham), $thongTin, $maCode, [
                 'MATK' => $taiKhoan->MATK,
                 'MAKH' => $taiKhoan->MAKH,
@@ -65,6 +69,28 @@ class DatHangService
 
             return $hoaDon;
         });
+
+        $this->guiEmailXacNhan($hoaDon, $taiKhoan);
+
+        return $hoaDon;
+    }
+
+    /**
+     * Tự động gửi email xác nhận đơn hàng cho khách sau khi đặt hàng thành công.
+     * Bọc trong try/catch để nếu chưa cấu hình SMTP hoặc mất mạng thì đơn hàng vẫn hoàn tất bình thường.
+     */
+    public function guiEmailXacNhan(HoaDon $hoaDon, ?TaiKhoan $taiKhoan = null): void
+    {
+        try {
+            $taiKhoan ??= $hoaDon->taiKhoan;
+            $email = $hoaDon->khachHang?->EMAIL_KH ?: ($taiKhoan?->khachHang?->EMAIL_KH ?: $taiKhoan?->EMAIL_TK);
+
+            if (! empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                Mail::to($email)->send(new XacNhanDonHangMail($hoaDon));
+            }
+        } catch (Throwable $e) {
+            Log::warning("Không gửi được email xác nhận đơn hàng {$hoaDon->MAHD}: ".$e->getMessage());
+        }
     }
 
     /**
@@ -95,7 +121,7 @@ class DatHangService
      */
     public function taoDonTaiQuay(string $maNhanVien, ?string $maKhachHang, array $sanPham, array $thongTin, ?string $maCode): HoaDon
     {
-        return DB::transaction(function () use ($maNhanVien, $maKhachHang, $sanPham, $thongTin, $maCode): HoaDon {
+        $hoaDon = DB::transaction(function () use ($maNhanVien, $maKhachHang, $sanPham, $thongTin, $maCode): HoaDon {
             $taiKhoan = $maKhachHang !== null ? TaiKhoan::query()->where('MAKH', $maKhachHang)->first() : null;
 
             return $this->lapHoaDon($this->taoDong($sanPham), $thongTin, $maCode, [
@@ -105,6 +131,10 @@ class DatHangService
                 'TRANGTHAI' => 'DaXacNhan',
             ], $taiKhoan, 'san_pham', $maKhachHang);
         });
+
+        $this->guiEmailXacNhan($hoaDon);
+
+        return $hoaDon;
     }
 
     /**
